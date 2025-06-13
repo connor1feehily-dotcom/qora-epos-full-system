@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ]).onConflictDoNothing();
 
-      // Seed sample products
+      // Seed essential products only
       await db.insert(products).values([
         {
           name: 'Coca Cola 500ml',
@@ -69,13 +69,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
-          name: 'Diesel',
-          price: '1.42',
-          cost: '1.20',
-          category: 'Fuel',
-          stock: 1000,
-          minStock: 100,
-          vatRate: '23.00',
+          name: 'Coffee Large',
+          price: '2.80',
+          cost: '1.00',
+          category: 'Hot Drinks',
+          stock: 50,
+          minStock: 10,
+          vatRate: '13.50',
           isActive: true
         },
         {
@@ -87,36 +87,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           stock: 12,
           minStock: 3,
           vatRate: '0.00',
-          isActive: true
-        },
-        {
-          name: 'Coffee Large',
-          price: '2.80',
-          cost: '1.00',
-          category: 'Hot Drinks',
-          stock: 50,
-          minStock: 10,
-          vatRate: '13.50',
-          isActive: true
-        },
-        {
-          name: 'Irish Times',
-          price: '2.50',
-          cost: '1.80',
-          category: 'News',
-          stock: 15,
-          minStock: 5,
-          vatRate: '0.00',
-          isActive: true
-        },
-        {
-          name: 'Marlboro Gold',
-          price: '14.50',
-          cost: '12.00',
-          category: 'Tobacco',
-          stock: 8,
-          minStock: 2,
-          vatRate: '23.00',
           isActive: true
         }
       ]).onConflictDoNothing();
