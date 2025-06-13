@@ -54,8 +54,8 @@ function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () 
 
 function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between shadow-sm">
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center space-x-4">
           <button
             onClick={onBackToMenu}
@@ -76,50 +76,52 @@ function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
           Licensed to Kerrigan's XL from The Feehily Boyle Group
         </div>
       </div>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <Switch>
-          <Route path="/" component={BackOffice} />
-          <Route path="/back-office" component={BackOffice} />
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/customers" component={Customers} />
-          <Route path="/suppliers" component={Suppliers} />
-          <Route path="/reports" component={Reports} />
-          <Route path="/till-management" component={() => <TillManagementPage currentUser={{ id: 1, role: 'admin' }} />} />
-          <Route path="/fuel-control" component={() => (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Fuel Control</h2>
-                <p className="text-gray-600">This feature is coming soon</p>
+        <div className="flex-1 overflow-y-auto">
+          <Switch>
+            <Route path="/" component={BackOffice} />
+            <Route path="/back-office" component={BackOffice} />
+            <Route path="/inventory" component={Inventory} />
+            <Route path="/customers" component={Customers} />
+            <Route path="/suppliers" component={Suppliers} />
+            <Route path="/reports" component={Reports} />
+            <Route path="/till-management" component={() => <TillManagementPage currentUser={{ id: 1, role: 'admin' }} />} />
+            <Route path="/fuel-control" component={() => (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Fuel Control</h2>
+                  <p className="text-gray-600">This feature is coming soon</p>
+                </div>
               </div>
-            </div>
-          )} />
-          <Route path="/payments" component={() => (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Payment Management</h2>
-                <p className="text-gray-600">This feature is coming soon</p>
+            )} />
+            <Route path="/payments" component={() => (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Payment Management</h2>
+                  <p className="text-gray-600">This feature is coming soon</p>
+                </div>
               </div>
-            </div>
-          )} />
-          <Route path="/promotions" component={() => (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Promotions</h2>
-                <p className="text-gray-600">This feature is coming soon</p>
+            )} />
+            <Route path="/promotions" component={() => (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Promotions</h2>
+                  <p className="text-gray-600">This feature is coming soon</p>
+                </div>
               </div>
-            </div>
-          )} />
-          <Route path="/staff" component={() => (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Staff Management</h2>
-                <p className="text-gray-600">This feature is coming soon</p>
+            )} />
+            <Route path="/staff" component={() => (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Staff Management</h2>
+                  <p className="text-gray-600">This feature is coming soon</p>
+                </div>
               </div>
-            </div>
-          )} />
-          <Route component={NotFound} />
-        </Switch>
+            )} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </div>
     </div>
   );
