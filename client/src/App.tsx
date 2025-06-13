@@ -174,23 +174,7 @@ function AppContent() {
     <TooltipProvider>
       <Toaster />
       
-      {/* Floating Navigation - only show when user is logged in */}
-      {currentUser && mode !== 'staff-login' && (
-        <FloatingNavigation
-          currentMode={mode}
-          onNavigate={(navMode) => {
-            if (navMode === 'main-menu') {
-              handleBackToMenu();
-            } else if (navMode === 'pos') {
-              handleModeSelect('pos', 'till1');
-            } else if (navMode === 'back-office') {
-              handleModeSelect('back-office');
-            }
-          }}
-          onLogout={handleLogout}
-          currentUser={currentUser}
-        />
-      )}
+
 
       {mode === 'main-menu' && (
         <MainMenu

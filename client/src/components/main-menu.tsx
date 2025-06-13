@@ -54,10 +54,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
             Point of Sale & Management System • Manorhamilton
           </p>
           
-          {/* Status Panels */}
-          {currentUser && (
-            <StatusPanels tillId={selectedTill} className="mb-8" />
-          )}
+
           
           {/* User Status */}
           {currentUser ? (
