@@ -5,6 +5,53 @@ import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insert
 import { z } from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication endpoints
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user || user.password !== password || !user.isActive) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      await storage.updateUserLastLogin(user.id);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  app.post("/api/auth/pin-login", async (req, res) => {
+    try {
+      const { pin } = req.body;
+      const user = await storage.getUserByPin(pin);
+      
+      if (!user || !user.isActive) {
+        return res.status(401).json({ message: "Invalid PIN" });
+      }
+      
+      await storage.updateUserLastLogin(user.id);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
+    } catch (error) {
+      res.status(500).json({ message: "PIN login failed" });
+    }
+  });
+
+  app.get("/api/auth/staff", async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      const staffMembers = users
+        .filter(u => u.isActive)
+        .map(({ password, ...user }) => user);
+      res.json(staffMembers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch staff" });
+    }
+  });
+
   // Products
   app.get("/api/products", async (req, res) => {
     try {
