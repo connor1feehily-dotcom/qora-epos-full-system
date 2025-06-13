@@ -5,6 +5,138 @@ import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insert
 import { z } from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Database seeding endpoint
+  app.post("/api/seed", async (req, res) => {
+    try {
+      const { db } = await import("./db");
+      const { users, products, customers } = await import("@shared/schema");
+
+      // Seed staff users
+      await db.insert(users).values([
+        {
+          username: 'admin',
+          password: 'admin123',
+          pin: '0000',
+          role: 'admin',
+          firstName: 'System',
+          lastName: 'Administrator',
+          employeeId: 'ADMIN001',
+          isActive: true
+        },
+        {
+          username: 'manager',
+          password: 'manager123',
+          pin: '9999',
+          role: 'manager',
+          firstName: 'Store',
+          lastName: 'Manager',
+          employeeId: 'MGR001',
+          isActive: true
+        },
+        {
+          username: 'staff1',
+          password: 'staff123',
+          pin: '1234',
+          role: 'staff',
+          firstName: 'John',
+          lastName: 'Doe',
+          employeeId: 'STAFF001',
+          isActive: true
+        },
+        {
+          username: 'staff2',
+          password: 'staff456',
+          pin: '5678',
+          role: 'staff',
+          firstName: 'Jane',
+          lastName: 'Smith',
+          employeeId: 'STAFF002',
+          isActive: true
+        }
+      ]).onConflictDoNothing();
+
+      // Seed sample products
+      await db.insert(products).values([
+        {
+          name: 'Coca Cola 500ml',
+          barcode: '5449000214911',
+          price: '1.50',
+          cost: '0.80',
+          category: 'Drinks',
+          stock: 24,
+          minStock: 5,
+          vatRate: '23.00',
+          isActive: true
+        },
+        {
+          name: 'Diesel',
+          price: '1.42',
+          cost: '1.20',
+          category: 'Fuel',
+          stock: 1000,
+          minStock: 100,
+          vatRate: '23.00',
+          isActive: true
+        },
+        {
+          name: 'White Bread',
+          barcode: '5099821001236',
+          price: '2.20',
+          cost: '1.50',
+          category: 'Food',
+          stock: 12,
+          minStock: 3,
+          vatRate: '0.00',
+          isActive: true
+        },
+        {
+          name: 'Coffee Large',
+          price: '2.80',
+          cost: '1.00',
+          category: 'Hot Drinks',
+          stock: 50,
+          minStock: 10,
+          vatRate: '13.50',
+          isActive: true
+        },
+        {
+          name: 'Irish Times',
+          price: '2.50',
+          cost: '1.80',
+          category: 'News',
+          stock: 15,
+          minStock: 5,
+          vatRate: '0.00',
+          isActive: true
+        },
+        {
+          name: 'Marlboro Gold',
+          price: '14.50',
+          cost: '12.00',
+          category: 'Tobacco',
+          stock: 8,
+          minStock: 2,
+          vatRate: '23.00',
+          isActive: true
+        }
+      ]).onConflictDoNothing();
+
+      // Seed default customer
+      await db.insert(customers).values([
+        {
+          name: 'Walk-in Customer',
+          loyaltyPoints: 0,
+          isActive: true
+        }
+      ]).onConflictDoNothing();
+
+      res.json({ message: "Database seeded successfully" });
+    } catch (error) {
+      console.error("Seeding error:", error);
+      res.status(500).json({ message: "Failed to seed database" });
+    }
+  });
+
   // Authentication endpoints
   app.post("/api/auth/login", async (req, res) => {
     try {
