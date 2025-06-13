@@ -242,12 +242,12 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
               
               <Button
                 size="lg"
-                className="h-16 px-12 text-xl font-bold kxl-quantum-button text-white kxl-glow kxl-neural-pulse"
+                className="h-16 px-12 text-xl font-bold kxl-quantum-button kxl-glow kxl-neural-pulse text-[#0a0000]"
                 onClick={onStaffLogin}
               >
                 <div className="flex items-center space-x-3">
                   <Brain className="w-6 h-6" />
-                  <span className="text-[#000000]">INITIATE NEURAL SCAN</span>
+                  <span className="text-[#0a0000]">Press here to log in!</span>
                   <Zap className="w-6 h-6" />
                 </div>
               </Button>
