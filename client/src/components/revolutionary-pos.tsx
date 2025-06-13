@@ -71,7 +71,9 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
   useEffect(() => {
     if (cart.length > 0) {
       // Simulate AI recommendations based on cart contents
-      const categories = Array.from(new Set(cart.map(item => item.category)));
+      const categorySet = new Set(cart.map(item => item.category));
+      const categories: string[] = [];
+      categorySet.forEach(cat => categories.push(cat));
       const recommended = products.filter(p => 
         categories.includes(p.category) && 
         !cart.find(c => c.productId === p.id)

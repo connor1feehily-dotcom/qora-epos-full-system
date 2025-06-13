@@ -46,7 +46,7 @@ function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () 
         </div>
       </div>
       <div className="flex-1">
-        <POS tillId={tillId} />
+        <POS tillId={tillId} onBackToMenu={onBackToMenu} />
       </div>
     </div>
   );

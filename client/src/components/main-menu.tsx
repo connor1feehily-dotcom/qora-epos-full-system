@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag, Shield, Zap, Brain, Cpu, Sparkles } from "lucide-react";
 import type { User as StaffUser } from "@shared/schema";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 
@@ -33,50 +34,63 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen kxl-neural-bg flex items-center justify-center p-4">
       <div className="w-full max-w-6xl">
-        {/* Header */}
+        {/* Revolutionary Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
             <img 
               src={kerrigansLogo} 
               alt="Kerrigan's XL Logo"
-              className="h-32 w-auto object-contain"
+              className="h-40 w-auto object-contain kxl-float"
             />
           </div>
-          <p className="text-xl text-slate-600 dark:text-slate-400 mb-6">
-            Manorhamilton Point of Sale System
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
+            QUANTUM POS™ COMMAND CENTER
+          </h1>
+          <p className="text-2xl text-muted-foreground mb-6 kxl-slide-in">
+            Next-Generation Retail Intelligence • Manorhamilton
           </p>
           
-          {/* User Status */}
+          {/* Quantum User Status */}
           {currentUser ? (
-            <div className="flex items-center justify-center space-x-4 mb-8">
-              <div className="flex items-center space-x-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm px-6 py-3 rounded-xl border border-white/20 dark:border-slate-700/50">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {currentUser.firstName || 'Staff'} {currentUser.lastName || 'Member'}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {currentUser.role?.toUpperCase() || 'STAFF'} • {currentUser.employeeId || 'N/A'}
-                  </p>
+            <div className="flex items-center justify-center space-x-6 mb-8">
+              <div className="kxl-glass kxl-ai-border px-8 py-4 rounded-2xl">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-full flex items-center justify-center kxl-glow">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-lg font-bold text-foreground">
+                      {currentUser.firstName || 'Staff'} {currentUser.lastName || 'Member'}
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={currentUser.role === 'admin' ? 'default' : 'secondary'} className="kxl-pulse">
+                        {currentUser.role?.toUpperCase() || 'STAFF'}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {currentUser.employeeId || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <Button 
                 variant="outline"
                 onClick={onLogout}
-                className="px-6 py-3"
+                className="kxl-quantum-button text-white border-none px-8 py-4 text-lg font-bold"
               >
-                Logout
+                Neural Logout
               </Button>
             </div>
           ) : (
-            <Card className="inline-block p-6 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 mb-8">
-              <p className="text-amber-800 dark:text-amber-400 text-lg font-medium">
-                Please log in to access the system
-              </p>
+            <Card className="kxl-glass kxl-hologram inline-block p-8 mb-8">
+              <div className="flex items-center space-x-3">
+                <Shield className="w-8 h-8 text-primary" />
+                <p className="text-foreground text-xl font-bold">
+                  Neural Authentication Required
+                </p>
+              </div>
             </Card>
           )}
         </div>
