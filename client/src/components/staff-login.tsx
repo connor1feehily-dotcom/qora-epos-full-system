@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { User as StaffUser } from "@shared/schema";
+import kerrigansLogo from "@assets/NEW_1749822871411.png";
 
 interface StaffLoginProps {
   onLogin: (user: StaffUser) => void;

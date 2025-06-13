@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag } from "lucide-react";
 import type { User as StaffUser } from "@shared/schema";
+import kerrigansLogo from "@assets/NEW_1749822871411.png";
 
 interface MainMenuProps {
   onSelectMode: (mode: 'pos' | 'back-office', tillId?: string) => void;
@@ -14,16 +15,7 @@ interface MainMenuProps {
 export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: MainMenuProps) {
   const [selectedTill, setSelectedTill] = useState<string>('till1');
 
-  // Debug the issue - log all user data
-  console.log('=== BACK OFFICE ACCESS DEBUG ===');
-  console.log('currentUser:', JSON.stringify(currentUser, null, 2));
-  console.log('currentUser exists:', !!currentUser);
-  console.log('currentUser.role:', currentUser?.role);
-  console.log('Role check result:', currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role));
-  console.log('================================');
-
-  // Temporary: Force back office access for debugging
-  const canAccessBackOffice = true; // currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role);
+  const canAccessBackOffice = currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
@@ -32,7 +24,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
             <img 
-              src="/attached_assets/NEW_1749822871411.png" 
+              src={kerrigansLogo} 
               alt="Kerrigan's XL Logo"
               className="h-32 w-auto object-contain"
             />
