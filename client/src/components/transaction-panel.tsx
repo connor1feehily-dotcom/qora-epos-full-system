@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { User, Trash2, Minus, Plus, X, CreditCard, Banknote, MoreHorizontal, Pause, Printer } from "lucide-react";
+import { User, Trash2, Minus, Plus, X, CreditCard, Banknote, MoreHorizontal, Pause, Printer, ShoppingCart, Receipt } from "lucide-react";
 import type { CartItem, TransactionSummary } from "@/lib/types";
 import type { Customer } from "@shared/schema";
 
@@ -25,15 +25,26 @@ export function TransactionPanel({
   onProcessPayment,
 }: TransactionPanelProps) {
   return (
-    <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b border-gray-200 p-4">
+      <div className="bg-gradient-to-r from-white/90 to-slate-50/90 dark:from-slate-800/90 dark:to-slate-900/90 border-b border-slate-200/50 dark:border-slate-700/50 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Current Sale</h3>
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg">
+              <ShoppingCart className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Current Sale</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {transaction.itemCount} {transaction.itemCount === 1 ? 'item' : 'items'}
+              </p>
+            </div>
+          </div>
           <Button 
-            variant="outline" 
+            variant="ghost" 
             size="sm"
             onClick={onClearTransaction}
+            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
           >
             <Trash2 className="w-4 h-4 mr-1" />
             Clear
@@ -41,14 +52,19 @@ export function TransactionPanel({
         </div>
         
         {/* Customer Info */}
-        <Card className="p-3 bg-gray-50 cursor-pointer" onClick={onSelectCustomer}>
+        <Card 
+          className="p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 cursor-pointer hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all duration-200" 
+          onClick={onSelectCustomer}
+        >
           <div className="flex items-center space-x-3">
-            <User className="text-gray-400 w-5 h-5" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+              <User className="text-blue-600 dark:text-blue-400 w-4 h-4" />
+            </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {customer?.name || 'Walk-in Customer'}
               </p>
-              <p className="text-xs text-primary hover:underline">Change Customer</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 hover:underline">Tap to change customer</p>
             </div>
           </div>
         </Card>

@@ -237,31 +237,33 @@ export default function POS({ tillId }: POSProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Modern Header */}
+      <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-lg border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Monitor className="w-6 h-6 text-primary" />
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg">
+                <Monitor className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">
-                  {tillId === 'till1' ? 'Till 1' : 'Till 2'} - Point of Sale
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {tillId === 'till1' ? 'Till 1' : 'Till 2'} POS
                 </h2>
-                <p className="text-sm text-gray-600">Process customer transactions and manage sales</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Kerrigans XL Manorhamilton</p>
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-success/10 px-3 py-2 rounded-lg">
-              <div className="w-2 h-2 bg-success rounded-full"></div>
-              <span className="text-sm font-medium text-success">Till Open</span>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-xl border border-emerald-200 dark:border-emerald-800">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Till Active</span>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Till Balance</p>
-              <p className="text-lg font-semibold text-gray-900">€{tillBalance.toFixed(2)}</p>
+            <div className="text-right bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-500 dark:text-slate-400">Till Balance</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">€{tillBalance.toFixed(2)}</p>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="ghost" size="sm" className="hover:bg-white/50 dark:hover:bg-slate-800/50">
               <Settings className="w-4 h-4" />
             </Button>
           </div>
@@ -269,42 +271,52 @@ export default function POS({ tillId }: POSProps) {
       </header>
 
       {/* Main POS Interface */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden gap-4 p-4">
         {/* Product Selection Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 overflow-hidden">
           {/* Search & Quick Actions */}
-          <div className="bg-white border-b border-gray-200 p-4">
+          <div className="bg-gradient-to-r from-white/80 to-slate-50/80 dark:from-slate-800/80 dark:to-slate-900/80 border-b border-slate-200/50 dark:border-slate-700/50 p-6">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <Input
                   type="text"
-                  placeholder="Search products or scan barcode..."
+                  placeholder="Search products, scan barcode, or enter product code..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 pr-4 py-3 text-lg bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus:shadow-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
-              <Button onClick={() => setBarcodeScannerOpen(true)}>
-                <Barcode className="w-4 h-4 mr-2" />
+              <Button 
+                onClick={() => setBarcodeScannerOpen(true)}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <Barcode className="w-5 h-5 mr-2" />
                 Scan
               </Button>
-              <Button variant="outline">
-                <Keyboard className="w-4 h-4 mr-2" />
-                Manual Entry
+              <Button 
+                variant="outline"
+                className="border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 px-6 py-3 rounded-xl transition-all duration-200"
+              >
+                <Keyboard className="w-5 h-5 mr-2" />
+                Manual
               </Button>
             </div>
           </div>
 
           {/* Product Categories */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3">
-            <div className="flex space-x-2 overflow-x-auto">
+          <div className="bg-white/40 dark:bg-slate-800/40 border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-4">
+            <div className="flex space-x-3 overflow-x-auto scrollbar-hide">
               {categories.map((category) => (
                 <Button
                   key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
+                  variant={selectedCategory === category ? "default" : "ghost"}
                   size="sm"
-                  className="flex-shrink-0"
+                  className={`flex-shrink-0 px-6 py-2 rounded-full font-medium transition-all duration-200 ${
+                    selectedCategory === category
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                  }`}
                   onClick={() => setSelectedCategory(category)}
                 >
                   {category}
@@ -314,7 +326,7 @@ export default function POS({ tillId }: POSProps) {
           </div>
 
           {/* Product Grid */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-6">
             <ProductGrid
               products={filteredProducts}
               selectedCategory={selectedCategory}
@@ -324,21 +336,23 @@ export default function POS({ tillId }: POSProps) {
         </div>
 
         {/* Transaction Panel */}
-        <TransactionPanel
-          transaction={transaction}
-          customer={selectedCustomer}
-          onUpdateQuantity={updateQuantity}
-          onRemoveItem={removeItem}
-          onClearTransaction={clearTransaction}
-          onSelectCustomer={() => {
-            // TODO: Implement customer selection modal
-            toast({
-              title: "Customer Selection",
-              description: "Customer selection modal not implemented yet",
-            });
-          }}
-          onProcessPayment={processPayment}
-        />
+        <div className="w-96 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 dark:border-slate-700/50">
+          <TransactionPanel
+            transaction={transaction}
+            customer={selectedCustomer}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeItem}
+            onClearTransaction={clearTransaction}
+            onSelectCustomer={() => {
+              // TODO: Implement customer selection modal
+              toast({
+                title: "Customer Selection",
+                description: "Customer selection modal not implemented yet",
+              });
+            }}
+            onProcessPayment={processPayment}
+          />
+        </div>
       </div>
 
       {/* Payment Modal */}
