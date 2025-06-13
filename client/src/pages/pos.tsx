@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductGrid } from "@/components/product-grid";
 import { TransactionPanel } from "@/components/transaction-panel";
 import { PaymentModal } from "@/components/payment-modal";
+import { BarcodeScanner } from "@/components/barcode-scanner";
+import { ReceiptPrinter } from "@/components/receipt-printer";
 import { Search, Barcode, Keyboard, Settings, Monitor } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Product, Customer } from "@shared/schema";
@@ -27,6 +29,10 @@ export default function POS({ tillId }: POSProps) {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [tillBalance] = useState(1247.50);
+  const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false);
+  const [receiptPrinterOpen, setReceiptPrinterOpen] = useState(false);
+  const [lastTransactionId, setLastTransactionId] = useState<number>(0);
+  const [lastCompletedTransaction, setLastCompletedTransaction] = useState<TransactionSummary | null>(null);
 
   // Fetch products
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
@@ -50,12 +56,21 @@ export default function POS({ tillId }: POSProps) {
     mutationFn: async (data: any) => {
       return apiRequest('POST', '/api/transactions', data);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Payment Processed",
         description: "Transaction completed successfully",
       });
+      
+      // Store transaction details for receipt
+      setLastTransactionId(data.transaction.id);
+      setLastCompletedTransaction(transaction);
+      
+      // Clear cart and open receipt printer
       setCart([]);
+      setPaymentModalOpen(false);
+      setReceiptPrinterOpen(true);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
     },

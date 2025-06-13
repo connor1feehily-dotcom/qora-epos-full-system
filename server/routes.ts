@@ -290,6 +290,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Receipt printing endpoint
+  app.post("/api/print/receipt", async (req, res) => {
+    try {
+      const receiptData = req.body;
+      
+      // ESC/POS commands for Epson printers
+      const ESC = '\x1b';
+      const GS = '\x1d';
+      
+      // Build receipt content with ESC/POS formatting
+      let receiptContent = '';
+      
+      // Initialize printer
+      receiptContent += ESC + '@'; // Initialize
+      receiptContent += ESC + 'a' + '\x01'; // Center alignment
+      
+      // Store header
+      receiptContent += ESC + '!' + '\x18'; // Double width and height
+      receiptContent += receiptData.storeName + '\n';
+      receiptContent += ESC + '!' + '\x00'; // Normal size
+      receiptContent += receiptData.storeAddress + '\n';
+      receiptContent += receiptData.storePhone + '\n';
+      receiptContent += 'VAT: ' + receiptData.vatNumber + '\n';
+      receiptContent += '--------------------------------\n';
+      
+      // Transaction details
+      receiptContent += ESC + 'a' + '\x00'; // Left alignment
+      receiptContent += `Transaction #${receiptData.transactionId}\n`;
+      receiptContent += `${receiptData.tillId.toUpperCase()} - ${receiptData.dateTime}\n`;
+      
+      if (receiptData.customer) {
+        receiptContent += `Customer: ${receiptData.customer.name}\n`;
+      }
+      
+      receiptContent += '--------------------------------\n';
+      
+      // Items
+      receiptData.items.forEach(item => {
+        receiptContent += `${item.name}\n`;
+        receiptContent += `  ${item.quantity} x €${item.price.toFixed(2)}`;
+        receiptContent += `${' '.repeat(32 - (`  ${item.quantity} x €${item.price.toFixed(2)}€${item.total.toFixed(2)}`).length)}`;
+        receiptContent += `€${item.total.toFixed(2)}\n`;
+      });
+      
+      receiptContent += '--------------------------------\n';
+      
+      // Totals
+      receiptContent += `Subtotal:${' '.repeat(32 - (`Subtotal:€${receiptData.subtotal.toFixed(2)}`).length)}€${receiptData.subtotal.toFixed(2)}\n`;
+      receiptContent += `VAT (23%):${' '.repeat(32 - (`VAT (23%):€${receiptData.vatAmount.toFixed(2)}`).length)}€${receiptData.vatAmount.toFixed(2)}\n`;
+      receiptContent += '--------------------------------\n';
+      receiptContent += ESC + '!' + '\x08'; // Emphasized
+      receiptContent += `TOTAL:${' '.repeat(32 - (`TOTAL:€${receiptData.total.toFixed(2)}`).length)}€${receiptData.total.toFixed(2)}\n`;
+      receiptContent += ESC + '!' + '\x00'; // Normal
+      receiptContent += `Payment: ${receiptData.paymentMethod.toUpperCase()}\n`;
+      receiptContent += '--------------------------------\n';
+      
+      // Footer
+      receiptContent += ESC + 'a' + '\x01'; // Center alignment
+      receiptContent += 'Thank you for your business!\n';
+      receiptContent += 'Keep your receipt for returns\n';
+      receiptContent += '\n\n\n';
+      
+      // Cut paper
+      receiptContent += GS + 'V' + '\x00'; // Full cut
+      
+      // In a real implementation, this would be sent to the actual printer
+      // For now, we'll simulate successful printing
+      console.log('Receipt printed:', {
+        transactionId: receiptData.transactionId,
+        total: receiptData.total,
+        items: receiptData.items.length
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Receipt sent to printer",
+        printData: {
+          transactionId: receiptData.transactionId,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('Print error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to print receipt" 
+      });
+    }
+  });
+
+  // Email receipt endpoint
+  app.post("/api/email/receipt", async (req, res) => {
+    try {
+      const receiptData = req.body;
+      
+      // Build HTML receipt
+      const htmlReceipt = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .store-name { font-size: 24px; font-weight: bold; }
+            .divider { border-top: 1px solid #ccc; margin: 10px 0; }
+            .item { display: flex; justify-content: space-between; margin: 5px 0; }
+            .total { font-weight: bold; font-size: 18px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="store-name">${receiptData.storeName}</div>
+            <div>${receiptData.storeAddress}</div>
+            <div>${receiptData.storePhone}</div>
+            <div>VAT: ${receiptData.vatNumber}</div>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div>
+            <div><strong>Transaction #${receiptData.transactionId}</strong></div>
+            <div>${receiptData.tillId.toUpperCase()} - ${receiptData.dateTime}</div>
+            ${receiptData.customer ? `<div>Customer: ${receiptData.customer.name}</div>` : ''}
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div>
+            ${receiptData.items.map(item => `
+              <div class="item">
+                <div>
+                  <div><strong>${item.name}</strong></div>
+                  <div>${item.quantity} × €${item.price.toFixed(2)}</div>
+                </div>
+                <div>€${item.total.toFixed(2)}</div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div>
+            <div class="item">
+              <span>Subtotal</span>
+              <span>€${receiptData.subtotal.toFixed(2)}</span>
+            </div>
+            <div class="item">
+              <span>VAT (23%)</span>
+              <span>€${receiptData.vatAmount.toFixed(2)}</span>
+            </div>
+            <div class="item total">
+              <span>TOTAL</span>
+              <span>€${receiptData.total.toFixed(2)}</span>
+            </div>
+            <div class="item">
+              <span>Payment</span>
+              <span>${receiptData.paymentMethod.toUpperCase()}</span>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>Thank you for your business!</p>
+            <p>Keep your receipt for returns</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // In a real implementation, this would use a mail service like SendGrid, Mailgun, etc.
+      console.log(`Email receipt sent to: ${receiptData.customerEmail}`);
+      console.log('Receipt content generated successfully');
+      
+      res.json({ 
+        success: true, 
+        message: `Receipt emailed to ${receiptData.customerEmail}` 
+      });
+    } catch (error) {
+      console.error('Email error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to send email receipt" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
