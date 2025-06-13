@@ -21,12 +21,13 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
       <div className="w-full max-w-6xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
-            <ShoppingCart className="w-12 h-12 text-white" />
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/attached_assets/NEW_1749822871411.png" 
+              alt="Kerrigan's XL Logo"
+              className="h-32 w-auto object-contain"
+            />
           </div>
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Kerrigans XL
-          </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 mb-6">
             Manorhamilton Point of Sale System
           </p>
@@ -206,8 +207,11 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
 
         {/* Footer */}
         <div className="text-center mt-12">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
             Kerrigans XL Manorhamilton • Touchscreen POS System
+          </p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            © 2024 The Feehily Boyle Group. All rights reserved.
           </p>
         </div>
       </div>

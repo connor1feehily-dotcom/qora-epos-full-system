@@ -84,8 +84,12 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
           <div className="p-8">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <User className="w-10 h-10 text-white" />
+              <div className="flex justify-center mb-4">
+                <img 
+                  src="/attached_assets/NEW_1749822871411.png" 
+                  alt="Kerrigan's XL Logo"
+                  className="h-16 w-auto object-contain"
+                />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {selectedStaff.firstName} {selectedStaff.lastName}
@@ -183,8 +187,12 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-10 h-10 text-white" />
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/attached_assets/NEW_1749822871411.png" 
+                alt="Kerrigan's XL Logo"
+                className="h-20 w-auto object-contain"
+              />
             </div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               Staff Login
@@ -232,12 +240,19 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
           {/* Back Button */}
           <Button
             variant="ghost"
-            className="w-full"
+            className="w-full mb-4"
             onClick={onBack}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Main Menu
           </Button>
+          
+          {/* Copyright */}
+          <div className="text-center">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              © 2024 The Feehily Boyle Group. All rights reserved.
+            </p>
+          </div>
         </div>
       </Card>
     </div>
