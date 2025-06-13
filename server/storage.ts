@@ -271,6 +271,7 @@ export class MemStorage implements IStorage {
       id,
       customerId: insertTransaction.customerId || null,
       status: insertTransaction.status || 'completed',
+      tillId: insertTransaction.tillId || 'till1',
       createdAt: new Date()
     };
     this.transactions.set(id, transaction);

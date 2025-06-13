@@ -47,6 +47,7 @@ export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id"),
   userId: integer("user_id").notNull(),
+  tillId: text("till_id").notNull().default("till1"),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   vatAmount: decimal("vat_amount", { precision: 10, scale: 2 }).notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),

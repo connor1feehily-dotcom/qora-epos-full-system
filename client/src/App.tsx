@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { TillSelector } from "@/components/till-selector";
 import { Sidebar } from "@/components/sidebar";
 import POS from "@/pages/pos";
 import BackOffice from "@/pages/back-office";
@@ -12,12 +14,23 @@ import Suppliers from "@/pages/suppliers";
 import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
 
-function Router() {
+function POSRouter({ tillId }: { tillId: string }) {
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <TillSelector onSelectTill={() => {}} selectedTill={tillId} />
+      <div className="flex-1">
+        <POS tillId={tillId} />
+      </div>
+    </div>
+  );
+}
+
+function BackOfficeRouter({ onSelectTill }: { onSelectTill: (tillId: string) => void }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <Switch>
-        <Route path="/" component={POS} />
+        <Route path="/" component={BackOffice} />
         <Route path="/back-office" component={BackOffice} />
         <Route path="/inventory" component={Inventory} />
         <Route path="/customers" component={Customers} />
@@ -62,11 +75,23 @@ function Router() {
 }
 
 function App() {
+  const [selectedMode, setSelectedMode] = useState<string>('');
+
+  const handleSelectTill = (tillId: string) => {
+    setSelectedMode(tillId);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        {!selectedMode ? (
+          <TillSelector onSelectTill={handleSelectTill} />
+        ) : selectedMode === 'backoffice' ? (
+          <BackOfficeRouter onSelectTill={handleSelectTill} />
+        ) : (
+          <POSRouter tillId={selectedMode} />
+        )}
       </TooltipProvider>
     </QueryClientProvider>
   );

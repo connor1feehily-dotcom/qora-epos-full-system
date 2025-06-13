@@ -7,14 +7,18 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductGrid } from "@/components/product-grid";
 import { TransactionPanel } from "@/components/transaction-panel";
 import { PaymentModal } from "@/components/payment-modal";
-import { Search, Barcode, Keyboard, Settings } from "lucide-react";
+import { Search, Barcode, Keyboard, Settings, Monitor } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Product, Customer } from "@shared/schema";
 import type { CartItem, TransactionSummary } from "@/lib/types";
 
 const categories = ['All Items', 'Fuel', 'Convenience', 'Tobacco', 'Drinks', 'Food', 'Hot Drinks', 'News'];
 
-export default function POS() {
+interface POSProps {
+  tillId: string;
+}
+
+export default function POS({ tillId }: POSProps) {
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState('All Items');
   const [searchQuery, setSearchQuery] = useState('');
@@ -157,6 +161,7 @@ export default function POS() {
       transaction: {
         customerId: selectedCustomer?.id || null,
         userId: 1, // Default user ID
+        tillId: tillId,
         subtotal: transaction.subtotal.toFixed(2),
         vatAmount: transaction.vatAmount.toFixed(2),
         total: transaction.total.toFixed(2),
@@ -202,9 +207,16 @@ export default function POS() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Point of Sale</h2>
-            <p className="text-sm text-gray-600">Process customer transactions and manage sales</p>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Monitor className="w-6 h-6 text-primary" />
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  {tillId === 'till1' ? 'Till 1' : 'Till 2'} - Point of Sale
+                </h2>
+                <p className="text-sm text-gray-600">Process customer transactions and manage sales</p>
+              </div>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 bg-success/10 px-3 py-2 rounded-lg">

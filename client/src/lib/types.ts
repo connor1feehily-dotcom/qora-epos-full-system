@@ -22,4 +22,14 @@ export interface DashboardMetrics {
   fuelSales: number;
   lowStock: number;
   recentTransactions: any[];
+  tillMetrics: {
+    till1: {
+      transactions: number;
+      revenue: number;
+    };
+    till2: {
+      transactions: number;
+      revenue: number;
+    };
+  };
 }

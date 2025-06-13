@@ -218,15 +218,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics/Reports
   app.get("/api/analytics/dashboard", async (req, res) => {
     try {
+      const { tillId } = req.query;
       const transactions = await storage.getTransactions();
       const products = await storage.getProducts();
       
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const todayTransactions = transactions.filter(t => 
+      let todayTransactions = transactions.filter(t => 
         new Date(t.createdAt).getTime() >= today.getTime()
       );
+
+      // Filter by till if specified
+      if (tillId && tillId !== 'all') {
+        todayTransactions = todayTransactions.filter(t => t.tillId === tillId);
+      }
       
       const dailyRevenue = todayTransactions.reduce((sum, t) => 
         sum + parseFloat(t.total.toString()), 0
@@ -246,13 +252,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
+
+      // Till-specific metrics
+      const till1Transactions = transactions.filter(t => 
+        new Date(t.createdAt).getTime() >= today.getTime() && t.tillId === 'till1'
+      );
+      const till2Transactions = transactions.filter(t => 
+        new Date(t.createdAt).getTime() >= today.getTime() && t.tillId === 'till2'
+      );
+
+      const till1Revenue = till1Transactions.reduce((sum, t) => 
+        sum + parseFloat(t.total.toString()), 0
+      );
+      const till2Revenue = till2Transactions.reduce((sum, t) => 
+        sum + parseFloat(t.total.toString()), 0
+      );
       
       res.json({
         dailyRevenue,
         transactions: todayTransactions.length,
         fuelSales,
         lowStock: lowStockItems.length,
-        recentTransactions: transactions.slice(-5).reverse()
+        recentTransactions: transactions.slice(-5).reverse(),
+        tillMetrics: {
+          till1: {
+            transactions: till1Transactions.length,
+            revenue: till1Revenue
+          },
+          till2: {
+            transactions: till2Transactions.length,
+            revenue: till2Revenue
+          }
+        }
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch analytics data" });
