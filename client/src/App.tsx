@@ -12,7 +12,7 @@ import { FloatingNavigation } from "@/components/floating-navigation";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
-import { POSSystem } from "@/components/pos-system";
+import { CleanPOS } from "@/components/clean-pos";
 import BackOffice from "@/pages/back-office";
 import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";
@@ -24,32 +24,7 @@ import type { User } from "@shared/schema";
 
 function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () => void }) {
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={onBackToMenu}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl"
-          >
-            ← Main Menu
-          </button>
-          <img 
-            src={kerrigansLogo} 
-            alt="Kerrigan's XL Logo"
-            className="h-10 w-auto object-contain"
-          />
-          <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {tillId === 'till1' ? 'Till 1' : 'Till 2'} - POS Mode
-          </span>
-        </div>
-        <div className="text-xs text-slate-500 dark:text-slate-400">
-          Licensed to Kerrigan's XL from The Feehily Boyle Group
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        <POS tillId={tillId} onBackToMenu={onBackToMenu} />
-      </div>
-    </div>
+    <CleanPOS tillId={tillId} onBackToMenu={onBackToMenu} />
   );
 }
 
@@ -191,7 +166,7 @@ function AppContent() {
         />
       )}
       {mode === 'pos' && selectedTill && (
-        <POSSystem tillId={selectedTill} onBackToMenu={handleBackToMenu} />
+        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} />
       )}
       {mode === 'back-office' && (
         <BackOfficeRouter onBackToMenu={handleBackToMenu} />
