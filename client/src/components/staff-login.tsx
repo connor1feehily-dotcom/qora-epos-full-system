@@ -31,19 +31,11 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
       return response;
     },
     onSuccess: (response: any) => {
-      console.log('=== PIN LOGIN RESPONSE ===');
-      console.log('Raw response:', JSON.stringify(response, null, 2));
-      
       const user = response?.user || response;
-      console.log('Extracted user:', JSON.stringify(user, null, 2));
-      console.log('User role:', user?.role);
-      console.log('=========================');
-      
       toast({
         title: "Login Successful",
         description: `Welcome back, ${user.firstName || 'User'}!`,
       });
-      // Pass the complete user object
       onLogin(user);
     },
     onError: () => {
@@ -96,7 +88,7 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
                 <img 
-                  src="/attached_assets/NEW_1749822871411.png" 
+                  src={kerrigansLogo} 
                   alt="Kerrigan's XL Logo"
                   className="h-16 w-auto object-contain"
                 />
@@ -199,7 +191,7 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <img 
-                src="/attached_assets/NEW_1749822871411.png" 
+                src={kerrigansLogo} 
                 alt="Kerrigan's XL Logo"
                 className="h-20 w-auto object-contain"
               />

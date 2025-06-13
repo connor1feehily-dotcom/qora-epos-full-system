@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import kerrigansLogo from "@assets/NEW_1749822871411.png";
 
 export function KerrigansLoadingScreen() {
   const [progress, setProgress] = useState(0);
@@ -60,7 +61,7 @@ export function KerrigansLoadingScreen() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img 
-            src="/attached_assets/NEW_1749822871411.png" 
+            src={kerrigansLogo} 
             alt="Kerrigan's XL Logo"
             className="h-24 w-auto object-contain animate-pulse"
           />

@@ -146,10 +146,6 @@ function AppContent() {
   };
 
   const handleLoginSuccess = (user: User) => {
-    console.log('=== LOGIN SUCCESS DEBUG ===');
-    console.log('Received user data:', JSON.stringify(user, null, 2));
-    console.log('User role:', user?.role);
-    console.log('==========================');
     setCurrentUser(user);
     setMode('main-menu');
   };
