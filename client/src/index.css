@@ -291,7 +291,12 @@
   }
 
   .kxl-emerald-button {
-    @apply bg-gradient-to-r from-secondary to-secondary/90 hover:from-secondary/90 hover:to-secondary text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+    @apply text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+    background: linear-gradient(to right, hsl(var(--secondary)), hsl(var(--secondary) / 0.9));
+  }
+
+  .kxl-emerald-button:hover {
+    background: linear-gradient(to right, hsl(var(--secondary) / 0.9), hsl(var(--secondary)));
   }
 
   .kxl-cyan-accent {

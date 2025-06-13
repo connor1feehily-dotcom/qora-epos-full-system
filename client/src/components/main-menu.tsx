@@ -54,7 +54,12 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
             Point of Sale & Management System • Manorhamilton
           </p>
           
-          {/* Quantum User Status */}
+          {/* Status Panels */}
+          {currentUser && (
+            <StatusPanels tillId={selectedTill} className="mb-8" />
+          )}
+          
+          {/* User Status */}
           {currentUser ? (
             <div className="flex items-center justify-center space-x-6 mb-8">
               <div className="kxl-glass kxl-ai-border px-8 py-4 rounded-2xl">
@@ -80,9 +85,9 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
               <Button 
                 variant="outline"
                 onClick={onLogout}
-                className="kxl-quantum-button text-white border-none px-8 py-4 text-lg font-bold"
+                className="kxl-emerald-button px-8 py-4 text-lg font-bold border-none"
               >
-                Neural Logout
+                Logout
               </Button>
             </div>
           ) : (
@@ -90,7 +95,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
               <div className="flex items-center space-x-3">
                 <Shield className="w-8 h-8 text-primary" />
                 <p className="text-foreground text-xl font-bold">
-                  Neural Authentication Required
+                  Staff Authentication Required
                 </p>
               </div>
             </Card>
