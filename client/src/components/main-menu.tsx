@@ -97,24 +97,25 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
 
         {currentUser ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* POS Section */}
-            <Card className="p-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm shadow-xl border border-white/30 dark:border-slate-700/50">
+            {/* Quantum POS Section */}
+            <Card className="kxl-glass kxl-ai-border p-8 shadow-2xl">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <Monitor className="w-10 h-10 text-white" />
+                <div className="w-24 h-24 bg-gradient-to-r from-primary to-secondary rounded-3xl flex items-center justify-center mx-auto mb-6 kxl-glow">
+                  <Monitor className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  Point of Sale
+                <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">
+                  QUANTUM POS™
                 </h2>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Process customer transactions
+                <p className="text-lg text-muted-foreground kxl-slide-in">
+                  Neural Transaction Processing • AI-Enhanced Commerce
                 </p>
               </div>
 
-              {/* Till Selection */}
+              {/* Revolutionary Till Selection */}
               <div className="mb-8">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4 text-center">
-                  Select Till Station
+                <p className="text-lg font-bold text-foreground mb-6 text-center flex items-center justify-center space-x-2">
+                  <Cpu className="w-5 h-5" />
+                  <span>Select Neural Core Station</span>
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   {['till1', 'till2'].map((tillId) => (
@@ -122,15 +123,17 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                       key={tillId}
                       variant={selectedTill === tillId ? "default" : "outline"}
                       size="lg"
-                      className={`h-16 text-lg font-semibold ${
+                      className={`h-20 text-lg font-bold kxl-neural-button ${
                         selectedTill === tillId
-                          ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg"
-                          : "hover:bg-green-50 dark:hover:bg-green-900/20"
+                          ? "kxl-quantum-button text-white kxl-glow"
+                          : "kxl-glass border-primary/20 hover:border-primary/40"
                       }`}
                       onClick={() => setSelectedTill(tillId)}
                     >
-                      <Monitor className="w-5 h-5 mr-2" />
-                      {tillId === 'till1' ? 'Till 1' : 'Till 2'}
+                      <div className="flex flex-col items-center space-y-1">
+                        <Brain className="w-6 h-6" />
+                        <span>{tillId === 'till1' ? 'Neural Core 1' : 'Neural Core 2'}</span>
+                      </div>
                     </Button>
                   ))}
                 </div>
@@ -138,110 +141,141 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
 
               <Button
                 size="lg"
-                className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-20 text-2xl font-bold kxl-quantum-button text-white kxl-glow kxl-neural-pulse"
                 onClick={() => onSelectMode('pos', selectedTill)}
               >
-                <ShoppingCart className="w-6 h-6 mr-3" />
-                Start POS Session
+                <div className="flex items-center space-x-3">
+                  <Sparkles className="w-8 h-8" />
+                  <span>INITIALIZE QUANTUM SESSION</span>
+                  <Zap className="w-8 h-8" />
+                </div>
               </Button>
             </Card>
 
-            {/* Back Office Section */}
-            <Card className={`p-8 backdrop-blur-sm shadow-xl border ${
+            {/* Quantum Management Hub */}
+            <Card className={`kxl-glass kxl-ai-border p-8 shadow-2xl ${
               canAccessBackOffice 
-                ? "bg-white/70 dark:bg-slate-800/70 border-white/30 dark:border-slate-700/50" 
-                : "bg-gray-100/70 dark:bg-slate-900/70 border-gray-200/30 dark:border-slate-800/50 opacity-60"
+                ? "kxl-hologram" 
+                : "opacity-60 kxl-locked"
             }`}>
               <div className="text-center mb-8">
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${
+                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-6 kxl-glow ${
                   canAccessBackOffice 
-                    ? "bg-gradient-to-r from-blue-500 to-purple-600" 
+                    ? "bg-gradient-to-r from-secondary to-primary" 
                     : "bg-gray-400"
                 }`}>
-                  <Settings className="w-10 h-10 text-white" />
+                  <Settings className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  Back Office
+                <h2 className="text-4xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent mb-3">
+                  NEURAL COMMAND
                 </h2>
-                <p className="text-slate-600 dark:text-slate-400">
+                <p className="text-lg text-muted-foreground kxl-slide-in">
                   {canAccessBackOffice 
-                    ? "Manage inventory, reports & settings" 
-                    : "Manager access required"
+                    ? "AI-Powered Business Intelligence • Quantum Analytics" 
+                    : "Neural Access Required • Contact System Administrator"
                   }
                 </p>
               </div>
 
               {canAccessBackOffice && (
-                <div className="grid grid-cols-2 gap-3 mb-8">
-                  <div className="flex items-center space-x-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                    <BarChart3 className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium">Reports</span>
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-primary/20">
+                    <div className="flex items-center space-x-3">
+                      <BarChart3 className="w-6 h-6 text-primary" />
+                      <span className="font-bold text-foreground">Quantum Reports</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                    <Package className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium">Inventory</span>
+                  <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-secondary/20">
+                    <div className="flex items-center space-x-3">
+                      <Package className="w-6 h-6 text-secondary" />
+                      <span className="font-bold text-foreground">Neural Inventory</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                    <Users className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium">Customers</span>
+                  <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-primary/20">
+                    <div className="flex items-center space-x-3">
+                      <Users className="w-6 h-6 text-primary" />
+                      <span className="font-bold text-foreground">AI Customers</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 p-3 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                    <Truck className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium">Suppliers</span>
+                  <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-secondary/20">
+                    <div className="flex items-center space-x-3">
+                      <Truck className="w-6 h-6 text-secondary" />
+                      <span className="font-bold text-foreground">Smart Suppliers</span>
+                    </div>
                   </div>
                 </div>
               )}
 
               <Button
                 size="lg"
-                className={`w-full h-16 text-xl font-semibold transition-all duration-200 ${
+                className={`w-full h-20 text-2xl font-bold transition-all duration-200 ${
                   canAccessBackOffice
-                    ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl"
+                    ? "kxl-quantum-button text-white kxl-glow kxl-neural-pulse"
                     : "bg-gray-400 text-gray-600 cursor-not-allowed"
                 }`}
                 onClick={() => canAccessBackOffice && onSelectMode('back-office')}
                 disabled={!canAccessBackOffice}
               >
-                <Settings className="w-6 h-6 mr-3" />
-                {canAccessBackOffice ? "Access Back Office" : "Access Restricted"}
+                <div className="flex items-center space-x-3">
+                  <Brain className="w-8 h-8" />
+                  <span>{canAccessBackOffice ? "ENTER NEURAL COMMAND" : "ACCESS RESTRICTED"}</span>
+                  <Cpu className="w-8 h-8" />
+                </div>
               </Button>
             </Card>
           </div>
         ) : (
-          /* Login Prompt */
+          /* Quantum Authentication Portal */
           <div className="text-center">
-            <Card className="inline-block p-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm shadow-xl border border-white/30 dark:border-slate-700/50">
-              <div className="mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <User className="w-8 h-8 text-white" />
+            <Card className="kxl-glass kxl-hologram inline-block p-12 shadow-2xl">
+              <div className="mb-8">
+                <div className="w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-6 kxl-glow">
+                  <Shield className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                  Staff Authentication Required
+                <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
+                  NEURAL AUTHENTICATION PORTAL
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Please log in to access the POS system
+                <p className="text-xl text-muted-foreground kxl-slide-in">
+                  Biometric Access Required • Quantum Security Protocol
                 </p>
               </div>
               
               <Button
                 size="lg"
-                className="h-14 px-8 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                className="h-16 px-12 text-xl font-bold kxl-quantum-button text-white kxl-glow kxl-neural-pulse"
                 onClick={onStaffLogin}
               >
-                <User className="w-5 h-5 mr-3" />
-                Staff Login
+                <div className="flex items-center space-x-3">
+                  <Brain className="w-6 h-6" />
+                  <span>INITIATE NEURAL SCAN</span>
+                  <Zap className="w-6 h-6" />
+                </div>
               </Button>
             </Card>
           </div>
         )}
 
-        {/* Footer */}
-        <div className="text-center mt-12">
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-            Kerrigans XL Manorhamilton • Touchscreen POS System
+        {/* Quantum Footer */}
+        <div className="text-center mt-12 kxl-glass rounded-xl p-6">
+          <div className="flex items-center justify-center space-x-6 mb-4">
+            <div className="flex items-center space-x-2 text-primary">
+              <Cpu className="w-4 h-4" />
+              <span className="text-sm font-bold">Quantum Core: Active</span>
+            </div>
+            <div className="flex items-center space-x-2 text-secondary">
+              <Brain className="w-4 h-4" />
+              <span className="text-sm font-bold">Neural Network: Online</span>
+            </div>
+            <div className="flex items-center space-x-2 text-green-500">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-bold">AI: Operational</span>
+            </div>
+          </div>
+          <p className="text-lg font-bold text-foreground mb-2">
+            Kerrigan's XL Manorhamilton • Quantum POS™ System
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500">
-            Licensed to Kerrigan's XL from The Feehily Boyle Group
+          <p className="text-sm text-muted-foreground">
+            Licensed to Kerrigan's XL from The Feehily Boyle Group • Neural Commerce Division
           </p>
         </div>
       </div>
