@@ -327,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       receiptContent += '--------------------------------\n';
       
       // Items
-      receiptData.items.forEach(item => {
+      receiptData.items.forEach((item: any) => {
         receiptContent += `${item.name}\n`;
         receiptContent += `  ${item.quantity} x €${item.price.toFixed(2)}`;
         receiptContent += `${' '.repeat(32 - (`  ${item.quantity} x €${item.price.toFixed(2)}€${item.total.toFixed(2)}`).length)}`;
@@ -419,7 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           <div class="divider"></div>
           
           <div>
-            ${receiptData.items.map(item => `
+            ${receiptData.items.map((item: any) => `
               <div class="item">
                 <div>
                   <div><strong>${item.name}</strong></div>

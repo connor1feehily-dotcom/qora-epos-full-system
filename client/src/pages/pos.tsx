@@ -56,14 +56,15 @@ export default function POS({ tillId }: POSProps) {
     mutationFn: async (data: any) => {
       return apiRequest('POST', '/api/transactions', data);
     },
-    onSuccess: (data) => {
+    onSuccess: (response: any) => {
+      const data = response?.data || response;
       toast({
         title: "Payment Processed",
         description: "Transaction completed successfully",
       });
       
       // Store transaction details for receipt
-      setLastTransactionId(data.transaction.id);
+      setLastTransactionId(data?.id || Date.now());
       setLastCompletedTransaction(transaction);
       
       // Clear cart and open receipt printer
@@ -132,6 +133,24 @@ export default function POS({ tillId }: POSProps) {
       title: "Item Added",
       description: `${product.name} added to cart`,
     });
+  };
+
+  // Handle barcode scan
+  const handleBarcodeScan = (barcode: string) => {
+    const product = products.find(p => p.barcode === barcode);
+    if (product) {
+      addToCart(product);
+      toast({
+        title: "Product Added",
+        description: `${product.name} added to cart`,
+      });
+    } else {
+      toast({
+        title: "Product Not Found",
+        description: `No product found with barcode: ${barcode}`,
+        variant: "destructive",
+      });
+    }
   };
 
   // Update item quantity
@@ -266,7 +285,7 @@ export default function POS({ tillId }: POSProps) {
                   className="pl-10"
                 />
               </div>
-              <Button>
+              <Button onClick={() => setBarcodeScannerOpen(true)}>
                 <Barcode className="w-4 h-4 mr-2" />
                 Scan
               </Button>
@@ -330,6 +349,29 @@ export default function POS({ tillId }: POSProps) {
         total={transaction.total}
         initialMethod={paymentMethod}
       />
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScanner
+        isOpen={barcodeScannerOpen}
+        onClose={() => setBarcodeScannerOpen(false)}
+        onScan={handleBarcodeScan}
+      />
+
+      {/* Receipt Printer Modal */}
+      {lastCompletedTransaction && (
+        <ReceiptPrinter
+          isOpen={receiptPrinterOpen}
+          onClose={() => {
+            setReceiptPrinterOpen(false);
+            setLastCompletedTransaction(null);
+          }}
+          transaction={lastCompletedTransaction}
+          customer={selectedCustomer}
+          tillId={tillId}
+          paymentMethod={paymentMethod}
+          transactionId={lastTransactionId}
+        />
+      )}
     </div>
   );
 }
