@@ -144,7 +144,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                 className="w-full h-20 text-2xl font-bold kxl-quantum-button text-white kxl-glow kxl-neural-pulse"
                 onClick={() => onSelectMode('pos', selectedTill)}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 text-[#000000]">
                   <Sparkles className="w-8 h-8" />
                   <span>INITIALIZE QUANTUM SESSION</span>
                   <Zap className="w-8 h-8" />
