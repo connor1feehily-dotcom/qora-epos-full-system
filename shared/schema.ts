@@ -6,8 +6,14 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default("staff"),
+  pin: text("pin"),
+  role: text("role").notNull().default("staff"), // staff, manager, admin
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  employeeId: text("employee_id").unique(),
   isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastLogin: timestamp("last_login"),
 });
 
 export const products = pgTable("products", {

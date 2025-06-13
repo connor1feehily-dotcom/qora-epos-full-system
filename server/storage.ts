@@ -4,12 +4,16 @@ import {
   type InsertUser, type InsertProduct, type InsertCustomer, type InsertSupplier, 
   type InsertTransaction, type InsertTransactionItem, type InsertPromotion
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByPin(pin: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserLastLogin(id: number): Promise<void>;
   
   // Products
   getProducts(): Promise<Product[]>;
@@ -46,6 +50,212 @@ export interface IStorage {
   createPromotion(promotion: InsertPromotion): Promise<Promotion>;
   updatePromotion(id: number, promotion: Partial<InsertPromotion>): Promise<Promotion | undefined>;
   deletePromotion(id: number): Promise<boolean>;
+}
+
+export class DatabaseStorage implements IStorage {
+  constructor() {
+    this.seedData();
+  }
+
+  private async seedData() {
+    try {
+      // Check if admin user exists
+      const existingAdmin = await this.getUserByUsername("admin");
+      if (!existingAdmin) {
+        // Create default admin user
+        await this.createUser({
+          username: "admin",
+          password: "admin123",
+          pin: "0000",
+          role: "admin",
+          firstName: "System",
+          lastName: "Administrator",
+          employeeId: "ADMIN001",
+          isActive: true,
+        });
+      }
+
+      // Check if default staff exists
+      const existingStaff = await this.getUserByUsername("staff");
+      if (!existingStaff) {
+        await this.createUser({
+          username: "staff",
+          password: "staff123",
+          pin: "1234",
+          role: "staff",
+          firstName: "Store",
+          lastName: "Staff",
+          employeeId: "STAFF001",
+          isActive: true,
+        });
+      }
+
+      // Check if manager exists
+      const existingManager = await this.getUserByUsername("manager");
+      if (!existingManager) {
+        await this.createUser({
+          username: "manager",
+          password: "manager123",
+          pin: "9999",
+          role: "manager",
+          firstName: "Store",
+          lastName: "Manager",
+          employeeId: "MGR001",
+          isActive: true,
+        });
+      }
+    } catch (error) {
+      console.log("Database seeding skipped - tables may not exist yet");
+    }
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByPin(pin: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.pin, pin));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUserLastLogin(id: number): Promise<void> {
+    await db.update(users).set({ lastLogin: new Date() }).where(eq(users.id, id));
+  }
+
+  async getProducts(): Promise<Product[]> {
+    return await db.select().from(products);
+  }
+
+  async getProduct(id: number): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product || undefined;
+  }
+
+  async getProductByBarcode(barcode: string): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(eq(products.barcode, barcode));
+    return product || undefined;
+  }
+
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const [product] = await db.insert(products).values(insertProduct).returning();
+    return product;
+  }
+
+  async updateProduct(id: number, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {
+    const [product] = await db.update(products).set(productUpdate).where(eq(products.id, id)).returning();
+    return product || undefined;
+  }
+
+  async deleteProduct(id: number): Promise<boolean> {
+    const result = await db.delete(products).where(eq(products.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getCustomers(): Promise<Customer[]> {
+    return await db.select().from(customers);
+  }
+
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+    return customer || undefined;
+  }
+
+  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
+    const [customer] = await db.insert(customers).values(insertCustomer).returning();
+    return customer;
+  }
+
+  async updateCustomer(id: number, customerUpdate: Partial<InsertCustomer>): Promise<Customer | undefined> {
+    const [customer] = await db.update(customers).set(customerUpdate).where(eq(customers.id, id)).returning();
+    return customer || undefined;
+  }
+
+  async deleteCustomer(id: number): Promise<boolean> {
+    const result = await db.delete(customers).where(eq(customers.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getSuppliers(): Promise<Supplier[]> {
+    return await db.select().from(suppliers);
+  }
+
+  async getSupplier(id: number): Promise<Supplier | undefined> {
+    const [supplier] = await db.select().from(suppliers).where(eq(suppliers.id, id));
+    return supplier || undefined;
+  }
+
+  async createSupplier(insertSupplier: InsertSupplier): Promise<Supplier> {
+    const [supplier] = await db.insert(suppliers).values(insertSupplier).returning();
+    return supplier;
+  }
+
+  async updateSupplier(id: number, supplierUpdate: Partial<InsertSupplier>): Promise<Supplier | undefined> {
+    const [supplier] = await db.update(suppliers).set(supplierUpdate).where(eq(suppliers.id, id)).returning();
+    return supplier || undefined;
+  }
+
+  async deleteSupplier(id: number): Promise<boolean> {
+    const result = await db.delete(suppliers).where(eq(suppliers.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getTransactions(): Promise<Transaction[]> {
+    return await db.select().from(transactions);
+  }
+
+  async getTransaction(id: number): Promise<Transaction | undefined> {
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+    return transaction || undefined;
+  }
+
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const [transaction] = await db.insert(transactions).values(insertTransaction).returning();
+    return transaction;
+  }
+
+  async getTransactionItems(transactionId: number): Promise<TransactionItem[]> {
+    return await db.select().from(transactionItems).where(eq(transactionItems.transactionId, transactionId));
+  }
+
+  async addTransactionItem(insertItem: InsertTransactionItem): Promise<TransactionItem> {
+    const [item] = await db.insert(transactionItems).values(insertItem).returning();
+    return item;
+  }
+
+  async getPromotions(): Promise<Promotion[]> {
+    return await db.select().from(promotions);
+  }
+
+  async getPromotion(id: number): Promise<Promotion | undefined> {
+    const [promotion] = await db.select().from(promotions).where(eq(promotions.id, id));
+    return promotion || undefined;
+  }
+
+  async createPromotion(insertPromotion: InsertPromotion): Promise<Promotion> {
+    const [promotion] = await db.insert(promotions).values(insertPromotion).returning();
+    return promotion;
+  }
+
+  async updatePromotion(id: number, promotionUpdate: Partial<InsertPromotion>): Promise<Promotion | undefined> {
+    const [promotion] = await db.update(promotions).set(promotionUpdate).where(eq(promotions.id, id)).returning();
+    return promotion || undefined;
+  }
+
+  async deletePromotion(id: number): Promise<boolean> {
+    const result = await db.delete(promotions).where(eq(promotions.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -329,4 +539,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
