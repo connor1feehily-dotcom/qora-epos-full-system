@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag, Shield, Zap, Brain, Cpu, Sparkles } from "lucide-react";
+import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag, Shield } from "lucide-react";
+import { StatusPanels } from "./status-panels";
+import { LoginBanner } from "./login-banner";
 import type { User as StaffUser } from "@shared/schema";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 
