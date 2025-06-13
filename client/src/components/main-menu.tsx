@@ -247,7 +247,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
               >
                 <div className="flex items-center space-x-3">
                   <Brain className="w-6 h-6" />
-                  <span className="text-[#0a0000]">Press here to log in!</span>
+                  <span className="text-[#000000]">INITIATE NEURAL SCAN</span>
                   <Zap className="w-6 h-6" />
                 </div>
               </Button>
