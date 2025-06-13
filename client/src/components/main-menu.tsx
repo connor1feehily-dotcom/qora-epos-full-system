@@ -46,10 +46,10 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
             />
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
-            QUANTUM POS™ COMMAND CENTER
+            KERRIGAN'S XL POS SYSTEM
           </h1>
           <p className="text-2xl text-muted-foreground mb-6 kxl-slide-in">
-            Next-Generation Retail Intelligence • Manorhamilton
+            Point of Sale & Management System • Manorhamilton
           </p>
           
           {/* Quantum User Status */}
@@ -104,18 +104,18 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                   <Monitor className="w-12 h-12 text-white" />
                 </div>
                 <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">
-                  QUANTUM POS™
+                  POINT OF SALE
                 </h2>
                 <p className="text-lg text-muted-foreground kxl-slide-in">
-                  Neural Transaction Processing • AI-Enhanced Commerce
+                  Customer Transactions & Sales Processing
                 </p>
               </div>
 
               {/* Revolutionary Till Selection */}
               <div className="mb-8">
                 <p className="text-lg font-bold text-foreground mb-6 text-center flex items-center justify-center space-x-2">
-                  <Cpu className="w-5 h-5" />
-                  <span>Select Neural Core Station</span>
+                  <Monitor className="w-5 h-5" />
+                  <span>Select Till Station</span>
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   {['till1', 'till2'].map((tillId) => (
@@ -131,8 +131,8 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                       onClick={() => setSelectedTill(tillId)}
                     >
                       <div className="flex flex-col items-center space-y-1">
-                        <Brain className="w-6 h-6" />
-                        <span>{tillId === 'till1' ? 'Neural Core 1' : 'Neural Core 2'}</span>
+                        <Monitor className="w-6 h-6" />
+                        <span>{tillId === 'till1' ? 'Till 1' : 'Till 2'}</span>
                       </div>
                     </Button>
                   ))}
@@ -145,9 +145,9 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                 onClick={() => onSelectMode('pos', selectedTill)}
               >
                 <div className="flex items-center space-x-3 text-[#000000]">
-                  <Sparkles className="w-8 h-8" />
-                  <span>INITIALIZE QUANTUM SESSION</span>
-                  <Zap className="w-8 h-8" />
+                  <ShoppingCart className="w-8 h-8" />
+                  <span>START POS SESSION</span>
+                  <Monitor className="w-8 h-8" />
                 </div>
               </Button>
             </Card>
@@ -167,12 +167,12 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                   <Settings className="w-12 h-12 text-white" />
                 </div>
                 <h2 className="text-4xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent mb-3">
-                  NEURAL COMMAND
+                  BACK OFFICE
                 </h2>
                 <p className="text-lg text-muted-foreground kxl-slide-in">
                   {canAccessBackOffice 
-                    ? "AI-Powered Business Intelligence • Quantum Analytics" 
-                    : "Neural Access Required • Contact System Administrator"
+                    ? "Inventory Management • Reports & Analytics" 
+                    : "Manager Access Required • Contact Administrator"
                   }
                 </p>
               </div>
@@ -182,25 +182,25 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                   <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-primary/20">
                     <div className="flex items-center space-x-3">
                       <BarChart3 className="w-6 h-6 text-primary" />
-                      <span className="font-bold text-foreground">Quantum Reports</span>
+                      <span className="font-bold text-foreground">Reports</span>
                     </div>
                   </div>
                   <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-secondary/20">
                     <div className="flex items-center space-x-3">
                       <Package className="w-6 h-6 text-secondary" />
-                      <span className="font-bold text-foreground">Neural Inventory</span>
+                      <span className="font-bold text-foreground">Inventory</span>
                     </div>
                   </div>
                   <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-primary/20">
                     <div className="flex items-center space-x-3">
                       <Users className="w-6 h-6 text-primary" />
-                      <span className="font-bold text-foreground">AI Customers</span>
+                      <span className="font-bold text-foreground">Customers</span>
                     </div>
                   </div>
                   <div className="kxl-glass kxl-neural-pulse p-4 rounded-xl border border-secondary/20">
                     <div className="flex items-center space-x-3">
                       <Truck className="w-6 h-6 text-secondary" />
-                      <span className="font-bold text-foreground">Smart Suppliers</span>
+                      <span className="font-bold text-foreground">Suppliers</span>
                     </div>
                   </div>
                 </div>
@@ -213,9 +213,9 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                 disabled={!canAccessBackOffice}
               >
                 <div className="flex items-center space-x-3">
-                  <Brain className="w-8 h-8" />
-                  <span>{canAccessBackOffice ? "ENTER NEURAL COMMAND" : "ACCESS RESTRICTED"}</span>
-                  <Cpu className="w-8 h-8" />
+                  <Settings className="w-8 h-8" />
+                  <span>{canAccessBackOffice ? "ACCESS BACK OFFICE" : "ACCESS RESTRICTED"}</span>
+                  <BarChart3 className="w-8 h-8" />
                 </div>
               </Button>
             </Card>
@@ -229,10 +229,10 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                   <Shield className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
-                  NEURAL AUTHENTICATION PORTAL
+                  STAFF LOGIN
                 </h3>
                 <p className="text-xl text-muted-foreground kxl-slide-in">
-                  Biometric Access Required • Quantum Security Protocol
+                  Enter PIN to Access System
                 </p>
               </div>
               
