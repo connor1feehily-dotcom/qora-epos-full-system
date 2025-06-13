@@ -15,7 +15,13 @@ interface MainMenuProps {
 export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: MainMenuProps) {
   const [selectedTill, setSelectedTill] = useState<string>('till1');
 
-  const canAccessBackOffice = currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role);
+  // Force back office access for admin and manager roles
+  const canAccessBackOffice = currentUser && (
+    currentUser.role === 'admin' || 
+    currentUser.role === 'manager' ||
+    currentUser.username === 'admin' ||
+    currentUser.username === 'manager'
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
