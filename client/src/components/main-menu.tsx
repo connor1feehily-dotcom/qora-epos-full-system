@@ -15,6 +15,11 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
   const [selectedTill, setSelectedTill] = useState<string>('till1');
 
   const canAccessBackOffice = currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role);
+  
+  // Debug logging
+  console.log('Current user:', currentUser);
+  console.log('User role:', currentUser?.role);
+  console.log('Can access back office:', canAccessBackOffice);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
