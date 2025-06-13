@@ -326,7 +326,7 @@ export default function POS({ tillId }: POSProps) {
           </div>
 
           {/* Product Grid */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6 custom-scroll">
             <ProductGrid
               products={filteredProducts}
               selectedCategory={selectedCategory}

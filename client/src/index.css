@@ -134,4 +134,120 @@
   .border-warning\/20 {
     border-color: hsl(38, 92%, 50%, 0.2);
   }
+  
+  /* Custom scrollbar styles */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Custom scroll styling for better UX */
+  .custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(240, 5%, 84%) hsl(240, 4.8%, 95.9%);
+  }
+  
+  .custom-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scroll::-webkit-scrollbar-track {
+    background: hsl(240, 4.8%, 95.9%);
+    border-radius: 3px;
+  }
+  
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: hsl(240, 5%, 84%);
+    border-radius: 3px;
+  }
+  
+  .custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(240, 5%, 74%);
+  }
+  
+  .dark .custom-scroll {
+    scrollbar-color: hsl(240, 3.7%, 25%) hsl(240, 10%, 3.9%);
+  }
+  
+  .dark .custom-scroll::-webkit-scrollbar-track {
+    background: hsl(240, 10%, 3.9%);
+  }
+  
+  .dark .custom-scroll::-webkit-scrollbar-thumb {
+    background: hsl(240, 3.7%, 25%);
+  }
+  
+  .dark .custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(240, 3.7%, 35%);
+  }
+  
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  /* Scale utilities for hover effects */
+  .hover\:scale-102:hover {
+    transform: scale(1.02);
+  }
+  
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Glass morphism effect */
+  .glass {
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(209, 213, 219, 0.3);
+  }
+  
+  .dark .glass {
+    background-color: rgba(17, 24, 39, 0.75);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+  
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
 }
