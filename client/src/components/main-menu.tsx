@@ -208,11 +208,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
 
               <Button
                 size="lg"
-                className={`w-full h-20 text-2xl font-bold transition-all duration-200 ${
-                  canAccessBackOffice
-                    ? "kxl-quantum-button text-white kxl-glow kxl-neural-pulse"
-                    : "bg-gray-400 text-gray-600 cursor-not-allowed"
-                }`}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary hover:bg-primary/90 rounded-md px-8 w-full h-20 text-2xl font-bold transition-all duration-200 kxl-quantum-button kxl-glow kxl-neural-pulse text-[#000000]"
                 onClick={() => canAccessBackOffice && onSelectMode('back-office')}
                 disabled={!canAccessBackOffice}
               >
