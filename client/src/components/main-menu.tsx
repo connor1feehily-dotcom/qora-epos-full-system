@@ -15,13 +15,22 @@ interface MainMenuProps {
 export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: MainMenuProps) {
   const [selectedTill, setSelectedTill] = useState<string>('till1');
 
-  // Force back office access for admin and manager roles
+  // Debug user data and role checking
+  console.log('Current User Object:', JSON.stringify(currentUser, null, 2));
+  
   const canAccessBackOffice = currentUser && (
     currentUser.role === 'admin' || 
     currentUser.role === 'manager' ||
     currentUser.username === 'admin' ||
     currentUser.username === 'manager'
   );
+  
+  console.log('Back Office Access Check:', {
+    hasUser: !!currentUser,
+    userRole: currentUser?.role,
+    username: currentUser?.username,
+    canAccess: canAccessBackOffice
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">

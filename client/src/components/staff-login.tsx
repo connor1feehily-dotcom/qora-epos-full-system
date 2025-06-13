@@ -28,13 +28,18 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
   const pinLoginMutation = useMutation({
     mutationFn: async (pinCode: string) => {
       const response = await apiRequest('POST', '/api/auth/pin-login', { pin: pinCode });
-      return response;
+      return await response.json();
     },
     onSuccess: (response: any) => {
+      console.log('PIN Login Response:', JSON.stringify(response, null, 2));
       const user = response?.user || response;
+      console.log('Extracted User Data:', JSON.stringify(user, null, 2));
+      console.log('User Role:', user?.role);
+      console.log('Username:', user?.username);
+      
       toast({
         title: "Login Successful",
-        description: `Welcome back, ${user.firstName || 'User'}!`,
+        description: `Welcome back, ${user.firstName || user.username || 'User'}!`,
       });
       onLogin(user);
     },
