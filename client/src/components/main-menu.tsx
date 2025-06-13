@@ -218,7 +218,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
             Kerrigans XL Manorhamilton • Touchscreen POS System
           </p>
           <p className="text-xs text-slate-400 dark:text-slate-500">
-            © 2024 The Feehily Boyle Group. All rights reserved.
+            Licensed to Kerrigan's XL from The Feehily Boyle Group
           </p>
         </div>
       </div>

@@ -140,7 +140,7 @@ export function KerrigansLoadingScreen() {
             Manorhamilton's Premier Point of Sale System
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-500">
-            © 2024 The Feehily Boyle Group. All rights reserved.
+            Licensed to Kerrigan's XL from The Feehily Boyle Group
           </p>
         </div>
       </div>

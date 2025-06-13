@@ -32,7 +32,7 @@ function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () 
             ← Main Menu
           </button>
           <img 
-            src="/attached_assets/NEW_1749822871411.png" 
+            src={kerrigansLogo} 
             alt="Kerrigan's XL Logo"
             className="h-10 w-auto object-contain"
           />
@@ -41,7 +41,7 @@ function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () 
           </span>
         </div>
         <div className="text-xs text-slate-500 dark:text-slate-400">
-          © 2024 The Feehily Boyle Group
+          Licensed to Kerrigan's XL from The Feehily Boyle Group
         </div>
       </div>
       <div className="flex-1">
@@ -63,7 +63,7 @@ function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
             ← Main Menu
           </button>
           <img 
-            src="/attached_assets/NEW_1749822871411.png" 
+            src={kerrigansLogo} 
             alt="Kerrigan's XL Logo"
             className="h-10 w-auto object-contain"
           />
@@ -72,7 +72,7 @@ function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
           </span>
         </div>
         <div className="text-xs text-slate-500 dark:text-slate-400">
-          © 2024 The Feehily Boyle Group
+          Licensed to Kerrigan's XL from The Feehily Boyle Group
         </div>
       </div>
       <div className="flex h-screen overflow-hidden">
