@@ -114,7 +114,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      role: insertUser.role || 'staff',
+      isActive: insertUser.isActive ?? true
+    };
     this.users.set(id, user);
     return user;
   }
@@ -134,7 +139,16 @@ export class MemStorage implements IStorage {
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {
     const id = this.currentId++;
-    const product: Product = { ...insertProduct, id };
+    const product: Product = { 
+      ...insertProduct, 
+      id,
+      barcode: insertProduct.barcode || null,
+      cost: insertProduct.cost || null,
+      stock: insertProduct.stock || 0,
+      minStock: insertProduct.minStock || 0,
+      isActive: insertProduct.isActive ?? true,
+      vatRate: insertProduct.vatRate || "0.00"
+    };
     this.products.set(id, product);
     return product;
   }
@@ -168,7 +182,15 @@ export class MemStorage implements IStorage {
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
     const id = this.currentId++;
-    const customer: Customer = { ...insertCustomer, id };
+    const customer: Customer = { 
+      ...insertCustomer, 
+      id,
+      email: insertCustomer.email || null,
+      phone: insertCustomer.phone || null,
+      address: insertCustomer.address || null,
+      loyaltyPoints: insertCustomer.loyaltyPoints || 0,
+      isActive: insertCustomer.isActive ?? true
+    };
     this.customers.set(id, customer);
     return customer;
   }
@@ -202,7 +224,15 @@ export class MemStorage implements IStorage {
 
   async createSupplier(insertSupplier: InsertSupplier): Promise<Supplier> {
     const id = this.currentId++;
-    const supplier: Supplier = { ...insertSupplier, id };
+    const supplier: Supplier = { 
+      ...insertSupplier, 
+      id,
+      email: insertSupplier.email || null,
+      phone: insertSupplier.phone || null,
+      address: insertSupplier.address || null,
+      contactPerson: insertSupplier.contactPerson || null,
+      isActive: insertSupplier.isActive ?? true
+    };
     this.suppliers.set(id, supplier);
     return supplier;
   }
@@ -239,6 +269,8 @@ export class MemStorage implements IStorage {
     const transaction: Transaction = { 
       ...insertTransaction, 
       id,
+      customerId: insertTransaction.customerId || null,
+      status: insertTransaction.status || 'completed',
       createdAt: new Date()
     };
     this.transactions.set(id, transaction);
@@ -267,7 +299,12 @@ export class MemStorage implements IStorage {
 
   async createPromotion(insertPromotion: InsertPromotion): Promise<Promotion> {
     const id = this.currentId++;
-    const promotion: Promotion = { ...insertPromotion, id };
+    const promotion: Promotion = { 
+      ...insertPromotion, 
+      id,
+      description: insertPromotion.description || null,
+      isActive: insertPromotion.isActive ?? true
+    };
     this.promotions.set(id, promotion);
     return promotion;
   }
