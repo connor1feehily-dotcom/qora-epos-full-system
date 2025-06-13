@@ -242,9 +242,9 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                 onClick={onStaffLogin}
               >
                 <div className="flex items-center space-x-3">
-                  <Brain className="w-6 h-6" />
-                  <span className="text-[#000000]">Press to Log In!</span>
-                  <Zap className="w-6 h-6" />
+                  <User className="w-6 h-6" />
+                  <span className="text-[#000000]">STAFF LOGIN</span>
+                  <Shield className="w-6 h-6" />
                 </div>
               </Button>
             </Card>

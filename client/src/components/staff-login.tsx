@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Brain, Zap, ArrowLeft } from "lucide-react";
+import { Shield, User, ArrowLeft } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -26,15 +26,15 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
     onSuccess: (response: any) => {
       const user = response?.user || response;
       toast({
-        title: "Neural Authentication Successful",
+        title: "Login Successful",
         description: `Welcome back, ${user.firstName || user.username || 'User'}!`,
       });
       onLogin(user);
     },
     onError: () => {
       toast({
-        title: "Authentication Failed",
-        description: "Invalid security code. Please try again.",
+        title: "Login Failed",
+        description: "Invalid PIN. Please try again.",
         variant: "destructive",
       });
       setPin("");
@@ -70,10 +70,10 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
               />
             </div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
-              NEURAL AUTHENTICATION
+              STAFF LOGIN
             </h2>
             <p className="text-lg text-muted-foreground kxl-slide-in">
-              Enter 4-Digit Security Code
+              Enter Your 4-Digit PIN
             </p>
           </div>
 
@@ -134,9 +134,9 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
           {pinLoginMutation.isPending && (
             <div className="text-center mb-6">
               <div className="flex items-center justify-center space-x-2 text-primary">
-                <Brain className="w-5 h-5 animate-pulse" />
-                <span className="text-lg font-bold">Processing Neural Scan...</span>
-                <Zap className="w-5 h-5 animate-pulse" />
+                <Shield className="w-5 h-5 animate-pulse" />
+                <span className="text-lg font-bold">Checking PIN...</span>
+                <Shield className="w-5 h-5 animate-pulse" />
               </div>
             </div>
           )}
@@ -149,7 +149,7 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
             disabled={pinLoginMutation.isPending}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Command Center
+            Back to Main Menu
           </Button>
 
           {/* Quick Access Info */}
