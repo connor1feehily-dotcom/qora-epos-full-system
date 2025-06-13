@@ -8,23 +8,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
-  Zap, 
-  Brain, 
-  Scan, 
   ShoppingCart, 
   CreditCard, 
   Banknote, 
   Eye, 
-  Sparkles,
-  Cpu,
-  Fingerprint,
-  Shield,
-  Wifi,
-  Battery,
-  Volume2,
-  Camera,
-  Mic
+  Minus,
+  Plus,
+  Trash2
 } from "lucide-react";
+import { AutoScanner } from "./auto-scanner";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 import type { Product, Customer } from "@shared/schema";
 import type { CartItem, TransactionSummary } from "@/lib/types";
@@ -37,16 +29,11 @@ interface RevolutionaryPOSProps {
 export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [scannerActive, setScannerActive] = useState(false);
-  const [aiMode, setAiMode] = useState(false);
-  const [voiceMode, setVoiceMode] = useState(false);
-  const [biometricAuth, setBiometricAuth] = useState(false);
+  const [scannerActive, setScannerActive] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const scannerRef = useRef<HTMLDivElement>(null);
 
-  // AI-powered product recommendations
-  const [aiRecommendations, setAiRecommendations] = useState<Product[]>([]);
+
   
   // Voice recognition simulation
   const [isListening, setIsListening] = useState(false);
