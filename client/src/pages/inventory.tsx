@@ -10,7 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Search, Edit, Trash2, AlertTriangle, Package, TrendingDown } from "lucide-react";
+import { Plus, Search, Edit, Trash2, AlertTriangle, Package, TrendingDown, Barcode } from "lucide-react";
+import { BarcodeScanner } from "@/components/barcode-scanner";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertProductSchema } from "@shared/schema";
@@ -32,6 +33,7 @@ export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -145,6 +147,15 @@ export default function Inventory() {
     productMutation.mutate(data);
   };
 
+  const handleBarcodeScan = (barcode: string) => {
+    form.setValue('barcode', barcode);
+    setBarcodeScannerOpen(false);
+    toast({
+      title: "Barcode Scanned",
+      description: `Barcode ${barcode} added to form`,
+    });
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
@@ -187,9 +198,18 @@ export default function Inventory() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Barcode (Optional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
+                        <div className="flex space-x-2">
+                          <FormControl>
+                            <Input {...field} value={field.value ?? ''} />
+                          </FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setBarcodeScannerOpen(true)}
+                          >
+                            <Barcode className="w-4 h-4" />
+                          </Button>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -380,15 +400,27 @@ export default function Inventory() {
       <div className="flex-1 overflow-hidden p-6">
         {/* Search */}
         <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex items-center space-x-4 max-w-2xl">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search products by name or barcode..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery('');
+                setBarcodeScannerOpen(true);
+              }}
+            >
+              <Barcode className="w-4 h-4 mr-2" />
+              Scan to Search
+            </Button>
           </div>
         </div>
 
@@ -486,6 +518,13 @@ export default function Inventory() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScanner
+        isOpen={barcodeScannerOpen}
+        onClose={() => setBarcodeScannerOpen(false)}
+        onScan={handleBarcodeScan}
+      />
     </div>
   );
 }
