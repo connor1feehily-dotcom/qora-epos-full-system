@@ -82,6 +82,37 @@ export const promotions = pgTable("promotions", {
   isActive: boolean("is_active").notNull().default(true),
 });
 
+// Till Sessions table for tracking till openings/closings
+export const tillSessions = pgTable("till_sessions", {
+  id: serial("id").primaryKey(),
+  tillId: text("till_id").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  openingFloat: decimal("opening_float", { precision: 10, scale: 2 }).notNull(),
+  closingFloat: decimal("closing_float", { precision: 10, scale: 2 }),
+  expectedCash: decimal("expected_cash", { precision: 10, scale: 2 }),
+  actualCash: decimal("actual_cash", { precision: 10, scale: 2 }),
+  variance: decimal("variance", { precision: 10, scale: 2 }),
+  openedAt: timestamp("opened_at").notNull().defaultNow(),
+  closedAt: timestamp("closed_at"),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
+// Daily Reports table for Z and X reports
+export const dailyReports = pgTable("daily_reports", {
+  id: serial("id").primaryKey(),
+  tillId: text("till_id").notNull(),
+  reportType: text("report_type").notNull(), // 'X' or 'Z'
+  reportDate: timestamp("report_date").notNull().defaultNow(),
+  totalSales: decimal("total_sales", { precision: 10, scale: 2 }).notNull(),
+  totalVat: decimal("total_vat", { precision: 10, scale: 2 }).notNull(),
+  transactionCount: integer("transaction_count").notNull(),
+  cashSales: decimal("cash_sales", { precision: 10, scale: 2 }).notNull(),
+  cardSales: decimal("card_sales", { precision: 10, scale: 2 }).notNull(),
+  openingFloat: decimal("opening_float", { precision: 10, scale: 2 }),
+  closingFloat: decimal("closing_float", { precision: 10, scale: 2 }),
+  generatedBy: integer("generated_by").notNull().references(() => users.id),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -112,6 +143,16 @@ export const insertPromotionSchema = createInsertSchema(promotions).omit({
   id: true,
 });
 
+export const insertTillSessionSchema = createInsertSchema(tillSessions).omit({
+  id: true,
+  openedAt: true,
+});
+
+export const insertDailyReportSchema = createInsertSchema(dailyReports).omit({
+  id: true,
+  reportDate: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type Product = typeof products.$inferSelect;
@@ -120,6 +161,8 @@ export type Supplier = typeof suppliers.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type TransactionItem = typeof transactionItems.$inferSelect;
 export type Promotion = typeof promotions.$inferSelect;
+export type TillSession = typeof tillSessions.$inferSelect;
+export type DailyReport = typeof dailyReports.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -128,3 +171,5 @@ export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type InsertTransactionItem = z.infer<typeof insertTransactionItemSchema>;
 export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
+export type InsertTillSession = z.infer<typeof insertTillSessionSchema>;
+export type InsertDailyReport = z.infer<typeof insertDailyReportSchema>;

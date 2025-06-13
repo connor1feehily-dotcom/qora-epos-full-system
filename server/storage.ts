@@ -1,8 +1,10 @@
 import {
-  users, products, customers, suppliers, transactions, transactionItems, promotions,
+  users, products, customers, suppliers, transactions, transactionItems, promotions, tillSessions, dailyReports,
   type User, type Product, type Customer, type Supplier, type Transaction, type TransactionItem, type Promotion,
+  type TillSession, type DailyReport,
   type InsertUser, type InsertProduct, type InsertCustomer, type InsertSupplier, 
-  type InsertTransaction, type InsertTransactionItem, type InsertPromotion
+  type InsertTransaction, type InsertTransactionItem, type InsertPromotion,
+  type InsertTillSession, type InsertDailyReport
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -51,6 +53,17 @@ export interface IStorage {
   createPromotion(promotion: InsertPromotion): Promise<Promotion>;
   updatePromotion(id: number, promotion: Partial<InsertPromotion>): Promise<Promotion | undefined>;
   deletePromotion(id: number): Promise<boolean>;
+  
+  // Till Sessions
+  getCurrentTillSession(tillId: string): Promise<TillSession | undefined>;
+  openTillSession(session: InsertTillSession): Promise<TillSession>;
+  closeTillSession(sessionId: number, closingData: { closingFloat: number; actualCash: number }): Promise<TillSession>;
+  getTillSessions(tillId?: string): Promise<TillSession[]>;
+  
+  // Daily Reports
+  generateDailyReport(tillId: string, reportType: 'X' | 'Z', generatedBy: number): Promise<DailyReport>;
+  getDailyReports(tillId?: string, date?: Date): Promise<DailyReport[]>;
+  getLastZReport(tillId: string): Promise<DailyReport | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -260,6 +273,98 @@ export class DatabaseStorage implements IStorage {
   async deletePromotion(id: number): Promise<boolean> {
     const result = await db.delete(promotions).where(eq(promotions.id, id));
     return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Till Sessions
+  async getCurrentTillSession(tillId: string): Promise<TillSession | undefined> {
+    const [session] = await db.select().from(tillSessions)
+      .where(eq(tillSessions.tillId, tillId))
+      .where(eq(tillSessions.isActive, true));
+    return session || undefined;
+  }
+
+  async openTillSession(insertSession: InsertTillSession): Promise<TillSession> {
+    const [session] = await db.insert(tillSessions).values(insertSession).returning();
+    return session;
+  }
+
+  async closeTillSession(sessionId: number, closingData: { closingFloat: number; actualCash: number }): Promise<TillSession> {
+    const expectedCash = closingData.actualCash; // Calculate from transactions
+    const variance = closingData.actualCash - expectedCash;
+    
+    const [session] = await db.update(tillSessions)
+      .set({
+        closingFloat: closingData.closingFloat.toString(),
+        actualCash: closingData.actualCash.toString(),
+        expectedCash: expectedCash.toString(),
+        variance: variance.toString(),
+        closedAt: new Date(),
+        isActive: false
+      })
+      .where(eq(tillSessions.id, sessionId))
+      .returning();
+    return session;
+  }
+
+  async getTillSessions(tillId?: string): Promise<TillSession[]> {
+    if (tillId) {
+      return await db.select().from(tillSessions).where(eq(tillSessions.tillId, tillId));
+    }
+    return await db.select().from(tillSessions);
+  }
+
+  // Daily Reports
+  async generateDailyReport(tillId: string, reportType: 'X' | 'Z', generatedBy: number): Promise<DailyReport> {
+    // Calculate sales data from transactions
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const transactionData = await db.select().from(transactions)
+      .where(eq(transactions.tillId, tillId));
+    
+    const totalSales = transactionData.reduce((sum, t) => sum + parseFloat(t.total), 0);
+    const totalVat = transactionData.reduce((sum, t) => sum + parseFloat(t.vatAmount), 0);
+    const cashSales = transactionData.filter(t => t.paymentMethod === 'cash').reduce((sum, t) => sum + parseFloat(t.total), 0);
+    const cardSales = transactionData.filter(t => t.paymentMethod === 'card').reduce((sum, t) => sum + parseFloat(t.total), 0);
+
+    const currentSession = await this.getCurrentTillSession(tillId);
+
+    const reportData: InsertDailyReport = {
+      tillId,
+      reportType,
+      totalSales: totalSales.toString(),
+      totalVat: totalVat.toString(),
+      transactionCount: transactionData.length,
+      cashSales: cashSales.toString(),
+      cardSales: cardSales.toString(),
+      openingFloat: currentSession?.openingFloat || '0',
+      closingFloat: currentSession?.closingFloat || '0',
+      generatedBy
+    };
+
+    const [report] = await db.insert(dailyReports).values(reportData).returning();
+    return report;
+  }
+
+  async getDailyReports(tillId?: string, date?: Date): Promise<DailyReport[]> {
+    let query = db.select().from(dailyReports);
+    
+    if (tillId) {
+      query = query.where(eq(dailyReports.tillId, tillId));
+    }
+    
+    return await query;
+  }
+
+  async getLastZReport(tillId: string): Promise<DailyReport | undefined> {
+    const [report] = await db.select().from(dailyReports)
+      .where(eq(dailyReports.tillId, tillId))
+      .where(eq(dailyReports.reportType, 'Z'))
+      .orderBy(dailyReports.reportDate)
+      .limit(1);
+    return report || undefined;
   }
 }
 
