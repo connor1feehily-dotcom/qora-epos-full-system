@@ -190,7 +190,7 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
   const transaction = calculateTransaction();
 
   return (
-    <div className="min-h-screen kxl-neural-bg">
+    <div className="min-h-screen kxl-neural-bg overflow-y-auto">
       {/* Revolutionary Header */}
       <div className="kxl-glass border-b border-primary/20 px-6 py-4">
         <div className="flex items-center justify-between">

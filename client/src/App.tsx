@@ -23,8 +23,8 @@ import type { User } from "@shared/schema";
 
 function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () => void }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between shadow-sm">
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
         <div className="flex items-center space-x-4">
           <button
             onClick={onBackToMenu}
@@ -45,7 +45,7 @@ function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () 
           Licensed to Kerrigan's XL from The Feehily Boyle Group
         </div>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         <POS tillId={tillId} onBackToMenu={onBackToMenu} />
       </div>
     </div>

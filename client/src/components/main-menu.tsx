@@ -34,8 +34,8 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
   });
 
   return (
-    <div className="min-h-screen kxl-neural-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl">
+    <div className="min-h-screen kxl-neural-bg overflow-y-auto">
+      <div className="w-full max-w-6xl mx-auto p-4">
         {/* Revolutionary Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
