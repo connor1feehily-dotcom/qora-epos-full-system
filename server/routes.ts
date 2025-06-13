@@ -497,6 +497,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users Management endpoints
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(userData);
+      res.status(201).json(user);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Analytics endpoints for back office
+  app.get("/api/analytics/todays-sales", async (req, res) => {
+    try {
+      const transactions = await storage.getTransactions();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.createdAt);
+        return transactionDate >= today;
+      });
+
+      // Generate hourly sales data
+      const hourlyData = Array.from({ length: 24 }, (_, hour) => {
+        const hourTransactions = todayTransactions.filter(t => {
+          return new Date(t.createdAt).getHours() === hour;
+        });
+        return {
+          hour: `${hour.toString().padStart(2, '0')}:00`,
+          sales: hourTransactions.reduce((sum, t) => sum + parseFloat(t.total.toString()), 0)
+        };
+      });
+
+      res.json(hourlyData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch today's sales data" });
+    }
+  });
+
+  app.get("/api/analytics/till-health", async (req, res) => {
+    try {
+      const { tillId } = req.query;
+      const transactions = await storage.getTransactions();
+      
+      // Get recent transactions for the till
+      const tillTransactions = tillId 
+        ? transactions.filter(t => t.tillId === tillId)
+        : transactions;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayTransactions = tillTransactions.filter(t => {
+        const transactionDate = new Date(t.createdAt);
+        return transactionDate >= today;
+      });
+
+      const lastTransaction = tillTransactions.length > 0 
+        ? tillTransactions[tillTransactions.length - 1]
+        : null;
+
+      const lastTransactionTime = lastTransaction 
+        ? Math.floor((Date.now() - new Date(lastTransaction.createdAt).getTime()) / 1000 / 60)
+        : 0;
+
+      const status = lastTransactionTime < 30 ? 'healthy' : 
+                    lastTransactionTime < 120 ? 'warning' : 'error';
+
+      res.json({
+        status,
+        lastTransaction: lastTransaction 
+          ? `${lastTransactionTime} min ago`
+          : 'No transactions',
+        transactionCount: todayTransactions.length,
+        uptime: '8h 23m' // This would come from till session data in real implementation
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch till health data" });
+    }
+  });
+
+  app.get("/api/analytics/low-stock", async (req, res) => {
+    try {
+      const products = await storage.getProducts();
+      
+      const lowStockItems = products
+        .filter(p => p.stock <= (p.minStock || 10))
+        .map(p => ({
+          productName: p.name,
+          currentStock: p.stock,
+          minStock: p.minStock || 10,
+          urgent: p.stock === 0 || p.stock <= 5
+        }))
+        .sort((a, b) => a.currentStock - b.currentStock);
+
+      res.json(lowStockItems);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch low stock data" });
+    }
+  });
+
   // Daily Reports endpoints
   app.post("/api/reports/generate", async (req, res) => {
     try {

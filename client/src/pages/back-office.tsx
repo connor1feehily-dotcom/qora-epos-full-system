@@ -1,539 +1,868 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { 
-  Euro, 
-  Receipt, 
-  Fuel, 
-  AlertTriangle, 
+  BarChart3, 
   Package, 
   Users, 
   Truck, 
+  Settings,
   TrendingUp,
   TrendingDown,
-  Clock,
-  Calendar,
-  Settings,
-  BarChart3,
-  ShoppingCart,
   DollarSign,
-  Star,
-  ArrowUpRight,
-  ArrowDownRight,
+  ShoppingCart,
+  AlertTriangle,
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
+  Download,
+  Upload,
+  FileText,
+  Calendar,
+  Clock,
   CreditCard,
   Banknote,
-  Activity
+  Receipt,
+  Target,
+  Activity,
+  PieChart,
+  LineChart
 } from "lucide-react";
-import type { DashboardMetrics } from "@/lib/types";
-import type { Product, Transaction } from "@shared/schema";
+import { StatusPanels } from "@/components/status-panels";
+import { LoginBanner } from "@/components/login-banner";
+import type { Product, Transaction, Customer, Supplier, User } from "@shared/schema";
 
-export default function BackOffice() {
-  const [activeTab, setActiveTab] = useState("overview");
+interface BackOfficeProps {
+  onBackToMenu: () => void;
+}
 
-  const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
-    queryKey: ['/api/analytics/dashboard'],
-  });
+export default function BackOffice({ onBackToMenu }: BackOfficeProps) {
+  const [activeSection, setActiveSection] = useState("dashboard");
 
-  const { data: products = [] } = useQuery<Product[]>({
+  // Fetch data for all sections
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ['/api/products'],
   });
 
-  const { data: transactions = [] } = useQuery<Transaction[]>({
+  const { data: transactions = [], isLoading: transactionsLoading } = useQuery<Transaction[]>({
     queryKey: ['/api/transactions'],
   });
 
-  const isLoading = metricsLoading;
+  const { data: customers = [], isLoading: customersLoading } = useQuery<Customer[]>({
+    queryKey: ['/api/customers'],
+  });
 
-  // Calculate additional metrics
-  const lowStockProducts = products.filter(p => p.stock <= p.minStock);
+  const { data: suppliers = [], isLoading: suppliersLoading } = useQuery<Supplier[]>({
+    queryKey: ['/api/suppliers'],
+  });
+
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
+    queryKey: ['/api/users'],
+  });
+
+  // Calculate dashboard metrics
+  const lowStockProducts = products.filter(p => p.stock <= (p.minStock || 10));
   const outOfStockProducts = products.filter(p => p.stock === 0);
   const totalInventoryValue = products.reduce((sum, p) => sum + (p.stock * parseFloat(p.cost?.toString() || '0')), 0);
+  
+  const todayRevenue = transactions
+    .filter(t => new Date(t.createdAt).toDateString() === new Date().toDateString())
+    .reduce((sum, t) => sum + parseFloat(t.total.toString()), 0);
+  
+  const weeklyRevenue = transactions
+    .filter(t => {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return new Date(t.createdAt) >= weekAgo;
+    })
+    .reduce((sum, t) => sum + parseFloat(t.total.toString()), 0);
 
-  const todayTransactions = transactions.filter(t => {
-    const today = new Date();
-    const transactionDate = new Date(t.createdAt);
-    return transactionDate.toDateString() === today.toDateString();
-  });
+  const sidebarItems = [
+    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+    { id: "inventory", label: "Inventory", icon: Package },
+    { id: "sales", label: "Sales & Reports", icon: TrendingUp },
+    { id: "customers", label: "Customers", icon: Users },
+    { id: "suppliers", label: "Suppliers", icon: Truck },
+    { id: "staff", label: "Staff Management", icon: Users },
+    { id: "settings", label: "Settings", icon: Settings },
+  ];
 
-  const hourlyData = Array.from({ length: 24 }, (_, hour) => {
-    const hourTransactions = todayTransactions.filter(t => {
-      return new Date(t.createdAt).getHours() === hour;
-    });
-    return {
-      hour,
-      sales: hourTransactions.reduce((sum, t) => sum + parseFloat(t.total.toString()), 0),
-      transactions: hourTransactions.length
-    };
-  });
+  const renderDashboard = () => (
+    <div className="space-y-6">
+      {/* Status Panels */}
+      <StatusPanels className="mb-6" />
+      
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="kxl-status-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">€{todayRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              +12.5% from yesterday
+            </p>
+          </CardContent>
+        </Card>
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+        <Card className="kxl-status-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Weekly Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-secondary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-secondary">€{weeklyRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              +8.2% from last week
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="kxl-status-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
+            <Package className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">€{totalInventoryValue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              {products.length} total products
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="kxl-status-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
+            <Users className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{customers.length}</div>
+            <p className="text-xs text-muted-foreground">
+              +3 new this week
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity & Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-64">
+              <div className="space-y-3">
+                {transactions.slice(0, 10).map((transaction) => (
+                  <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Receipt className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="font-medium">Transaction #{transaction.id}</p>
+                        <p className="text-sm text-gray-500">{transaction.tillId}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">€{parseFloat(transaction.total.toString()).toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">{transaction.paymentMethod}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              <span>Stock Alerts</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-64">
+              <div className="space-y-3">
+                {lowStockProducts.length > 0 ? (
+                  lowStockProducts.map((product) => (
+                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg border-orange-200 bg-orange-50">
+                      <div className="flex items-center space-x-3">
+                        <Package className="h-4 w-4 text-orange-500" />
+                        <div>
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-sm text-gray-500">Stock: {product.stock}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-orange-600 border-orange-300">
+                        Low Stock
+                      </Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-8">All products are well stocked</p>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderInventory = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Inventory Management</h2>
+          <p className="text-gray-600">Manage products, stock levels, and suppliers</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button className="kxl-emerald-button">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
+          </Button>
+          <Button variant="outline">
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+          </Button>
         </div>
       </div>
-    );
-  }
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{products.length}</div>
+            <p className="text-sm text-gray-500">Active inventory items</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Low Stock Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-500">{lowStockProducts.length}</div>
+            <p className="text-sm text-gray-500">Need restocking</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Out of Stock</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-red-500">{outOfStockProducts.length}</div>
+            <p className="text-sm text-gray-500">Immediate attention</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Inventory</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-96">
+            <div className="space-y-2">
+              {products.map((product) => (
+                <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <Package className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">{product.name}</p>
+                      <p className="text-sm text-gray-500">SKU: {product.barcode}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="font-medium">€{parseFloat(product.price.toString()).toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">Stock: {product.stock}</p>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderSales = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Sales & Reports</h2>
+          <p className="text-gray-600">View sales data and generate reports</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button className="kxl-emerald-button">
+            <Download className="h-4 w-4 mr-2" />
+            Export Report
+          </Button>
+          <Button variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            Generate Z Report
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Today's Sales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">€{todayRevenue.toFixed(2)}</div>
+            <p className="text-sm text-gray-500">{transactions.filter(t => new Date(t.createdAt).toDateString() === new Date().toDateString()).length} transactions</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Sales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-secondary">€{weeklyRevenue.toFixed(2)}</div>
+            <p className="text-sm text-gray-500">7-day period</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Average Transaction</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              €{transactions.length > 0 ? (todayRevenue / transactions.filter(t => new Date(t.createdAt).toDateString() === new Date().toDateString()).length || 0).toFixed(2) : '0.00'}
+            </div>
+            <p className="text-sm text-gray-500">Per sale</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{transactions.length}</div>
+            <p className="text-sm text-gray-500">All time</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Sales</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-96">
+            <div className="space-y-2">
+              {transactions.map((transaction) => (
+                <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <Receipt className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">Transaction #{transaction.id}</p>
+                      <p className="text-sm text-gray-500">{new Date(transaction.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="font-medium">€{parseFloat(transaction.total.toString()).toFixed(2)}</p>
+                      <p className="text-sm text-gray-500">{transaction.paymentMethod}</p>
+                    </div>
+                    <Badge variant="outline">{transaction.tillId}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderCustomers = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Customer Management</h2>
+          <p className="text-gray-600">Manage customer accounts and loyalty</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button className="kxl-emerald-button">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Customer
+          </Button>
+          <Button variant="outline">
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Customers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{customers.length}</div>
+            <p className="text-sm text-gray-500">Active accounts</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>New This Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-secondary">12</div>
+            <p className="text-sm text-gray-500">+15% growth</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Loyalty Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">45</div>
+            <p className="text-sm text-gray-500">Active memberships</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Customer Database</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-96">
+            <div className="space-y-2">
+              {customers.map((customer) => (
+                <div key={customer.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <Users className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">{customer.name}</p>
+                      <p className="text-sm text-gray-500">{customer.email || 'No email'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="font-medium">{customer.phone || 'No phone'}</p>
+                      <p className="text-sm text-gray-500">Customer #{customer.id}</p>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderSuppliers = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Supplier Management</h2>
+          <p className="text-gray-600">Manage vendors and purchase orders</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button className="kxl-emerald-button">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Supplier
+          </Button>
+          <Button variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            Purchase Order
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Suppliers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{suppliers.length}</div>
+            <p className="text-sm text-gray-500">Vendor accounts</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-orange-500">3</div>
+            <p className="text-sm text-gray-500">Awaiting delivery</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Spend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">€2,450</div>
+            <p className="text-sm text-gray-500">This month</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Supplier Directory</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-96">
+            <div className="space-y-2">
+              {suppliers.map((supplier) => (
+                <div key={supplier.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <Truck className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">{supplier.name}</p>
+                      <p className="text-sm text-gray-500">{supplier.email || 'No email'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="font-medium">{supplier.phone || 'No phone'}</p>
+                      <p className="text-sm text-gray-500">Supplier #{supplier.id}</p>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderStaff = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Staff Management</h2>
+          <p className="text-gray-600">Manage employees, roles, and permissions</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button className="kxl-emerald-button">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Staff Member
+          </Button>
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export List
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Staff</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{users.length}</div>
+            <p className="text-sm text-gray-500">Active employees</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Admins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-red-500">{users.filter(u => u.role === 'admin').length}</div>
+            <p className="text-sm text-gray-500">Full access</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Managers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-500">{users.filter(u => u.role === 'manager').length}</div>
+            <p className="text-sm text-gray-500">Management level</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Cashiers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-500">{users.filter(u => u.role === 'cashier').length}</div>
+            <p className="text-sm text-gray-500">POS access</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Staff Directory</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-96">
+            <div className="space-y-2">
+              {users.map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <Users className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">{user.firstName} {user.lastName}</p>
+                      <p className="text-sm text-gray-500">{user.username}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <Badge 
+                      variant="outline" 
+                      className={
+                        user.role === 'admin' ? 'text-red-600 border-red-300' :
+                        user.role === 'manager' ? 'text-blue-600 border-blue-300' :
+                        'text-green-600 border-green-300'
+                      }
+                    >
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </Badge>
+                    <div className="flex space-x-1">
+                      <Button size="sm" variant="outline">
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderSettings = () => (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">System Settings</h2>
+        <p className="text-gray-600">Configure store settings and preferences</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Store Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Store Name</label>
+              <p className="text-gray-700">Kerrigan's XL Manorhamilton</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">VAT Number</label>
+              <p className="text-gray-700">IE1234567V</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Address</label>
+              <p className="text-gray-700">Main Street, Manorhamilton, Co. Leitrim</p>
+            </div>
+            <Button className="kxl-emerald-button">Update Information</Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Till Configuration</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Active Tills</label>
+              <p className="text-gray-700">Till 1, Till 2</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Receipt Footer</label>
+              <p className="text-gray-700">Thank you for shopping with us!</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Tax Rate</label>
+              <p className="text-gray-700">23% VAT</p>
+            </div>
+            <Button className="kxl-emerald-button">Configure Tills</Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Methods</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span>Cash Payments</span>
+              <Badge variant="outline" className="text-green-600">Active</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Card Payments</span>
+              <Badge variant="outline" className="text-green-600">Active</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Contactless</span>
+              <Badge variant="outline" className="text-green-600">Active</Badge>
+            </div>
+            <Button className="kxl-emerald-button mt-4">Payment Settings</Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>System Backup</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Last Backup</label>
+              <p className="text-gray-700">Today at 02:00</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Backup Frequency</label>
+              <p className="text-gray-700">Daily automatic</p>
+            </div>
+            <div className="flex space-x-2">
+              <Button className="kxl-emerald-button">Backup Now</Button>
+              <Button variant="outline">Restore</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case "dashboard": return renderDashboard();
+      case "inventory": return renderInventory();
+      case "sales": return renderSales();
+      case "customers": return renderCustomers();
+      case "suppliers": return renderSuppliers();
+      case "staff": return renderStaff();
+      case "settings": return renderSettings();
+      default: return renderDashboard();
+    }
+  };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
-      {/* Modern Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Store Management</h1>
-              <p className="text-gray-600 mt-1">Monitor operations and manage your business</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900">€{metrics?.dailyRevenue?.toFixed(2) || '0.00'}</div>
-                <div className="text-sm text-gray-500">Today's Revenue</div>
-              </div>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-            </div>
-          </div>
+    <div className="h-screen flex bg-gray-50 kxl-neural-bg">
+      {/* Sidebar */}
+      <div className="w-64 bg-white shadow-lg border-r">
+        <div className="p-6 border-b">
+          <h1 className="text-xl font-bold text-gray-900">Back Office</h1>
+          <p className="text-sm text-gray-600">Management Dashboard</p>
         </div>
-      </header>
+        
+        <nav className="p-4">
+          <div className="space-y-2">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    activeSection === item.id
+                      ? 'bg-primary text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+        
+        <div className="absolute bottom-4 left-4 right-4">
+          <Button 
+            onClick={onBackToMenu}
+            variant="outline" 
+            className="w-full"
+          >
+            ← Back to Main Menu
+          </Button>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-          <div className="bg-white border-b border-gray-200 px-6">
-            <TabsList className="grid w-full grid-cols-4 max-w-md">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="sales">Sales</TabsTrigger>
-              <TabsTrigger value="inventory">Inventory</TabsTrigger>
-              <TabsTrigger value="operations">Operations</TabsTrigger>
-            </TabsList>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {sidebarItems.find(item => item.id === activeSection)?.label || 'Dashboard'}
+              </h1>
+              <p className="text-gray-600">Kerrigan's XL Management System</p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-primary">€{todayRevenue.toFixed(2)}</div>
+              <div className="text-sm text-gray-500">Today's Revenue</div>
+            </div>
           </div>
+        </header>
 
-          <div className="p-6">
-            {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
-              {/* Key Metrics Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-blue-600 text-sm font-medium">Daily Sales</p>
-                        <p className="text-2xl font-bold text-blue-900">€{metrics?.dailyRevenue?.toFixed(2) || '0.00'}</p>
-                        <div className="flex items-center mt-2">
-                          <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                          <span className="text-sm text-green-600">+12.5%</span>
-                        </div>
-                      </div>
-                      <Euro className="w-8 h-8 text-blue-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-green-600 text-sm font-medium">Transactions</p>
-                        <p className="text-2xl font-bold text-green-900">{metrics?.transactions || 0}</p>
-                        <div className="flex items-center mt-2">
-                          <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                          <span className="text-sm text-green-600">+8.3%</span>
-                        </div>
-                      </div>
-                      <Receipt className="w-8 h-8 text-green-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-orange-600 text-sm font-medium">Fuel Sales</p>
-                        <p className="text-2xl font-bold text-orange-900">{metrics?.fuelSales || 0}L</p>
-                        <div className="flex items-center mt-2">
-                          <TrendingDown className="w-4 h-4 text-red-500 mr-1" />
-                          <span className="text-sm text-red-600">-3.2%</span>
-                        </div>
-                      </div>
-                      <Fuel className="w-8 h-8 text-orange-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-red-600 text-sm font-medium">Low Stock</p>
-                        <p className="text-2xl font-bold text-red-900">{lowStockProducts.length}</p>
-                        <div className="flex items-center mt-2">
-                          <AlertTriangle className="w-4 h-4 text-red-500 mr-1" />
-                          <span className="text-sm text-red-600">Attention needed</span>
-                        </div>
-                      </div>
-                      <Package className="w-8 h-8 text-red-600" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <ShoppingCart className="w-5 h-5 mr-2" />
-                      Quick Actions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Link href="/inventory">
-                      <Button variant="outline" className="w-full justify-start">
-                        <Package className="w-4 h-4 mr-2" />
-                        Manage Inventory
-                      </Button>
-                    </Link>
-                    <Link href="/customers">
-                      <Button variant="outline" className="w-full justify-start">
-                        <Users className="w-4 h-4 mr-2" />
-                        Customer Database
-                      </Button>
-                    </Link>
-                    <Link href="/suppliers">
-                      <Button variant="outline" className="w-full justify-start">
-                        <Truck className="w-4 h-4 mr-2" />
-                        Supplier Management
-                      </Button>
-                    </Link>
-                    <Link href="/reports">
-                      <Button variant="outline" className="w-full justify-start">
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Generate Reports
-                      </Button>
-                    </Link>
-                    <Link href="/till-management">
-                      <Button variant="outline" className="w-full justify-start">
-                        <DollarSign className="w-4 h-4 mr-2" />
-                        Till Management
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Activity className="w-5 h-5 mr-2" />
-                      Store Health
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Inventory Status</span>
-                        <span className="text-green-600">Good</span>
-                      </div>
-                      <Progress value={85} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Sales Performance</span>
-                        <span className="text-blue-600">Excellent</span>
-                      </div>
-                      <Progress value={92} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Customer Satisfaction</span>
-                        <span className="text-yellow-600">Good</span>
-                      </div>
-                      <Progress value={78} className="h-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Clock className="w-5 h-5 mr-2" />
-                      Recent Activity
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {(metrics?.recentTransactions || []).slice(0, 4).map((transaction: any) => (
-                        <div key={transaction.id} className="flex items-center justify-between text-sm">
-                          <div className="flex items-center">
-                            {transaction.paymentMethod === 'card' ? (
-                              <CreditCard className="w-4 h-4 text-blue-500 mr-2" />
-                            ) : (
-                              <Banknote className="w-4 h-4 text-green-500 mr-2" />
-                            )}
-                            <span>Sale #{transaction.id}</span>
-                          </div>
-                          <span className="font-medium">€{parseFloat(transaction.total).toFixed(2)}</span>
-                        </div>
-                      ))}
-                      {(!metrics?.recentTransactions || metrics.recentTransactions.length === 0) && (
-                        <p className="text-gray-500 text-sm">No recent activity</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Sales Tab */}
-            <TabsContent value="sales" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Payment Methods Today</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                        <div className="flex items-center">
-                          <CreditCard className="w-8 h-8 text-blue-500 mr-3" />
-                          <div>
-                            <p className="font-semibold">Card Payments</p>
-                            <p className="text-sm text-gray-600">Electronic transactions</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold">€{((metrics?.dailyRevenue || 0) * 0.7).toFixed(2)}</p>
-                          <p className="text-sm text-gray-600">70% of sales</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                        <div className="flex items-center">
-                          <Banknote className="w-8 h-8 text-green-500 mr-3" />
-                          <div>
-                            <p className="font-semibold">Cash Payments</p>
-                            <p className="text-sm text-gray-600">Physical currency</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold">€{((metrics?.dailyRevenue || 0) * 0.3).toFixed(2)}</p>
-                          <p className="text-sm text-gray-600">30% of sales</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Sales Performance</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <p className="text-2xl font-bold text-gray-900">{todayTransactions.length}</p>
-                          <p className="text-sm text-gray-600">Today's Transactions</p>
-                        </div>
-                        <div className="text-center p-4 bg-gray-50 rounded-lg">
-                          <p className="text-2xl font-bold text-gray-900">
-                            €{todayTransactions.length > 0 ? ((metrics?.dailyRevenue || 0) / todayTransactions.length).toFixed(2) : '0.00'}
-                          </p>
-                          <p className="text-sm text-gray-600">Average Sale</p>
-                        </div>
-                      </div>
-                      <div className="border-t pt-4">
-                        <h4 className="font-semibold mb-2">Peak Hours Today</h4>
-                        {hourlyData.slice(0, 3).map((hour, index) => (
-                          <div key={hour.hour} className="flex justify-between text-sm py-1">
-                            <span>{hour.hour}:00 - {hour.hour + 1}:00</span>
-                            <span>€{hour.sales.toFixed(2)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Inventory Tab */}
-            <TabsContent value="inventory" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Inventory Overview</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between">
-                        <span>Total Products</span>
-                        <span className="font-semibold">{products.length}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Total Value</span>
-                        <span className="font-semibold">€{totalInventoryValue.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Low Stock</span>
-                        <Badge variant={lowStockProducts.length > 0 ? "destructive" : "secondary"}>
-                          {lowStockProducts.length}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Out of Stock</span>
-                        <Badge variant={outOfStockProducts.length > 0 ? "destructive" : "secondary"}>
-                          {outOfStockProducts.length}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Low Stock Alert</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {lowStockProducts.slice(0, 5).map((product) => (
-                        <div key={product.id} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                          <div>
-                            <p className="font-medium text-sm">{product.name}</p>
-                            <p className="text-xs text-gray-600">{product.category}</p>
-                          </div>
-                          <Badge variant="destructive">{product.stock}</Badge>
-                        </div>
-                      ))}
-                      {lowStockProducts.length === 0 && (
-                        <p className="text-gray-500 text-sm">All products well stocked</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Category Distribution</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {['Drinks', 'Food', 'Fuel', 'Tobacco', 'News'].map((category) => {
-                        const categoryProducts = products.filter(p => p.category === category);
-                        const percentage = products.length > 0 ? (categoryProducts.length / products.length) * 100 : 0;
-                        return (
-                          <div key={category}>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>{category}</span>
-                              <span>{categoryProducts.length} items</span>
-                            </div>
-                            <Progress value={percentage} className="h-2" />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* Operations Tab */}
-            <TabsContent value="operations" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Daily Operations</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Link href="/inventory">
-                      <Button variant="outline" className="w-full justify-between" size="lg">
-                        <div className="flex items-center">
-                          <Package className="w-5 h-5 mr-3" />
-                          Inventory Management
-                        </div>
-                        <ArrowUpRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                    <Link href="/customers">
-                      <Button variant="outline" className="w-full justify-between" size="lg">
-                        <div className="flex items-center">
-                          <Users className="w-5 h-5 mr-3" />
-                          Customer Database
-                        </div>
-                        <ArrowUpRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                    <Link href="/suppliers">
-                      <Button variant="outline" className="w-full justify-between" size="lg">
-                        <div className="flex items-center">
-                          <Truck className="w-5 h-5 mr-3" />
-                          Supplier Management
-                        </div>
-                        <ArrowUpRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                    <Link href="/reports">
-                      <Button variant="outline" className="w-full justify-between" size="lg">
-                        <div className="flex items-center">
-                          <BarChart3 className="w-5 h-5 mr-3" />
-                          Reports & Analytics
-                        </div>
-                        <ArrowUpRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>System Status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                          <span className="font-medium">POS System</span>
-                        </div>
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">Online</Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                          <span className="font-medium">Inventory System</span>
-                        </div>
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">Online</Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                          <span className="font-medium">Payment Processing</span>
-                        </div>
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">Online</Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                          <span className="font-medium">Backup System</span>
-                        </div>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">Active</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </div>
-        </Tabs>
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 custom-scroll">
+          {renderContent()}
+        </main>
       </div>
     </div>
   );
