@@ -30,7 +30,14 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
       return response;
     },
     onSuccess: (response: any) => {
+      console.log('=== PIN LOGIN RESPONSE ===');
+      console.log('Raw response:', JSON.stringify(response, null, 2));
+      
       const user = response?.user || response;
+      console.log('Extracted user:', JSON.stringify(user, null, 2));
+      console.log('User role:', user?.role);
+      console.log('=========================');
+      
       toast({
         title: "Login Successful",
         description: `Welcome back, ${user.firstName || 'User'}!`,

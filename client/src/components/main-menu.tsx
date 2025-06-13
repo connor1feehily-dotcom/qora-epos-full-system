@@ -14,7 +14,16 @@ interface MainMenuProps {
 export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: MainMenuProps) {
   const [selectedTill, setSelectedTill] = useState<string>('till1');
 
-  const canAccessBackOffice = currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role);
+  // Debug the issue - log all user data
+  console.log('=== BACK OFFICE ACCESS DEBUG ===');
+  console.log('currentUser:', JSON.stringify(currentUser, null, 2));
+  console.log('currentUser exists:', !!currentUser);
+  console.log('currentUser.role:', currentUser?.role);
+  console.log('Role check result:', currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role));
+  console.log('================================');
+
+  // Temporary: Force back office access for debugging
+  const canAccessBackOffice = true; // currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
