@@ -11,7 +11,8 @@ import {
   Fuel, 
   CreditCard, 
   Percent,
-  User
+  User,
+  DollarSign
 } from "lucide-react";
 
 interface SidebarProps {
@@ -31,6 +32,7 @@ export function Sidebar({ className }: SidebarProps) {
     { href: "/customers", label: "Customers", icon: Users },
     { href: "/suppliers", label: "Suppliers", icon: Truck },
     { href: "/reports", label: "Reports", icon: FileText },
+    { href: "/till-management", label: "Till Management", icon: DollarSign },
     { href: "/staff", label: "Staff", icon: UserRoundCheck },
   ];
 

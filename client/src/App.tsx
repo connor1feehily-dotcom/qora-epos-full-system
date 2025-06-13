@@ -17,6 +17,7 @@ import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";
 import Suppliers from "@/pages/suppliers";
 import Reports from "@/pages/reports";
+import TillManagementPage from "@/pages/till-management";
 import NotFound from "@/pages/not-found";
 import type { User } from "@shared/schema";
 
@@ -84,6 +85,7 @@ function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
           <Route path="/customers" component={Customers} />
           <Route path="/suppliers" component={Suppliers} />
           <Route path="/reports" component={Reports} />
+          <Route path="/till-management" component={() => <TillManagementPage currentUser={{ id: 1, role: 'admin' }} />} />
           <Route path="/fuel-control" component={() => (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">

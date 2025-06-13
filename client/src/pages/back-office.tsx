@@ -222,6 +222,12 @@ export default function BackOffice() {
                         Generate Reports
                       </Button>
                     </Link>
+                    <Link href="/till-management">
+                      <Button variant="outline" className="w-full justify-start">
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        Till Management
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
 
