@@ -15,14 +15,8 @@ interface StaffLoginProps {
 }
 
 export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
-  const [selectedStaff, setSelectedStaff] = useState<StaffUser | null>(null);
   const [pin, setPin] = useState("");
   const { toast } = useToast();
-
-  // Fetch staff members
-  const { data: staffMembers = [] } = useQuery<StaffUser[]>({
-    queryKey: ['/api/auth/staff'],
-  });
 
   // PIN login mutation
   const pinLoginMutation = useMutation({
@@ -31,12 +25,7 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
       return await response.json();
     },
     onSuccess: (response: any) => {
-      console.log('PIN Login Response:', JSON.stringify(response, null, 2));
       const user = response?.user || response;
-      console.log('Extracted User Data:', JSON.stringify(user, null, 2));
-      console.log('User Role:', user?.role);
-      console.log('Username:', user?.username);
-      
       toast({
         title: "Login Successful",
         description: `Welcome back, ${user.firstName || user.username || 'User'}!`,

@@ -226,7 +226,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
           </div>
         ) : (
           /* Quantum Authentication Portal */
-          <div className="text-center">
+          (<div className="text-center">
             <Card className="kxl-glass kxl-hologram inline-block p-12 shadow-2xl">
               <div className="mb-8">
                 <div className="w-20 h-20 bg-gradient-to-r from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-6 kxl-glow">
@@ -247,12 +247,12 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
               >
                 <div className="flex items-center space-x-3">
                   <Brain className="w-6 h-6" />
-                  <span>INITIATE NEURAL SCAN</span>
+                  <span className="text-[#000000]">INITIATE NEURAL SCAN</span>
                   <Zap className="w-6 h-6" />
                 </div>
               </Button>
             </Card>
-          </div>
+          </div>)
         )}
 
         {/* Quantum Footer */}
