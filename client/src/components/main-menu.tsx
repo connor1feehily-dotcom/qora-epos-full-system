@@ -253,27 +253,27 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
           </div>)
         )}
 
-        {/* Quantum Footer */}
+        {/* Clean Footer */}
         <div className="text-center mt-12 kxl-glass rounded-xl p-6">
           <div className="flex items-center justify-center space-x-6 mb-4">
             <div className="flex items-center space-x-2 text-primary">
-              <Cpu className="w-4 h-4" />
-              <span className="text-sm font-bold">Quantum Core: Active</span>
+              <Shield className="w-4 h-4" />
+              <span className="text-sm font-bold">System: Active</span>
             </div>
             <div className="flex items-center space-x-2 text-secondary">
-              <Brain className="w-4 h-4" />
-              <span className="text-sm font-bold">Neural Network: Online</span>
+              <Monitor className="w-4 h-4" />
+              <span className="text-sm font-bold">Network: Online</span>
             </div>
             <div className="flex items-center space-x-2 text-green-500">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-bold">AI: Operational</span>
+              <ShoppingCart className="w-4 h-4" />
+              <span className="text-sm font-bold">POS: Operational</span>
             </div>
           </div>
           <p className="text-lg font-bold text-foreground mb-2">
-            Kerrigan's XL Manorhamilton • Quantum POS™ System
+            Kerrigan's XL Manorhamilton • Point of Sale System
           </p>
           <p className="text-sm text-muted-foreground">
-            Licensed to Kerrigan's XL from The Feehily Boyle Group • Neural Commerce Division
+            Licensed to Kerrigan's XL from The Feehily Boyle Group • Retail Systems Division
           </p>
         </div>
       </div>

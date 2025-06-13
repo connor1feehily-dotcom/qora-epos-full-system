@@ -307,7 +307,11 @@
   }
 
   .kxl-nav-icon {
-    @apply w-12 h-12 rounded-xl flex items-center justify-center hover:bg-primary/10 transition-all duration-200 cursor-pointer relative;
+    @apply w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer relative;
+  }
+
+  .kxl-nav-icon:hover {
+    background-color: hsl(var(--primary) / 0.1);
   }
 
   .kxl-nav-expanded {

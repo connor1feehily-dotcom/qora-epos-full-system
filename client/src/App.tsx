@@ -8,6 +8,7 @@ import { TillSelector } from "@/components/till-selector";
 import { Sidebar } from "@/components/sidebar";
 import { MainMenu } from "@/components/main-menu";
 import { StaffLogin } from "@/components/staff-login";
+import { FloatingNavigation } from "@/components/floating-navigation";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
@@ -172,6 +173,25 @@ function AppContent() {
   return (
     <TooltipProvider>
       <Toaster />
+      
+      {/* Floating Navigation - only show when user is logged in */}
+      {currentUser && mode !== 'staff-login' && (
+        <FloatingNavigation
+          currentMode={mode}
+          onNavigate={(navMode) => {
+            if (navMode === 'main-menu') {
+              handleBackToMenu();
+            } else if (navMode === 'pos') {
+              handleModeSelect('pos', 'till1');
+            } else if (navMode === 'back-office') {
+              handleModeSelect('back-office');
+            }
+          }}
+          onLogout={handleLogout}
+          currentUser={currentUser}
+        />
+      )}
+
       {mode === 'main-menu' && (
         <MainMenu
           onSelectMode={handleModeSelect}
