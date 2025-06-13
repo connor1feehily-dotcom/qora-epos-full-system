@@ -14,7 +14,7 @@ interface MainMenuProps {
 export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: MainMenuProps) {
   const [selectedTill, setSelectedTill] = useState<string>('till1');
 
-  const canAccessBackOffice = currentUser && ['admin', 'manager'].includes(currentUser.role);
+  const canAccessBackOffice = currentUser && currentUser.role && ['admin', 'manager'].includes(currentUser.role);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
@@ -40,10 +40,10 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {currentUser.firstName} {currentUser.lastName}
+                    {currentUser.firstName || 'Staff'} {currentUser.lastName || 'Member'}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {currentUser.role.toUpperCase()} • {currentUser.employeeId}
+                    {currentUser.role?.toUpperCase() || 'STAFF'} • {currentUser.employeeId || 'N/A'}
                   </p>
                 </div>
               </div>
