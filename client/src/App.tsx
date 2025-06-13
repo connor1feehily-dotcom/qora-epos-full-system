@@ -12,7 +12,7 @@ import { FloatingNavigation } from "@/components/floating-navigation";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
-import POS from "@/pages/pos";
+import { POSSystem } from "@/components/pos-system";
 import BackOffice from "@/pages/back-office";
 import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";
@@ -191,7 +191,7 @@ function AppContent() {
         />
       )}
       {mode === 'pos' && selectedTill && (
-        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} />
+        <POSSystem tillId={selectedTill} onBackToMenu={handleBackToMenu} />
       )}
       {mode === 'back-office' && (
         <BackOfficeRouter onBackToMenu={handleBackToMenu} />

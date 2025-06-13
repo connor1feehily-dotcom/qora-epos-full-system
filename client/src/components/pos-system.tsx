@@ -50,20 +50,23 @@ export function POSSystem({ tillId, onBackToMenu }: POSSystemProps) {
   // Add product to cart
   const addToCart = (product: Product, quantity: number = 1) => {
     setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.product.id === product.id);
+      const existingItem = prevCart.find(item => item.productId === product.id);
       
       if (existingItem) {
         return prevCart.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + quantity, total: (item.quantity + quantity) * item.price }
             : item
         );
       } else {
         const newItem: CartItem = {
-          product,
-          quantity,
+          id: Date.now(), // Temporary ID for cart item
+          productId: product.id,
+          name: product.name,
           price: parseFloat(product.price.toString()),
-          total: parseFloat(product.price.toString()) * quantity
+          quantity,
+          total: parseFloat(product.price.toString()) * quantity,
+          category: product.category
         };
         return [...prevCart, newItem];
       }
@@ -79,7 +82,7 @@ export function POSSystem({ tillId, onBackToMenu }: POSSystemProps) {
     
     setCart(prevCart =>
       prevCart.map(item =>
-        item.product.id === productId
+        item.productId === productId
           ? { 
               ...item, 
               quantity: newQuantity,
@@ -92,7 +95,7 @@ export function POSSystem({ tillId, onBackToMenu }: POSSystemProps) {
 
   // Remove item from cart
   const removeFromCart = (productId: number) => {
-    setCart(prevCart => prevCart.filter(item => item.product.id !== productId));
+    setCart(prevCart => prevCart.filter(item => item.productId !== productId));
   };
 
   // Clear cart
@@ -109,6 +112,7 @@ export function POSSystem({ tillId, onBackToMenu }: POSSystemProps) {
     const total = subtotal + vatAmount;
 
     return {
+      items: cart,
       subtotal,
       vatAmount,
       total,
@@ -132,16 +136,25 @@ export function POSSystem({ tillId, onBackToMenu }: POSSystemProps) {
       };
 
       const items = cart.map(item => ({
-        productId: item.product.id,
+        productId: item.productId,
         quantity: item.quantity,
         price: item.price.toString(),
         total: item.total.toString()
       }));
 
-      return apiRequest('/api/transactions', {
+      const response = await fetch('/api/transactions', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ transaction: transactionData, items })
       });
+
+      if (!response.ok) {
+        throw new Error('Transaction failed');
+      }
+
+      return response.json();
     },
     onSuccess: (data) => {
       setLastTransaction({
@@ -247,16 +260,16 @@ export function POSSystem({ tillId, onBackToMenu }: POSSystemProps) {
                 ) : (
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {cart.map((item) => (
-                      <div key={item.product.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
-                          <p className="font-medium text-sm">{item.product.name}</p>
+                          <p className="font-medium text-sm">{item.name}</p>
                           <p className="text-xs text-gray-500">€{item.price.toFixed(2)} each</p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -264,14 +277,14 @@ export function POSSystem({ tillId, onBackToMenu }: POSSystemProps) {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => removeFromCart(item.product.id)}
+                            onClick={() => removeFromCart(item.productId)}
                             className="text-red-500 hover:text-red-700"
                           >
                             <Trash2 className="h-3 w-3" />
