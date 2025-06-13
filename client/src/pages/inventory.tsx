@@ -148,12 +148,22 @@ export default function Inventory() {
   };
 
   const handleBarcodeScan = (barcode: string) => {
-    form.setValue('barcode', barcode);
+    if (dialogOpen) {
+      // If dialog is open, set barcode in form
+      form.setValue('barcode', barcode);
+      toast({
+        title: "Barcode Scanned",
+        description: `Barcode ${barcode} added to form`,
+      });
+    } else {
+      // If dialog is closed, use barcode for search
+      setSearchQuery(barcode);
+      toast({
+        title: "Searching by Barcode",
+        description: `Searching for product with barcode: ${barcode}`,
+      });
+    }
     setBarcodeScannerOpen(false);
-    toast({
-      title: "Barcode Scanned",
-      description: `Barcode ${barcode} added to form`,
-    });
   };
 
   return (
