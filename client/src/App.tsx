@@ -107,7 +107,7 @@ function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
 
 type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office';
 
-function App() {
+function AppContent() {
   const [mode, setMode] = useState<AppMode>('main-menu');
   const [selectedTill, setSelectedTill] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -145,47 +145,51 @@ function App() {
   // Show loading while seeding database
   if (isSeeding) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              Initializing Kerrigans XL POS
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              Setting up your point of sale system...
-            </p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+            Initializing Kerrigans XL POS
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400">
+            Setting up your point of sale system...
+          </p>
         </div>
-      </QueryClientProvider>
+      </div>
     );
   }
 
   return (
+    <TooltipProvider>
+      <Toaster />
+      {mode === 'main-menu' && (
+        <MainMenu
+          onSelectMode={handleModeSelect}
+          onStaffLogin={handleStaffLogin}
+          currentUser={currentUser}
+          onLogout={handleLogout}
+        />
+      )}
+      {mode === 'staff-login' && (
+        <StaffLogin
+          onLogin={handleLoginSuccess}
+          onBack={handleBackToMenu}
+        />
+      )}
+      {mode === 'pos' && selectedTill && (
+        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} />
+      )}
+      {mode === 'back-office' && (
+        <BackOfficeRouter onBackToMenu={handleBackToMenu} />
+      )}
+    </TooltipProvider>
+  );
+}
+
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        {mode === 'main-menu' && (
-          <MainMenu
-            onSelectMode={handleModeSelect}
-            onStaffLogin={handleStaffLogin}
-            currentUser={currentUser}
-            onLogout={handleLogout}
-          />
-        )}
-        {mode === 'staff-login' && (
-          <StaffLogin
-            onLogin={handleLoginSuccess}
-            onBack={handleBackToMenu}
-          />
-        )}
-        {mode === 'pos' && selectedTill && (
-          <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} />
-        )}
-        {mode === 'back-office' && (
-          <BackOfficeRouter onBackToMenu={handleBackToMenu} />
-        )}
-      </TooltipProvider>
+      <AppContent />
     </QueryClientProvider>
   );
 }
