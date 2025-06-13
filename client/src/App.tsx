@@ -8,6 +8,7 @@ import { TillSelector } from "@/components/till-selector";
 import { Sidebar } from "@/components/sidebar";
 import { MainMenu } from "@/components/main-menu";
 import { StaffLogin } from "@/components/staff-login";
+import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import POS from "@/pages/pos";
 import BackOffice from "@/pages/back-office";
@@ -128,7 +129,7 @@ function AppContent() {
   const [selectedTill, setSelectedTill] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Auto-seed the database on first load
+  // Auto-seed the database on first load with 25-second loading
   const { data: seedResult, isLoading: isSeeding } = useAutoSeed();
 
   const handleModeSelect = (selectedMode: 'pos' | 'back-office', tillId?: string) => {
@@ -160,19 +161,7 @@ function AppContent() {
 
   // Show loading while seeding database
   if (isSeeding) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-            Initializing Kerrigans XL POS
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400">
-            Setting up your point of sale system...
-          </p>
-        </div>
-      </div>
-    );
+    return <KerrigansLoadingScreen />;
   }
 
   return (

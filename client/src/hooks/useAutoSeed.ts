@@ -1,19 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
 export function useAutoSeed() {
-  return useQuery({
-    queryKey: ['/api/seed'],
-    queryFn: async () => {
-      try {
-        await apiRequest('POST', '/api/seed', {});
-        return { seeded: true };
-      } catch (error) {
-        // If seeding fails, it might already be seeded
-        return { seeded: false };
-      }
-    },
-    retry: false,
-    staleTime: Infinity,
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<{ seeded: boolean } | null>(null);
+
+  useEffect(() => {
+    // Force 25 second loading time
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false);
+      setData({ seeded: true });
+    }, 25000);
+
+    // Seed the database in background
+    apiRequest('POST', '/api/seed', {}).catch(() => {
+      // Ignore errors, database might already be seeded
+    });
+
+    return () => clearTimeout(loadingTimer);
+  }, []);
+
+  return { isLoading, data };
 }
