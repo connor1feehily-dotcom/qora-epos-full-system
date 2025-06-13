@@ -7,7 +7,7 @@ import {
   type InsertTillSession, type InsertDailyReport
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -278,8 +278,7 @@ export class DatabaseStorage implements IStorage {
   // Till Sessions
   async getCurrentTillSession(tillId: string): Promise<TillSession | undefined> {
     const [session] = await db.select().from(tillSessions)
-      .where(eq(tillSessions.tillId, tillId))
-      .where(eq(tillSessions.isActive, true));
+      .where(and(eq(tillSessions.tillId, tillId), eq(tillSessions.isActive, true)));
     return session || undefined;
   }
 
@@ -349,20 +348,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDailyReports(tillId?: string, date?: Date): Promise<DailyReport[]> {
-    let query = db.select().from(dailyReports);
-    
     if (tillId) {
-      query = query.where(eq(dailyReports.tillId, tillId));
+      return await db.select().from(dailyReports).where(eq(dailyReports.tillId, tillId));
     }
-    
-    return await query;
+    return await db.select().from(dailyReports);
   }
 
   async getLastZReport(tillId: string): Promise<DailyReport | undefined> {
     const [report] = await db.select().from(dailyReports)
-      .where(eq(dailyReports.tillId, tillId))
-      .where(eq(dailyReports.reportType, 'Z'))
-      .orderBy(dailyReports.reportDate)
+      .where(and(eq(dailyReports.tillId, tillId), eq(dailyReports.reportType, 'Z')))
+      .orderBy(desc(dailyReports.reportDate))
       .limit(1);
     return report || undefined;
   }

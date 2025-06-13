@@ -439,6 +439,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Till Management endpoints
+  app.get("/api/till/:tillId/session", async (req, res) => {
+    try {
+      const { tillId } = req.params;
+      const session = await storage.getCurrentTillSession(tillId);
+      res.json(session);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch till session" });
+    }
+  });
+
+  app.post("/api/till/open", async (req, res) => {
+    try {
+      const { tillId, userId, openingFloat } = req.body;
+      
+      // Check if till is already open
+      const existingSession = await storage.getCurrentTillSession(tillId);
+      if (existingSession) {
+        return res.status(400).json({ message: "Till is already open" });
+      }
+
+      const session = await storage.openTillSession({
+        tillId,
+        userId,
+        openingFloat: openingFloat.toString()
+      });
+      
+      res.status(201).json(session);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to open till" });
+    }
+  });
+
+  app.post("/api/till/close", async (req, res) => {
+    try {
+      const { sessionId, closingFloat, actualCash } = req.body;
+      
+      const session = await storage.closeTillSession(sessionId, {
+        closingFloat,
+        actualCash
+      });
+      
+      res.json(session);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to close till" });
+    }
+  });
+
+  app.get("/api/till/:tillId/sessions", async (req, res) => {
+    try {
+      const { tillId } = req.params;
+      const sessions = await storage.getTillSessions(tillId);
+      res.json(sessions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch till sessions" });
+    }
+  });
+
+  // Daily Reports endpoints
+  app.post("/api/reports/generate", async (req, res) => {
+    try {
+      const { tillId, reportType, generatedBy } = req.body;
+      
+      if (!['X', 'Z'].includes(reportType)) {
+        return res.status(400).json({ message: "Invalid report type. Must be 'X' or 'Z'" });
+      }
+
+      const report = await storage.generateDailyReport(tillId, reportType, generatedBy);
+      res.status(201).json(report);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate report" });
+    }
+  });
+
+  app.get("/api/reports", async (req, res) => {
+    try {
+      const { tillId, date } = req.query;
+      const reports = await storage.getDailyReports(
+        tillId as string,
+        date ? new Date(date as string) : undefined
+      );
+      res.json(reports);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reports" });
+    }
+  });
+
+  app.get("/api/reports/:tillId/last-z", async (req, res) => {
+    try {
+      const { tillId } = req.params;
+      const report = await storage.getLastZReport(tillId);
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch last Z report" });
+    }
+  });
+
+  // Till drawer control endpoint
+  app.post("/api/till/open-drawer", async (req, res) => {
+    try {
+      const { tillId } = req.body;
+      
+      // ESC/POS command to open cash drawer
+      const ESC = '\x1b';
+      const DLE = '\x10';
+      const EOT = '\x04';
+      const openDrawerCommand = DLE + EOT + '\x01'; // Standard cash drawer open command
+      
+      // In a real implementation, this would send the command to the physical printer/cash drawer
+      // For now, we'll simulate the action and log it
+      console.log(`Opening cash drawer for ${tillId}`);
+      console.log('ESC/POS Command:', openDrawerCommand);
+      
+      res.json({ 
+        message: "Cash drawer opened", 
+        tillId,
+        command: "DLE EOT 1",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to open cash drawer" });
+    }
+  });
+
   // Receipt printing endpoint
   app.post("/api/print/receipt", async (req, res) => {
     try {
