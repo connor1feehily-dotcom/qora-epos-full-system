@@ -254,7 +254,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
   const transaction = calculateTransaction();
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 text-white overflow-hidden">
       {/* Hidden input for barcode scanning */}
       <input
         ref={hiddenInputRef}
@@ -263,123 +263,170 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
         tabIndex={-1}
       />
 
-      {/* Header Bar */}
-      <div className="bg-black/30 backdrop-blur-lg border-b border-cyan-500/20 px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-6">
+      {/* Modern Header Bar */}
+      <div className="bg-gradient-to-r from-black/40 via-black/30 to-black/40 backdrop-blur-xl border-b border-cyan-400/30 px-8 py-6 flex items-center justify-between shadow-2xl">
+        <div className="flex items-center space-x-8">
           <Button 
             onClick={onBackToMenu} 
-            className="bg-cyan-600 hover:bg-cyan-700 text-white border-0 px-6 py-3 text-lg font-semibold rounded-xl shadow-lg hover:shadow-cyan-500/25 transition-all duration-200"
+            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 px-8 py-4 text-lg font-bold rounded-2xl shadow-xl hover:shadow-cyan-500/30 transition-all duration-300 hover:scale-105"
           >
             ← Main Menu
           </Button>
-          <div className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-            Till {tillId}
+          <div className="flex flex-col">
+            <div className="text-4xl font-black bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Till {tillId}
+            </div>
+            <div className="text-cyan-400/80 text-sm font-medium">Point of Sale System</div>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-4xl font-bold text-emerald-400">€{transaction.total.toFixed(2)}</div>
-          <div className="text-cyan-300">{transaction.itemCount} items</div>
+        <div className="text-right bg-black/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-emerald-400/30">
+          <div className="text-5xl font-black text-emerald-400 mb-1">€{transaction.total.toFixed(2)}</div>
+          <div className="text-cyan-300 text-lg font-medium">{transaction.itemCount} items in cart</div>
         </div>
       </div>
 
-      <div className="h-[calc(100vh-96px)] grid grid-cols-12 gap-4 p-4">
+      <div className="h-[calc(100vh-120px)] grid grid-cols-12 gap-6 p-6">
         {/* Left Section - Products (7 columns) */}
-        <div className="col-span-7 flex flex-col space-y-3">
-          {/* Search Bar */}
-          <div className="bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-3">
+        <div className="col-span-7 flex flex-col space-y-6">
+          {/* Enhanced Search Bar */}
+          <div className="bg-gradient-to-r from-black/30 via-black/20 to-black/30 backdrop-blur-xl border border-cyan-400/40 rounded-2xl p-6 shadow-2xl">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400 h-4 w-4" />
+              <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-cyan-400 h-6 w-6" />
               <Input
-                placeholder="Search products or scan barcode..."
+                placeholder="🔍 Search products or scan barcode..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-black/40 border-cyan-500/30 text-white placeholder-cyan-300/60 text-base h-10 rounded-lg focus:border-cyan-400 focus:ring-cyan-400/20"
+                className="pl-16 bg-black/60 border-cyan-400/50 text-white placeholder-cyan-300/80 text-xl h-16 rounded-xl focus:border-cyan-300 focus:ring-cyan-300/30 focus:ring-4 font-medium shadow-inner"
               />
             </div>
           </div>
 
-          {/* Product Grid - Organized by Categories */}
-          <div className="flex-1 bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-4 overflow-hidden">
-            <div className="h-full grid grid-cols-5 gap-3">
-              {filteredProducts.map((product) => (
-                <Button
-                  key={product.id}
-                  onClick={() => addToCart(product)}
-                  className="h-20 bg-gradient-to-br from-slate-700/80 to-slate-800/80 hover:from-cyan-600/20 hover:to-emerald-600/20 border border-slate-600/50 hover:border-cyan-400/50 rounded-lg flex flex-col items-center justify-center p-2 text-white transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/10 hover:scale-105"
-                >
-                  <Package className="h-4 w-4 mb-1 text-cyan-400" />
-                  <span className="text-xs font-medium text-center leading-tight truncate w-full mb-1">{product.name}</span>
-                  <span className="text-xs font-bold text-emerald-400">€{parseFloat(product.price.toString()).toFixed(2)}</span>
-                  <Badge variant="outline" className="text-xs px-1 py-0 mt-1 border-cyan-500/30 text-cyan-300">
-                    {product.category}
-                  </Badge>
-                </Button>
-              ))}
+          {/* Product Grid - Enhanced with Better Visuals */}
+          <div className="flex-1 bg-gradient-to-br from-black/30 via-black/20 to-black/30 backdrop-blur-xl border border-cyan-400/40 rounded-2xl p-6 overflow-hidden shadow-2xl">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-white mb-2">Product Categories</h2>
+              <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full"></div>
+            </div>
+            <div className="h-[calc(100%-80px)] grid grid-cols-5 gap-4">
+              {filteredProducts.map((product) => {
+                const getCategoryIcon = (category: string) => {
+                  switch(category.toLowerCase()) {
+                    case 'drinks': return '🥤';
+                    case 'deli': return '🥪';
+                    case 'fuel': return '⛽';
+                    case 'fruit': return '🍌';
+                    case 'vegetables': return '🥕';
+                    case 'bakery': return '🍞';
+                    case 'dairy': return '🥛';
+                    case 'tobacco': return '🚬';
+                    case 'newspapers': return '📰';
+                    case 'lottery': return '🎫';
+                    default: return '📦';
+                  }
+                };
+
+                return (
+                  <Button
+                    key={product.id}
+                    onClick={() => addToCart(product)}
+                    className="h-28 bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 hover:from-cyan-600/30 hover:via-blue-600/30 hover:to-emerald-600/30 border-2 border-slate-600/60 hover:border-cyan-400/80 rounded-2xl flex flex-col items-center justify-center p-4 text-white transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 hover:scale-110 hover:-translate-y-1 group"
+                  >
+                    <div className="text-2xl mb-2 group-hover:scale-125 transition-transform duration-300">
+                      {getCategoryIcon(product.category)}
+                    </div>
+                    <span className="text-sm font-bold text-center leading-tight truncate w-full mb-2 group-hover:text-cyan-300 transition-colors">
+                      {product.name}
+                    </span>
+                    <span className="text-lg font-black text-emerald-400 group-hover:text-emerald-300 transition-colors">
+                      €{parseFloat(product.price.toString()).toFixed(2)}
+                    </span>
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs px-2 py-1 mt-2 border-cyan-500/50 text-cyan-300 bg-cyan-500/10 group-hover:bg-cyan-400/20 group-hover:border-cyan-400 transition-all"
+                    >
+                      {product.category}
+                    </Badge>
+                  </Button>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Right Section - Cart (5 columns) */}
-        <div className="col-span-5 flex flex-col h-full">
-          {/* Cart */}
-          <div className="flex-1 bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-white">Cart</h3>
+        {/* Right Section - Enhanced Cart (5 columns) */}
+        <div className="col-span-5 flex flex-col h-full space-y-6">
+          {/* Cart Section */}
+          <div className="flex-1 bg-gradient-to-br from-black/30 via-black/20 to-black/30 backdrop-blur-xl border border-cyan-400/40 rounded-2xl p-6 flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <ShoppingCart className="h-8 w-8 text-cyan-400" />
+                <div>
+                  <h3 className="text-2xl font-bold text-white">Shopping Cart</h3>
+                  <div className="w-16 h-1 bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full"></div>
+                </div>
+              </div>
               {cart.length > 0 && (
                 <Button 
                   onClick={clearCart}
-                  variant="outline" 
-                  size="sm"
-                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-400"
+                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 px-4 py-2 rounded-xl font-bold shadow-lg hover:shadow-red-500/25 transition-all duration-300"
                 >
-                  Clear
+                  🗑️ Clear All
                 </Button>
               )}
             </div>
             
             {cart.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center">
-                <ShoppingCart className="h-12 w-12 text-cyan-400/60 mb-2" />
-                <p className="text-cyan-300">Cart is empty</p>
-                <p className="text-cyan-400/60 text-sm">Scan items or click products</p>
+              <div className="flex-1 flex flex-col items-center justify-center bg-black/20 rounded-2xl border-2 border-dashed border-cyan-400/30">
+                <div className="text-6xl mb-4">🛒</div>
+                <p className="text-2xl font-bold text-cyan-300 mb-2">Cart is Empty</p>
+                <p className="text-cyan-400/80 text-lg text-center">
+                  Scan barcodes or tap products<br/>to add items to your cart
+                </p>
               </div>
             ) : (
-              <div className="flex-1 space-y-2 overflow-y-auto mb-4">
-                {cart.map((item) => (
-                  <div key={item.id} className="bg-slate-800/60 border border-slate-600/50 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
+              <div className="flex-1 space-y-3 overflow-y-auto">
+                {cart.map((item, index) => (
+                  <div key={item.id} className="bg-gradient-to-r from-slate-800/80 via-slate-700/80 to-slate-800/80 border-2 border-slate-600/50 rounded-2xl p-5 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10">
+                    <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <p className="font-medium text-white text-sm">{item.name}</p>
-                        <p className="text-cyan-400 text-xs">€{item.price.toFixed(2)} each</p>
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center text-cyan-400 font-bold text-sm">
+                            {index + 1}
+                          </div>
+                          <p className="font-bold text-white text-lg">{item.name}</p>
+                        </div>
+                        <p className="text-cyan-400 text-base ml-11">€{item.price.toFixed(2)} per item</p>
                       </div>
                       <Button
                         onClick={() => removeFromCart(item.productId)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/20 p-2 rounded-xl transition-all duration-300"
                         variant="ghost"
-                        size="sm"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-4 bg-black/30 rounded-2xl p-2">
                         <Button
                           onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                          className="bg-slate-700 hover:bg-slate-600 text-white p-1 h-8 w-8"
-                          size="sm"
+                          className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white p-2 h-12 w-12 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 hover:scale-110"
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-5 w-5" />
                         </Button>
-                        <span className="text-lg font-bold text-white w-8 text-center">{item.quantity}</span>
+                        <span className="text-2xl font-black text-white w-16 text-center bg-cyan-500/20 rounded-xl py-2">
+                          {item.quantity}
+                        </span>
                         <Button
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="bg-slate-700 hover:bg-slate-600 text-white p-1 h-8 w-8"
-                          size="sm"
+                          className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white p-2 h-12 w-12 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 hover:scale-110"
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-5 w-5" />
                         </Button>
                       </div>
-                      <div className="text-lg font-bold text-emerald-400">€{item.total.toFixed(2)}</div>
+                      <div className="text-right">
+                        <div className="text-2xl font-black text-emerald-400">€{item.total.toFixed(2)}</div>
+                        <div className="text-sm text-cyan-300">Item Total</div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -387,32 +434,41 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             )}
           </div>
 
-          {/* Total and Payment - Always visible */}
-          <div className="bg-black/30 backdrop-blur-lg border border-emerald-500/30 rounded-xl p-4 mt-3">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-cyan-300">Subtotal:</span>
-                <span className="text-white font-semibold">€{transaction.subtotal.toFixed(2)}</span>
+          {/* Enhanced Payment Section */}
+          <div className="bg-gradient-to-br from-emerald-900/40 via-black/30 to-emerald-900/40 backdrop-blur-xl border-2 border-emerald-400/50 rounded-2xl p-6 shadow-2xl">
+            <div className="mb-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="text-3xl">💰</div>
+                <h3 className="text-2xl font-bold text-white">Order Summary</h3>
               </div>
-              <div className="flex justify-between">
-                <span className="text-cyan-300">VAT (23%):</span>
-                <span className="text-white font-semibold">€{transaction.vatAmount.toFixed(2)}</span>
+              <div className="w-20 h-1 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"></div>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between items-center py-2 border-b border-emerald-400/20">
+                <span className="text-cyan-300 text-lg">Subtotal:</span>
+                <span className="text-white font-bold text-xl">€{transaction.subtotal.toFixed(2)}</span>
               </div>
-              <div className="border-t border-emerald-500/30 pt-3">
-                <div className="flex justify-between text-xl font-bold">
-                  <span className="text-white">Total:</span>
-                  <span className="text-emerald-400">€{transaction.total.toFixed(2)}</span>
+              <div className="flex justify-between items-center py-2 border-b border-emerald-400/20">
+                <span className="text-cyan-300 text-lg">VAT (23%):</span>
+                <span className="text-white font-bold text-xl">€{transaction.vatAmount.toFixed(2)}</span>
+              </div>
+              <div className="bg-emerald-500/10 rounded-2xl p-4 border border-emerald-400/30">
+                <div className="flex justify-between items-center">
+                  <span className="text-white text-2xl font-bold">TOTAL:</span>
+                  <span className="text-emerald-400 text-4xl font-black">€{transaction.total.toFixed(2)}</span>
                 </div>
               </div>
-              <Button
-                onClick={() => setShowPayment(true)}
-                disabled={cart.length === 0}
-                className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 disabled:from-slate-600 disabled:to-slate-700 text-white border-0 py-4 text-lg font-bold rounded-lg shadow-lg hover:shadow-emerald-500/25 transition-all duration-200"
-              >
-                <CreditCard className="h-5 w-5 mr-2" />
-                Complete Sale
-              </Button>
             </div>
+            
+            <Button
+              onClick={() => setShowPayment(true)}
+              disabled={cart.length === 0}
+              className="w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 hover:from-emerald-400 hover:via-emerald-500 hover:to-emerald-600 disabled:from-slate-600 disabled:to-slate-700 text-white border-0 py-6 text-2xl font-black rounded-2xl shadow-2xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
+            >
+              <CreditCard className="h-8 w-8 mr-4" />
+              {cart.length === 0 ? 'Add Items to Cart' : 'Complete Sale'}
+            </Button>
           </div>
         </div>
       </div>
