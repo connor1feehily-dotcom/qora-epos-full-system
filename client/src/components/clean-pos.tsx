@@ -282,50 +282,54 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
         </div>
       </div>
 
-      <div className="h-[calc(100vh-96px)] grid grid-cols-12 gap-6 p-6">
-        {/* Left Section - Products (8 columns) */}
-        <div className="col-span-8 flex flex-col space-y-4">
+      <div className="h-[calc(100vh-96px)] grid grid-cols-12 gap-4 p-4">
+        {/* Left Section - Products (7 columns) */}
+        <div className="col-span-7 flex flex-col space-y-3">
           {/* Search Bar */}
-          <div className="bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-2xl p-4">
+          <div className="bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-3">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-400 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-cyan-400 h-4 w-4" />
               <Input
                 placeholder="Search products or scan barcode..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 bg-black/40 border-cyan-500/30 text-white placeholder-cyan-300/60 text-lg h-12 rounded-xl focus:border-cyan-400 focus:ring-cyan-400/20"
+                className="pl-10 bg-black/40 border-cyan-500/30 text-white placeholder-cyan-300/60 text-base h-10 rounded-lg focus:border-cyan-400 focus:ring-cyan-400/20"
               />
             </div>
           </div>
 
-          {/* Product Grid */}
-          <div className="flex-1 bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-2xl p-6">
-            <div className="grid grid-cols-6 gap-4 h-full">
-              {filteredProducts.slice(0, 30).map((product) => (
+          {/* Product Grid - Organized by Categories */}
+          <div className="flex-1 bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-4 overflow-hidden">
+            <div className="h-full grid grid-cols-5 gap-3">
+              {filteredProducts.map((product) => (
                 <Button
                   key={product.id}
                   onClick={() => addToCart(product)}
-                  className="h-24 bg-gradient-to-br from-slate-700/80 to-slate-800/80 hover:from-cyan-600/20 hover:to-emerald-600/20 border border-slate-600/50 hover:border-cyan-400/50 rounded-xl flex flex-col items-center justify-center p-3 text-white transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/10 hover:scale-105"
+                  className="h-20 bg-gradient-to-br from-slate-700/80 to-slate-800/80 hover:from-cyan-600/20 hover:to-emerald-600/20 border border-slate-600/50 hover:border-cyan-400/50 rounded-lg flex flex-col items-center justify-center p-2 text-white transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/10 hover:scale-105"
                 >
-                  <Package className="h-6 w-6 mb-2 text-cyan-400" />
-                  <span className="text-xs font-medium text-center leading-tight truncate w-full">{product.name}</span>
-                  <span className="text-sm font-bold text-emerald-400">€{parseFloat(product.price.toString()).toFixed(2)}</span>
+                  <Package className="h-4 w-4 mb-1 text-cyan-400" />
+                  <span className="text-xs font-medium text-center leading-tight truncate w-full mb-1">{product.name}</span>
+                  <span className="text-xs font-bold text-emerald-400">€{parseFloat(product.price.toString()).toFixed(2)}</span>
+                  <Badge variant="outline" className="text-xs px-1 py-0 mt-1 border-cyan-500/30 text-cyan-300">
+                    {product.category}
+                  </Badge>
                 </Button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Right Section - Cart (4 columns) */}
-        <div className="col-span-4 flex flex-col space-y-4">
+        {/* Right Section - Cart (5 columns) */}
+        <div className="col-span-5 flex flex-col h-full">
           {/* Cart */}
-          <div className="flex-1 bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-white">Cart</h3>
+          <div className="flex-1 bg-black/20 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Cart</h3>
               {cart.length > 0 && (
                 <Button 
                   onClick={clearCart}
                   variant="outline" 
+                  size="sm"
                   className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-400"
                 >
                   Clear
@@ -334,47 +338,48 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             </div>
             
             {cart.length === 0 ? (
-              <div className="text-center py-12">
-                <ShoppingCart className="h-16 w-16 mx-auto text-cyan-400/60 mb-4" />
-                <p className="text-cyan-300 text-lg">Cart is empty</p>
-                <p className="text-cyan-400/60">Scan items or click products</p>
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <ShoppingCart className="h-12 w-12 text-cyan-400/60 mb-2" />
+                <p className="text-cyan-300">Cart is empty</p>
+                <p className="text-cyan-400/60 text-sm">Scan items or click products</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="flex-1 space-y-2 overflow-y-auto mb-4">
                 {cart.map((item) => (
-                  <div key={item.id} className="bg-slate-800/60 border border-slate-600/50 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
+                  <div key={item.id} className="bg-slate-800/60 border border-slate-600/50 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
-                        <p className="font-medium text-white">{item.name}</p>
-                        <p className="text-cyan-400">€{item.price.toFixed(2)} each</p>
+                        <p className="font-medium text-white text-sm">{item.name}</p>
+                        <p className="text-cyan-400 text-xs">€{item.price.toFixed(2)} each</p>
                       </div>
                       <Button
                         onClick={() => removeFromCart(item.productId)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1"
                         variant="ghost"
+                        size="sm"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2">
                         <Button
                           onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                          className="bg-slate-700 hover:bg-slate-600 text-white p-2 h-10 w-10"
+                          className="bg-slate-700 hover:bg-slate-600 text-white p-1 h-8 w-8"
+                          size="sm"
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="text-xl font-bold text-white w-12 text-center">{item.quantity}</span>
+                        <span className="text-lg font-bold text-white w-8 text-center">{item.quantity}</span>
                         <Button
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="bg-slate-700 hover:bg-slate-600 text-white p-2 h-10 w-10"
+                          className="bg-slate-700 hover:bg-slate-600 text-white p-1 h-8 w-8"
+                          size="sm"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3 w-3" />
                         </Button>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-emerald-400">€{item.total.toFixed(2)}</div>
-                      </div>
+                      <div className="text-lg font-bold text-emerald-400">€{item.total.toFixed(2)}</div>
                     </div>
                   </div>
                 ))}
@@ -382,34 +387,33 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             )}
           </div>
 
-          {/* Total and Payment */}
-          {cart.length > 0 && (
-            <div className="bg-black/30 backdrop-blur-lg border border-emerald-500/30 rounded-2xl p-6">
-              <div className="space-y-4">
-                <div className="flex justify-between text-lg">
-                  <span className="text-cyan-300">Subtotal:</span>
-                  <span className="text-white font-semibold">€{transaction.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-lg">
-                  <span className="text-cyan-300">VAT (23%):</span>
-                  <span className="text-white font-semibold">€{transaction.vatAmount.toFixed(2)}</span>
-                </div>
-                <div className="border-t border-emerald-500/30 pt-4">
-                  <div className="flex justify-between text-2xl font-bold">
-                    <span className="text-white">Total:</span>
-                    <span className="text-emerald-400">€{transaction.total.toFixed(2)}</span>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => setShowPayment(true)}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white border-0 py-6 text-xl font-bold rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-200"
-                >
-                  <CreditCard className="h-6 w-6 mr-3" />
-                  Complete Sale
-                </Button>
+          {/* Total and Payment - Always visible */}
+          <div className="bg-black/30 backdrop-blur-lg border border-emerald-500/30 rounded-xl p-4 mt-3">
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-cyan-300">Subtotal:</span>
+                <span className="text-white font-semibold">€{transaction.subtotal.toFixed(2)}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-cyan-300">VAT (23%):</span>
+                <span className="text-white font-semibold">€{transaction.vatAmount.toFixed(2)}</span>
+              </div>
+              <div className="border-t border-emerald-500/30 pt-3">
+                <div className="flex justify-between text-xl font-bold">
+                  <span className="text-white">Total:</span>
+                  <span className="text-emerald-400">€{transaction.total.toFixed(2)}</span>
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowPayment(true)}
+                disabled={cart.length === 0}
+                className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 disabled:from-slate-600 disabled:to-slate-700 text-white border-0 py-4 text-lg font-bold rounded-lg shadow-lg hover:shadow-emerald-500/25 transition-all duration-200"
+              >
+                <CreditCard className="h-5 w-5 mr-2" />
+                Complete Sale
+              </Button>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
