@@ -14,6 +14,7 @@ import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { SimplePOS } from "@/components/simple-pos";
 import { CustomerDisplayPage } from "@/components/customer-display";
+import { BackOfficeLayout } from "@/components/back-office/back-office-layout";
 import BackOffice from "@/pages/back-office";
 import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";
@@ -30,79 +31,7 @@ function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () 
 }
 
 function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
-  return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between shadow-sm flex-shrink-0">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={onBackToMenu}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 text-lg font-semibold shadow-lg hover:shadow-xl"
-          >
-            ← Main Menu
-          </button>
-          <img 
-            src={kerrigansLogo} 
-            alt="Kerrigan's XL Logo"
-            className="h-10 w-auto object-contain"
-          />
-          <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Back Office Management
-          </span>
-        </div>
-        <div className="text-xs text-slate-500 dark:text-slate-400">
-          Licensed to Kerrigan's XL from The Feehily Boyle Group
-        </div>
-      </div>
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <div className="flex-1 overflow-y-auto">
-          <Switch>
-            <Route path="/" component={BackOffice} />
-            <Route path="/back-office" component={BackOffice} />
-            <Route path="/inventory" component={Inventory} />
-            <Route path="/customers" component={Customers} />
-            <Route path="/suppliers" component={Suppliers} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/till-management" component={() => <TillManagementPage currentUser={{ id: 1, role: 'admin' }} />} />
-            <Route path="/fuel-control" component={() => (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Fuel Control</h2>
-                  <p className="text-gray-600">This feature is coming soon</p>
-                </div>
-              </div>
-            )} />
-            <Route path="/payments" component={() => (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Payment Management</h2>
-                  <p className="text-gray-600">This feature is coming soon</p>
-                </div>
-              </div>
-            )} />
-            <Route path="/promotions" component={() => (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Promotions</h2>
-                  <p className="text-gray-600">This feature is coming soon</p>
-                </div>
-              </div>
-            )} />
-            <Route path="/staff" component={() => (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Staff Management</h2>
-                  <p className="text-gray-600">This feature is coming soon</p>
-                </div>
-              </div>
-            )} />
-            <Route path="/customer-display" component={CustomerDisplayPage} />
-            <Route component={NotFound} />
-          </Switch>
-        </div>
-      </div>
-    </div>
-  );
+  return <BackOfficeLayout onBackToMenu={onBackToMenu} />;
 }
 
 type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office';
