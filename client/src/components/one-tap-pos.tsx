@@ -47,19 +47,20 @@ export function OneTapPOS({ tillId, onBackToMenu }: OneTapPOSProps) {
         itemCount: 1
       };
 
-      const response = await apiRequest('/api/transactions', 'POST', transaction) as any;
-      
-      // Add transaction item
       const transactionItem: InsertTransactionItem = {
-        transactionId: response.id,
+        transactionId: 0, // Will be set by API
         productId: product.id,
         quantity: 1,
         unitPrice: product.price.toString(),
         total: product.price.toString()
       };
-      await apiRequest('/api/transaction-items', 'POST', transactionItem);
 
-      return { transaction: response, amount: total };
+      const response = await apiRequest('/api/transactions', 'POST', {
+        transaction: transaction,
+        items: [transactionItem]
+      }) as any;
+
+      return { transaction: response.transaction, amount: total };
     },
     onSuccess: (data) => {
       setLastTransactionAmount(data.amount);
