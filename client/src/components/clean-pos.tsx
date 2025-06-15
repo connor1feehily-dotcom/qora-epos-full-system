@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ShoppingCart, 
@@ -32,6 +33,18 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastTransaction, setLastTransaction] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Admin Menu States
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [showCashOperations, setShowCashOperations] = useState(false);
+  const [showTransactionJournal, setShowTransactionJournal] = useState(false);
+  const [showRefundsReturns, setShowRefundsReturns] = useState(false);
+  const [showCustomerAccounts, setShowCustomerAccounts] = useState(false);
+  const [showStockOperations, setShowStockOperations] = useState(false);
+  const [showAdminOptions1, setShowAdminOptions1] = useState(false);
+  const [showAdminOptions2, setShowAdminOptions2] = useState(false);
+  const [showTillOperations, setShowTillOperations] = useState(false);
+  
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -438,7 +451,10 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
             {/* Right side buttons */}
             <div className="col-start-6 space-y-2">
-              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+              <Button 
+                onClick={() => setShowAdminMenu(true)}
+                className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2"
+              >
                 Admin Menu
               </Button>
               <Button 
@@ -490,6 +506,288 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
           transactionId={lastTransaction.id}
         />
       )}
+
+      {/* Main Admin Menu */}
+      <Dialog open={showAdminMenu} onOpenChange={setShowAdminMenu}>
+        <DialogContent className="max-w-2xl bg-purple-100">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Admin Menu</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 p-6">
+            <Button 
+              onClick={() => {
+                setShowAdminMenu(false);
+                setShowCashOperations(true);
+              }}
+              className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg"
+            >
+              Cash Operations
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowAdminMenu(false);
+                setShowTransactionJournal(true);
+              }}
+              className="h-20 bg-orange-400 hover:bg-orange-500 text-black font-bold text-lg"
+            >
+              Transaction Journal
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowAdminMenu(false);
+                setShowRefundsReturns(true);
+              }}
+              className="h-20 bg-red-400 hover:bg-red-500 text-black font-bold text-lg"
+            >
+              Refunds / Returns
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowAdminMenu(false);
+                setShowCustomerAccounts(true);
+              }}
+              className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg"
+            >
+              Customer Accounts
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowAdminMenu(false);
+                setShowStockOperations(true);
+              }}
+              className="h-20 bg-blue-300 hover:bg-blue-400 text-black font-bold text-lg"
+            >
+              Stock Operations
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowAdminMenu(false);
+                setShowAdminOptions1(true);
+              }}
+              className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg"
+            >
+              Admin Options 1
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowAdminMenu(false);
+                setShowAdminOptions2(true);
+              }}
+              className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg"
+            >
+              Admin Options 2
+            </Button>
+            <Button 
+              onClick={() => setShowAdminMenu(false)}
+              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cash Operations Menu */}
+      <Dialog open={showCashOperations} onOpenChange={setShowCashOperations}>
+        <DialogContent className="max-w-2xl bg-purple-100">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Cash Operations</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 p-6">
+            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+              No Sale/Change
+            </Button>
+            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+              Cash Paid Out
+            </Button>
+            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+              Till/Operator Uplift
+            </Button>
+            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+              Add to Float
+            </Button>
+            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+              Cash a Cheque
+            </Button>
+            <Button 
+              onClick={() => setShowCashOperations(false)}
+              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Till Operations Menu */}
+      <Dialog open={showTillOperations} onOpenChange={setShowTillOperations}>
+        <DialogContent className="max-w-2xl bg-purple-100">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Till Operations</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 p-6">
+            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+              Till Z-Read Reset
+            </Button>
+            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+              Mobile TopUps End of Day
+            </Button>
+            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+              Re-Print Z-Read
+            </Button>
+            <Button 
+              onClick={() => setShowTillOperations(false)}
+              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+            >
+              ← Back
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Options 1 Menu */}
+      <Dialog open={showAdminOptions1} onOpenChange={setShowAdminOptions1}>
+        <DialogContent className="max-w-2xl bg-purple-100">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Admin Options 1</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 p-6">
+            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+              Touch Screen Config
+            </Button>
+            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+              EFT Control Panel
+            </Button>
+            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+              Cigs Vending Setup
+            </Button>
+            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+              Test Customer Display
+            </Button>
+            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+              Zapper Refund
+            </Button>
+            <Button 
+              onClick={() => setShowAdminOptions1(false)}
+              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transaction Journal */}
+      <Dialog open={showTransactionJournal} onOpenChange={setShowTransactionJournal}>
+        <DialogContent className="max-w-4xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Transaction Journal</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="bg-gray-100 p-4 rounded mb-4">
+              <p className="text-center text-gray-600">Transaction history will be displayed here</p>
+            </div>
+            <Button 
+              onClick={() => setShowTransactionJournal(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refunds / Returns */}
+      <Dialog open={showRefundsReturns} onOpenChange={setShowRefundsReturns}>
+        <DialogContent className="max-w-4xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Refunds / Returns</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="bg-gray-100 p-4 rounded mb-4">
+              <p className="text-center text-gray-600">Refund and return processing interface</p>
+            </div>
+            <Button 
+              onClick={() => setShowRefundsReturns(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Accounts */}
+      <Dialog open={showCustomerAccounts} onOpenChange={setShowCustomerAccounts}>
+        <DialogContent className="max-w-4xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Customer Accounts</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="bg-gray-100 p-4 rounded mb-4">
+              <p className="text-center text-gray-600">Customer account management interface</p>
+            </div>
+            <Button 
+              onClick={() => setShowCustomerAccounts(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stock Operations */}
+      <Dialog open={showStockOperations} onOpenChange={setShowStockOperations}>
+        <DialogContent className="max-w-4xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Stock Operations</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="bg-gray-100 p-4 rounded mb-4">
+              <p className="text-center text-gray-600">Stock management and inventory operations</p>
+            </div>
+            <Button 
+              onClick={() => setShowStockOperations(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Options 2 */}
+      <Dialog open={showAdminOptions2} onOpenChange={setShowAdminOptions2}>
+        <DialogContent className="max-w-2xl bg-purple-100">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">Admin Options 2</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 p-6">
+            <Button 
+              onClick={() => {
+                setShowAdminOptions2(false);
+                setShowTillOperations(true);
+              }}
+              className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg"
+            >
+              Till Operations
+            </Button>
+            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+              System Settings
+            </Button>
+            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+              Reports
+            </Button>
+            <Button 
+              onClick={() => setShowAdminOptions2(false)}
+              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
