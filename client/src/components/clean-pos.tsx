@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PaymentModal } from "./payment-modal";
 import { ReceiptPrinter } from "./receipt-printer";
+import { HardwareIntegration } from "./hardware-integration";
 import type { Product, Customer } from "@shared/schema";
 import type { CartItem, TransactionSummary } from "@/lib/types";
 
@@ -49,11 +50,13 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
   const [showNoSale, setShowNoSale] = useState(false);
   const [showCashPaidOut, setShowCashPaidOut] = useState(false);
   const [showAddToFloat, setShowAddToFloat] = useState(false);
+  const [showHardwareSetup, setShowHardwareSetup] = useState(false);
   
   // Till session data
   const [tillSession, setTillSession] = useState<any>(null);
   const [cashInDrawer, setCashInDrawer] = useState(0);
   const [openingFloat, setOpeningFloat] = useState(0);
+  const [customerDisplayWindow, setCustomerDisplayWindow] = useState<Window | null>(null);
   
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -350,6 +353,82 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
       description: "Cash drawer opened",
     });
     setShowNoSale(false);
+  };
+
+  // Customer Display Functions
+  const openCustomerDisplay = () => {
+    if (customerDisplayWindow && !customerDisplayWindow.closed) {
+      customerDisplayWindow.focus();
+      return;
+    }
+
+    const newWindow = window.open(
+      '/customer-display',
+      'CustomerDisplay',
+      'width=800,height=600,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
+    );
+    
+    if (newWindow) {
+      setCustomerDisplayWindow(newWindow);
+      
+      // Listen for ready signal and send initial data
+      const handleMessage = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        
+        if (event.data.type === 'CUSTOMER_DISPLAY_READY') {
+          updateCustomerDisplay();
+          window.removeEventListener('message', handleMessage);
+        }
+      };
+      
+      window.addEventListener('message', handleMessage);
+      
+      toast({
+        title: "Customer Display Opened",
+        description: "Secondary screen is now active",
+      });
+    }
+  };
+
+  const updateCustomerDisplay = () => {
+    if (customerDisplayWindow && !customerDisplayWindow.closed) {
+      const transaction = calculateTransaction();
+      const lastItem = cart.length > 0 ? cart[cart.length - 1] : undefined;
+      
+      customerDisplayWindow.postMessage({
+        type: 'CUSTOMER_DISPLAY_UPDATE',
+        data: {
+          currentItem: lastItem,
+          total: transaction.total,
+          subtotal: transaction.subtotal,
+          vatAmount: transaction.vatAmount,
+          itemCount: cart.length,
+          isPaymentMode: showPayment,
+          paymentAmount: 0,
+          change: 0
+        }
+      }, window.location.origin);
+    }
+  };
+
+  // Hardware Integration Functions
+  const handleBarcodeScanned = (barcode: string) => {
+    const product = products.find(p => p.barcode === barcode);
+    if (product) {
+      addToCart(product);
+      updateCustomerDisplay();
+    } else {
+      toast({
+        title: "Product Not Found",
+        description: `Barcode: ${barcode}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePrintReceipt = (receiptData: any) => {
+    // This will be called by the hardware integration component
+    console.log('Printing receipt:', receiptData);
   };
 
   const transaction = calculateTransaction();
@@ -919,6 +998,21 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
               className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg"
             >
               Reports
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowAdminOptions2(false);
+                setShowHardwareSetup(true);
+              }}
+              className="h-20 bg-purple-500 hover:bg-purple-600 text-white font-bold text-lg"
+            >
+              Hardware Setup
+            </Button>
+            <Button 
+              onClick={openCustomerDisplay}
+              className="h-20 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg"
+            >
+              Customer Display
             </Button>
             <Button 
               onClick={() => setShowAdminOptions2(false)}
