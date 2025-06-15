@@ -13,6 +13,7 @@ import kerrigansLogo from "@assets/NEW_1749822871411.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { CleanPOS } from "@/components/clean-pos";
+import { CustomerDisplayPage } from "@/components/customer-display";
 import BackOffice from "@/pages/back-office";
 import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";
@@ -95,6 +96,7 @@ function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
                 </div>
               </div>
             )} />
+            <Route path="/customer-display" component={CustomerDisplayPage} />
             <Route component={NotFound} />
           </Switch>
         </div>

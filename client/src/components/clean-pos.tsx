@@ -163,6 +163,9 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
         return [...prevCart, newItem];
       }
     });
+    
+    // Update customer display after cart change
+    setTimeout(updateCustomerDisplay, 100);
   };
 
   // Update cart item quantity
@@ -183,17 +186,21 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
           : item
       )
     );
+    
+    setTimeout(updateCustomerDisplay, 100);
   };
 
   // Remove item from cart
   const removeFromCart = (productId: number) => {
     setCart(prevCart => prevCart.filter(item => item.productId !== productId));
+    setTimeout(updateCustomerDisplay, 100);
   };
 
   // Clear cart
   const clearCart = () => {
     setCart([]);
     setSelectedCustomer(null);
+    setTimeout(updateCustomerDisplay, 100);
   };
 
   // Calculate totals
@@ -1206,6 +1213,14 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Hardware Integration Dialog */}
+      <HardwareIntegration
+        onPrintReceipt={handlePrintReceipt}
+        onBarcodeScanned={handleBarcodeScanned}
+        isOpen={showHardwareSetup}
+        onClose={() => setShowHardwareSetup(false)}
+      />
     </div>
   );
 }
