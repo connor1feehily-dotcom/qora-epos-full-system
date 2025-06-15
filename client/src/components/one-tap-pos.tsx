@@ -9,16 +9,18 @@ import {
   CreditCard, 
   Banknote,
   CheckCircle,
-  DollarSign
+  DollarSign,
+  Moon
 } from "lucide-react";
 import type { Product, InsertTransaction, InsertTransactionItem } from "@shared/schema";
 
 interface OneTapPOSProps {
   tillId: string;
   onBackToMenu: () => void;
+  onGoInactive?: () => void;
 }
 
-export function OneTapPOS({ tillId, onBackToMenu }: OneTapPOSProps) {
+export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [lastTransactionAmount, setLastTransactionAmount] = useState(0);
@@ -139,6 +141,20 @@ export function OneTapPOS({ tillId, onBackToMenu }: OneTapPOSProps) {
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             <span className="font-semibold text-gray-700">Till {tillId} - Quick Sale</span>
           </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          {onGoInactive && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onGoInactive}
+              className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200"
+            >
+              <Moon className="w-4 h-4" />
+              <span>Go Inactive</span>
+            </Button>
+          )}
         </div>
       </div>
 

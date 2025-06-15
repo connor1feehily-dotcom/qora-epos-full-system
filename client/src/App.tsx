@@ -25,9 +25,9 @@ import TillManagementPage from "@/pages/till-management";
 import NotFound from "@/pages/not-found";
 import type { User } from "@shared/schema";
 
-function POSRouter({ tillId, onBackToMenu }: { tillId: string; onBackToMenu: () => void }) {
+function POSRouter({ tillId, onBackToMenu, onGoInactive }: { tillId: string; onBackToMenu: () => void; onGoInactive?: () => void }) {
   return (
-    <OneTapPOS tillId={tillId} onBackToMenu={onBackToMenu} />
+    <OneTapPOS tillId={tillId} onBackToMenu={onBackToMenu} onGoInactive={onGoInactive} />
   );
 }
 
@@ -48,6 +48,11 @@ function AppContent() {
 
   const handleActivateFromInactive = () => {
     setMode('main-menu');
+    setLastActivity(new Date());
+  };
+
+  const handleGoInactive = () => {
+    setMode('inactive');
     setLastActivity(new Date());
   };
 
@@ -113,7 +118,7 @@ function AppContent() {
         />
       )}
       {mode === 'pos' && selectedTill && (
-        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} />
+        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} onGoInactive={handleGoInactive} />
       )}
       {mode === 'back-office' && (
         <BackOfficeRouter onBackToMenu={handleBackToMenu} />
