@@ -51,7 +51,7 @@ export function InventoryManagement() {
     queryKey: ['/api/products']
   });
 
-  const categories = [...new Set(products.map(p => p.category))];
+  const categories = Array.from(new Set(products.map(p => p.category)));
   
   // Filter products based on search and filters
   const filteredProducts = products.filter(product => {
@@ -117,8 +117,7 @@ export function InventoryManagement() {
       category: "",
       price: "",
       stock: 0,
-      barcode: "",
-      description: ""
+      barcode: ""
     });
   };
 
@@ -138,8 +137,7 @@ export function InventoryManagement() {
       category: product.category,
       price: product.price.toString(),
       stock: product.stock || 0,
-      barcode: product.barcode || "",
-      description: product.description || ""
+      barcode: product.barcode || ""
     });
   };
 
@@ -220,16 +218,8 @@ export function InventoryManagement() {
                 <Label htmlFor="barcode">Barcode</Label>
                 <Input
                   id="barcode"
-                  value={productForm.barcode}
+                  value={productForm.barcode || ""}
                   onChange={(e) => setProductForm({...productForm, barcode: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  value={productForm.description}
-                  onChange={(e) => setProductForm({...productForm, description: e.target.value})}
                 />
               </div>
               <div className="flex justify-end space-x-2">

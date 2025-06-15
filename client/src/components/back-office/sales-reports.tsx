@@ -73,7 +73,7 @@ export function SalesReports() {
   const cardRevenue = cardTransactions.reduce((sum, t) => sum + parseFloat(t.total.toString()), 0);
 
   // Get unique tills
-  const uniqueTills = [...new Set(transactions.map(t => t.tillId))];
+  const uniqueTills = Array.from(new Set(transactions.map(t => t.tillId)));
 
   // Group transactions by date for daily breakdown
   const dailyBreakdown = filteredTransactions.reduce((acc, t) => {
