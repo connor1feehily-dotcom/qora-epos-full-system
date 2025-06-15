@@ -28,13 +28,18 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
   const queryClient = useQueryClient();
 
   // Fetch products
-  const { data: products = [] } = useQuery<Product[]>({
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery<Product[]>({
     queryKey: ['/api/products'],
   });
+
+  console.log("Products loaded:", products.length, "products");
+  if (productsError) console.error("Products error:", productsError);
 
   // Transaction mutation
   const createTransactionMutation = useMutation({
     mutationFn: async ({ product, paymentMethod }: { product: Product; paymentMethod: 'cash' | 'card' }) => {
+      console.log("Starting transaction for product:", product.name, "payment:", paymentMethod);
+      
       const total = Number(product.price);
       const vatAmount = total * 0.23;
       const subtotal = total - vatAmount;
@@ -57,12 +62,21 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
         total: total.toString()
       };
 
-      const response = await apiRequest('/api/transactions', 'POST', {
+      const payload = {
         transaction: transaction,
         items: [transactionItem]
-      }) as any;
+      };
+      
+      console.log("Transaction payload:", payload);
 
-      return { transaction: response.transaction, amount: total };
+      try {
+        const response = await apiRequest('/api/transactions', 'POST', payload) as any;
+        console.log("Transaction response:", response);
+        return { transaction: response.transaction, amount: total };
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       setLastTransactionAmount(data.amount);
@@ -75,10 +89,11 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
         setShowPaymentSuccess(false);
       }, 3000);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Transaction error:", error);
       toast({
         title: "Error",
-        description: "Failed to process transaction",
+        description: `Failed to process transaction: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -144,6 +159,19 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
         </div>
         
         <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (products.length > 0) {
+                setSelectedProduct(products[0]);
+                console.log("Selected first product for testing:", products[0]);
+              }
+            }}
+            className="bg-blue-100 hover:bg-blue-200"
+          >
+            Quick Test
+          </Button>
           {onGoInactive && (
             <Button
               variant="outline"
