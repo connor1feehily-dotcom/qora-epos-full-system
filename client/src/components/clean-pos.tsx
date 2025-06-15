@@ -911,7 +911,13 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             <Button className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg">
               System Settings
             </Button>
-            <Button className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg">
+            <Button 
+              onClick={() => {
+                setShowAdminOptions2(false);
+                setShowReports(true);
+              }}
+              className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg"
+            >
               Reports
             </Button>
             <Button 

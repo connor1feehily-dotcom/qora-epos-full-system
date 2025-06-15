@@ -535,7 +535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/users", async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
+      const userData = req.body;
       const user = await storage.createUser(userData);
       res.status(201).json(user);
     } catch (error) {
