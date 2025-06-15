@@ -276,12 +276,12 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
         tabIndex={-1}
       />
 
-      {/* Simple Header */}
-      <div className="bg-blue-600 px-6 py-3 flex items-center justify-between shadow-lg">
+      {/* Clean Header */}
+      <div className="bg-cyan-600 px-6 py-3 flex items-center justify-between shadow-lg">
         <div className="flex items-center space-x-4">
           <Button 
             onClick={onBackToMenu} 
-            className="bg-red-500 hover:bg-red-600 text-white border-0 px-6 py-2 text-sm font-bold rounded"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 px-6 py-2 text-sm font-bold rounded"
           >
             Exit
           </Button>
@@ -330,16 +330,16 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
           {/* Controls */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             <div className="space-y-2">
-              <Button className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-6 text-lg">
+              <Button className="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-bold py-6 text-lg">
                 ↑
               </Button>
-              <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-6 text-lg">
+              <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-6 text-lg">
                 +
               </Button>
               <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-6 text-lg">
                 -
               </Button>
-              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 text-lg">
+              <Button className="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-bold py-6 text-lg">
                 ↓
               </Button>
             </div>
@@ -353,7 +353,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
               <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold py-4">
                 Choose Customer
               </Button>
-              <Button className="w-full bg-blue-400 hover:bg-blue-500 text-white font-bold py-4">
+              <Button className="w-full bg-cyan-400 hover:bg-cyan-500 text-white font-bold py-4">
                 Enquiry
               </Button>
               <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold py-4">
@@ -365,12 +365,23 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             </div>
           </div>
 
-          {/* Total */}
-          <div className="bg-blue-800 text-white p-4 rounded text-center">
-            <div className="text-3xl font-bold">Item Total</div>
-            <div className="text-6xl font-bold">{cart.reduce((sum, item) => sum + item.quantity, 0)}</div>
-            <div className="text-xl">Sale Total €</div>
-            <div className="text-4xl font-bold">€{transaction.total.toFixed(2)}</div>
+          {/* Total and Payment */}
+          <div className="space-y-4">
+            <div className="bg-cyan-600 text-white p-4 rounded text-center">
+              <div className="text-2xl font-bold">Item Total</div>
+              <div className="text-5xl font-bold">{cart.reduce((sum, item) => sum + item.quantity, 0)}</div>
+              <div className="text-lg">Sale Total €</div>
+              <div className="text-3xl font-bold">€{transaction.total.toFixed(2)}</div>
+            </div>
+            
+            {/* Payment Button */}
+            <Button
+              onClick={() => setShowPayment(true)}
+              disabled={cart.length === 0}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-bold py-6 text-xl"
+            >
+              {cart.length === 0 ? 'Add Items to Cart' : 'Complete Sale'}
+            </Button>
           </div>
         </div>
 
@@ -380,59 +391,59 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             {/* Category Buttons */}
             <Button 
               onClick={() => addToCart(filteredProducts.find(p => p.category === 'Misc') || filteredProducts[0])}
-              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm"
             >
               MISC
             </Button>
-            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+            <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm">
               COMPLETE CUISINE
             </Button>
             <Button 
               onClick={() => addToCart(filteredProducts.find(p => p.category === 'Deli') || filteredProducts[0])}
-              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm"
             >
               DELI
             </Button>
             <Button 
               onClick={() => addToCart(filteredProducts.find(p => p.category === 'Vegetables') || filteredProducts[0])}
-              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm"
             >
               VEGETABLES
             </Button>
             <Button 
               onClick={() => addToCart(filteredProducts.find(p => p.category === 'Fruit') || filteredProducts[0])}
-              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm"
             >
               FRUIT
             </Button>
-            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+            <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm">
               CHRISTMAS
             </Button>
 
-            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+            <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm">
               STATIONARY
             </Button>
             <Button 
               onClick={() => addToCart(filteredProducts.find(p => p.category === 'Dairy') || filteredProducts[0])}
-              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm"
             >
               ICE CREAM
             </Button>
             <Button 
               onClick={() => addToCart(filteredProducts.find(p => p.category === 'Fuel') || filteredProducts[0])}
-              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm"
             >
               FUEL
             </Button>
-            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+            <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm">
               MASS BOOKLETS
             </Button>
-            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+            <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm">
               ORS
             </Button>
             <Button 
               onClick={() => addToCart(filteredProducts.find(p => p.category === 'Bakery') || filteredProducts[0])}
-              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-sm"
             >
               Bakery
             </Button>
@@ -453,27 +464,27 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             <div className="col-start-6 space-y-2">
               <Button 
                 onClick={() => setShowAdminMenu(true)}
-                className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2"
+                className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold text-xs py-2 border border-gray-400"
               >
                 Admin Menu
               </Button>
               <Button 
                 onClick={() => setShowPayment(true)}
                 disabled={cart.length === 0}
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2"
+                className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 text-white font-bold text-xs py-2"
               >
-                Exit
+                Complete Sale
               </Button>
-              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+              <Button className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold text-xs py-2 border border-gray-400">
                 Print Receipt
               </Button>
-              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+              <Button className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold text-xs py-2 border border-gray-400">
                 ID Prompt
               </Button>
-              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+              <Button className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold text-xs py-2 border border-gray-400">
                 Postpoint BillPay
               </Button>
-              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+              <Button className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold text-xs py-2 border border-gray-400">
                 Codax
               </Button>
             </div>
@@ -509,9 +520,9 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Main Admin Menu */}
       <Dialog open={showAdminMenu} onOpenChange={setShowAdminMenu}>
-        <DialogContent className="max-w-2xl bg-purple-100">
+        <DialogContent className="max-w-2xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Admin Menu</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Admin Menu</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 p-6">
             <Button 
@@ -519,7 +530,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminMenu(false);
                 setShowCashOperations(true);
               }}
-              className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg"
+              className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg"
             >
               Cash Operations
             </Button>
@@ -528,7 +539,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminMenu(false);
                 setShowTransactionJournal(true);
               }}
-              className="h-20 bg-orange-400 hover:bg-orange-500 text-black font-bold text-lg"
+              className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg"
             >
               Transaction Journal
             </Button>
@@ -537,7 +548,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminMenu(false);
                 setShowRefundsReturns(true);
               }}
-              className="h-20 bg-red-400 hover:bg-red-500 text-black font-bold text-lg"
+              className="h-20 bg-red-500 hover:bg-red-600 text-white font-bold text-lg"
             >
               Refunds / Returns
             </Button>
@@ -546,7 +557,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminMenu(false);
                 setShowCustomerAccounts(true);
               }}
-              className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg"
+              className="h-20 bg-gray-400 hover:bg-gray-500 text-white font-bold text-lg"
             >
               Customer Accounts
             </Button>
@@ -555,7 +566,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminMenu(false);
                 setShowStockOperations(true);
               }}
-              className="h-20 bg-blue-300 hover:bg-blue-400 text-black font-bold text-lg"
+              className="h-20 bg-cyan-400 hover:bg-cyan-500 text-white font-bold text-lg"
             >
               Stock Operations
             </Button>
@@ -564,7 +575,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminMenu(false);
                 setShowAdminOptions1(true);
               }}
-              className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg"
+              className="h-20 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg"
             >
               Admin Options 1
             </Button>
@@ -573,13 +584,13 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminMenu(false);
                 setShowAdminOptions2(true);
               }}
-              className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg"
+              className="h-20 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg"
             >
               Admin Options 2
             </Button>
             <Button 
               onClick={() => setShowAdminMenu(false)}
-              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+              className="h-20 bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg"
             >
               Close
             </Button>
@@ -589,29 +600,29 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Cash Operations Menu */}
       <Dialog open={showCashOperations} onOpenChange={setShowCashOperations}>
-        <DialogContent className="max-w-2xl bg-purple-100">
+        <DialogContent className="max-w-2xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Cash Operations</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Cash Operations</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 p-6">
-            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
               No Sale/Change
             </Button>
-            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
               Cash Paid Out
             </Button>
-            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
               Till/Operator Uplift
             </Button>
-            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
               Add to Float
             </Button>
-            <Button className="h-20 bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg">
+            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
               Cash a Cheque
             </Button>
             <Button 
               onClick={() => setShowCashOperations(false)}
-              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+              className="h-20 bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg"
             >
               Close
             </Button>
@@ -621,23 +632,23 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Till Operations Menu */}
       <Dialog open={showTillOperations} onOpenChange={setShowTillOperations}>
-        <DialogContent className="max-w-2xl bg-purple-100">
+        <DialogContent className="max-w-2xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Till Operations</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Till Operations</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 p-6">
-            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+            <Button className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg">
               Till Z-Read Reset
             </Button>
-            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+            <Button className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg">
               Mobile TopUps End of Day
             </Button>
-            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+            <Button className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg">
               Re-Print Z-Read
             </Button>
             <Button 
               onClick={() => setShowTillOperations(false)}
-              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+              className="h-20 bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg"
             >
               ← Back
             </Button>
@@ -647,29 +658,29 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Admin Options 1 Menu */}
       <Dialog open={showAdminOptions1} onOpenChange={setShowAdminOptions1}>
-        <DialogContent className="max-w-2xl bg-purple-100">
+        <DialogContent className="max-w-2xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Admin Options 1</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Admin Options 1</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 p-6">
-            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+            <Button className="h-20 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg">
               Touch Screen Config
             </Button>
-            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+            <Button className="h-20 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg">
               EFT Control Panel
             </Button>
-            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+            <Button className="h-20 bg-gray-500 hover:bg-gray-600 text-white font-bold text-lg">
               Cigs Vending Setup
             </Button>
-            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+            <Button className="h-20 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg">
               Test Customer Display
             </Button>
-            <Button className="h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg">
+            <Button className="h-20 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg">
               Zapper Refund
             </Button>
             <Button 
               onClick={() => setShowAdminOptions1(false)}
-              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+              className="h-20 bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg"
             >
               Close
             </Button>
@@ -679,17 +690,17 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Transaction Journal */}
       <Dialog open={showTransactionJournal} onOpenChange={setShowTransactionJournal}>
-        <DialogContent className="max-w-4xl bg-white">
+        <DialogContent className="max-w-4xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Transaction Journal</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Transaction Journal</DialogTitle>
           </DialogHeader>
           <div className="p-6">
-            <div className="bg-gray-100 p-4 rounded mb-4">
+            <div className="bg-white p-4 rounded border mb-4">
               <p className="text-center text-gray-600">Transaction history will be displayed here</p>
             </div>
             <Button 
               onClick={() => setShowTransactionJournal(false)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold"
             >
               Close
             </Button>
@@ -699,17 +710,17 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Refunds / Returns */}
       <Dialog open={showRefundsReturns} onOpenChange={setShowRefundsReturns}>
-        <DialogContent className="max-w-4xl bg-white">
+        <DialogContent className="max-w-4xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Refunds / Returns</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Refunds / Returns</DialogTitle>
           </DialogHeader>
           <div className="p-6">
-            <div className="bg-gray-100 p-4 rounded mb-4">
+            <div className="bg-white p-4 rounded border mb-4">
               <p className="text-center text-gray-600">Refund and return processing interface</p>
             </div>
             <Button 
               onClick={() => setShowRefundsReturns(false)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold"
             >
               Close
             </Button>
@@ -719,17 +730,17 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Customer Accounts */}
       <Dialog open={showCustomerAccounts} onOpenChange={setShowCustomerAccounts}>
-        <DialogContent className="max-w-4xl bg-white">
+        <DialogContent className="max-w-4xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Customer Accounts</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Customer Accounts</DialogTitle>
           </DialogHeader>
           <div className="p-6">
-            <div className="bg-gray-100 p-4 rounded mb-4">
+            <div className="bg-white p-4 rounded border mb-4">
               <p className="text-center text-gray-600">Customer account management interface</p>
             </div>
             <Button 
               onClick={() => setShowCustomerAccounts(false)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold"
             >
               Close
             </Button>
@@ -739,17 +750,17 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Stock Operations */}
       <Dialog open={showStockOperations} onOpenChange={setShowStockOperations}>
-        <DialogContent className="max-w-4xl bg-white">
+        <DialogContent className="max-w-4xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Stock Operations</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Stock Operations</DialogTitle>
           </DialogHeader>
           <div className="p-6">
-            <div className="bg-gray-100 p-4 rounded mb-4">
+            <div className="bg-white p-4 rounded border mb-4">
               <p className="text-center text-gray-600">Stock management and inventory operations</p>
             </div>
             <Button 
               onClick={() => setShowStockOperations(false)}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold"
             >
               Close
             </Button>
@@ -759,9 +770,9 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
       {/* Admin Options 2 */}
       <Dialog open={showAdminOptions2} onOpenChange={setShowAdminOptions2}>
-        <DialogContent className="max-w-2xl bg-purple-100">
+        <DialogContent className="max-w-2xl bg-gray-50">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Admin Options 2</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Admin Options 2</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 p-6">
             <Button 
@@ -769,19 +780,19 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
                 setShowAdminOptions2(false);
                 setShowTillOperations(true);
               }}
-              className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg"
+              className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg"
             >
               Till Operations
             </Button>
-            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+            <Button className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg">
               System Settings
             </Button>
-            <Button className="h-20 bg-gray-300 hover:bg-gray-400 text-black font-bold text-lg">
+            <Button className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg">
               Reports
             </Button>
             <Button 
               onClick={() => setShowAdminOptions2(false)}
-              className="h-20 bg-green-500 hover:bg-green-600 text-white font-bold text-lg"
+              className="h-20 bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg"
             >
               Close
             </Button>
