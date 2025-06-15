@@ -123,6 +123,9 @@ function AppContent() {
       {mode === 'back-office' && (
         <BackOfficeRouter onBackToMenu={handleBackToMenu} />
       )}
+      {mode === 'inactive' && (
+        <InactiveScreen onActivate={handleActivateFromInactive} lastActivity={lastActivity} />
+      )}
 
       {/* Customer Display Route */}
       <Switch>

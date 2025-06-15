@@ -53,8 +53,8 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
         transactionId: 0, // Will be set by API
         productId: product.id,
         quantity: 1,
-        unitPrice: product.price.toString(),
-        total: product.price.toString()
+        unitPrice: total.toString(),
+        total: total.toString()
       };
 
       const response = await apiRequest('/api/transactions', 'POST', {
