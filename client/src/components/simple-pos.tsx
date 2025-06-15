@@ -23,6 +23,9 @@ interface CartItem {
 export function SimplePOS({ tillId, onBackToMenu }: SimplePOSProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showPayment, setShowPayment] = useState(false);
+  const [highlightedItem, setHighlightedItem] = useState<number | null>(null);
+  const [priceAnimation, setPriceAnimation] = useState<number | null>(null);
+  const [totalAnimation, setTotalAnimation] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -125,11 +128,23 @@ export function SimplePOS({ tillId, onBackToMenu }: SimplePOSProps) {
   const addToCart = (product: Product) => {
     const existingIndex = cart.findIndex(item => item.productId === product.id);
     
+    // Trigger price animation
+    setPriceAnimation(product.id);
+    setTimeout(() => setPriceAnimation(null), 600);
+    
+    // Trigger total animation
+    setTotalAnimation(true);
+    setTimeout(() => setTotalAnimation(false), 800);
+    
     if (existingIndex >= 0) {
       const updatedCart = [...cart];
       updatedCart[existingIndex].quantity += 1;
       updatedCart[existingIndex].total = updatedCart[existingIndex].quantity * updatedCart[existingIndex].price;
       setCart(updatedCart);
+      
+      // Highlight the updated item in cart
+      setHighlightedItem(updatedCart[existingIndex].id);
+      setTimeout(() => setHighlightedItem(null), 1000);
     } else {
       const newItem: CartItem = {
         id: Date.now(),
@@ -140,10 +155,22 @@ export function SimplePOS({ tillId, onBackToMenu }: SimplePOSProps) {
         total: Number(product.price)
       };
       setCart([...cart, newItem]);
+      
+      // Highlight the new item in cart
+      setHighlightedItem(newItem.id);
+      setTimeout(() => setHighlightedItem(null), 1000);
     }
   };
 
   const updateQuantity = (id: number, change: number) => {
+    // Highlight the item being updated
+    setHighlightedItem(id);
+    setTimeout(() => setHighlightedItem(null), 800);
+    
+    // Trigger total animation
+    setTotalAnimation(true);
+    setTimeout(() => setTotalAnimation(false), 800);
+    
     setCart(prevCart => 
       prevCart.map(item => {
         if (item.id === id) {
@@ -206,13 +233,19 @@ export function SimplePOS({ tillId, onBackToMenu }: SimplePOSProps) {
           <h2 className="text-xl font-bold mb-4">Products</h2>
           <div className="grid grid-cols-2 gap-4">
             {products.map(product => (
-              <Card key={product.id} className="cursor-pointer hover:shadow-lg">
+              <Card key={product.id} className={`cursor-pointer hover:shadow-lg transition-all duration-300 ${
+                priceAnimation === product.id ? 'scale-105 shadow-xl ring-4 ring-emerald-400' : ''
+              }`}>
                 <CardContent 
                   className="p-4 text-center"
                   onClick={() => addToCart(product)}
                 >
                   <h3 className="font-bold text-lg">{product.name}</h3>
-                  <p className="text-2xl text-cyan-600 font-bold">
+                  <p className={`text-2xl font-bold transition-all duration-300 ${
+                    priceAnimation === product.id 
+                      ? 'text-emerald-500 scale-110 animate-pulse' 
+                      : 'text-cyan-600'
+                  }`}>
                     €{Number(product.price).toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-500">{product.category}</p>
@@ -250,7 +283,9 @@ export function SimplePOS({ tillId, onBackToMenu }: SimplePOSProps) {
             ) : (
               <div className="space-y-2">
                 {cart.map(item => (
-                  <Card key={item.id}>
+                  <Card key={item.id} className={`transition-all duration-500 ${
+                    highlightedItem === item.id ? 'bg-gradient-to-r from-emerald-50 to-cyan-50 border-emerald-400 shadow-lg scale-102' : ''
+                  }`}>
                     <CardContent className="p-3">
                       <div className="flex justify-between items-center">
                         <div className="flex-1">
@@ -286,7 +321,9 @@ export function SimplePOS({ tillId, onBackToMenu }: SimplePOSProps) {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="w-20 text-right font-bold">
+                        <div className={`w-20 text-right font-bold transition-all duration-500 ${
+                          highlightedItem === item.id ? 'text-emerald-600 scale-110' : 'text-gray-900'
+                        }`}>
                           €{item.total.toFixed(2)}
                         </div>
                       </div>
@@ -299,19 +336,37 @@ export function SimplePOS({ tillId, onBackToMenu }: SimplePOSProps) {
 
           {/* Totals */}
           {cart.length > 0 && (
-            <div className="border-t pt-4 mt-4">
+            <div className={`border-t pt-4 mt-4 transition-all duration-500 ${
+              totalAnimation ? 'bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-lg p-4 shadow-lg' : ''
+            }`}>
               <div className="space-y-2">
-                <div className="flex justify-between text-lg">
+                <div className={`flex justify-between text-lg transition-all duration-300 ${
+                  totalAnimation ? 'scale-105' : ''
+                }`}>
                   <span>Subtotal:</span>
-                  <span>€{(calculateTotal() - calculateVAT()).toFixed(2)}</span>
+                  <span className={totalAnimation ? 'text-emerald-600 font-bold' : ''}>
+                    €{(calculateTotal() - calculateVAT()).toFixed(2)}
+                  </span>
                 </div>
-                <div className="flex justify-between text-lg">
+                <div className={`flex justify-between text-lg transition-all duration-300 ${
+                  totalAnimation ? 'scale-105' : ''
+                }`}>
                   <span>VAT (23%):</span>
-                  <span>€{calculateVAT().toFixed(2)}</span>
+                  <span className={totalAnimation ? 'text-emerald-600 font-bold' : ''}>
+                    €{calculateVAT().toFixed(2)}
+                  </span>
                 </div>
-                <div className="flex justify-between text-2xl font-bold border-t pt-2">
+                <div className={`flex justify-between text-2xl font-bold border-t pt-2 transition-all duration-500 ${
+                  totalAnimation ? 'scale-110 border-emerald-400' : ''
+                }`}>
                   <span>TOTAL:</span>
-                  <span className="text-cyan-600">€{calculateTotal().toFixed(2)}</span>
+                  <span className={`transition-all duration-500 ${
+                    totalAnimation 
+                      ? 'text-emerald-500 animate-pulse scale-110' 
+                      : 'text-cyan-600'
+                  }`}>
+                    €{calculateTotal().toFixed(2)}
+                  </span>
                 </div>
               </div>
 
