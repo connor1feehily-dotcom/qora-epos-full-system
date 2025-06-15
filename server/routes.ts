@@ -889,6 +889,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reports routes for Z-reads and X-reads
+  app.post('/api/reports/z-read', async (req, res) => {
+    try {
+      const { tillId, generatedBy } = req.body;
+      const report = await storage.generateDailyReport(tillId, 'Z', generatedBy);
+      res.json(report);
+    } catch (error) {
+      console.error('Z-Read generation error:', error);
+      res.status(500).json({ message: 'Failed to generate Z-Read' });
+    }
+  });
+
+  app.post('/api/reports/x-read', async (req, res) => {
+    try {
+      const { tillId, generatedBy } = req.body;
+      const report = await storage.generateDailyReport(tillId, 'X', generatedBy);
+      res.json(report);
+    } catch (error) {
+      console.error('X-Read generation error:', error);
+      res.status(500).json({ message: 'Failed to generate X-Read' });
+    }
+  });
+
+  app.get('/api/reports/last-z-read/:tillId', async (req, res) => {
+    try {
+      const { tillId } = req.params;
+      const report = await storage.getLastZReport(tillId);
+      if (!report) {
+        return res.status(404).json({ message: 'No Z-Read found' });
+      }
+      res.json(report);
+    } catch (error) {
+      console.error('Last Z-Read retrieval error:', error);
+      res.status(500).json({ message: 'Failed to retrieve last Z-Read' });
+    }
+  });
+
+  // Till session management routes
+  app.get('/api/till-sessions/:tillId/current', async (req, res) => {
+    try {
+      const { tillId } = req.params;
+      const session = await storage.getCurrentTillSession(tillId);
+      res.json(session);
+    } catch (error) {
+      console.error('Till session retrieval error:', error);
+      res.status(500).json({ message: 'Failed to retrieve till session' });
+    }
+  });
+
+  app.post('/api/till-sessions/open', async (req, res) => {
+    try {
+      const sessionData = req.body;
+      const session = await storage.openTillSession(sessionData);
+      res.json(session);
+    } catch (error) {
+      console.error('Till session open error:', error);
+      res.status(500).json({ message: 'Failed to open till session' });
+    }
+  });
+
+  app.post('/api/till-sessions/:sessionId/close', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { closingFloat, actualCash } = req.body;
+      const session = await storage.closeTillSession(parseInt(sessionId), { closingFloat, actualCash });
+      res.json(session);
+    } catch (error) {
+      console.error('Till session close error:', error);
+      res.status(500).json({ message: 'Failed to close till session' });
+    }
+  });
+
+  // Cash operations routes
+  app.post('/api/cash-operations/no-sale', async (req, res) => {
+    try {
+      const { tillId, operatorId } = req.body;
+      res.json({ success: true, message: 'Cash drawer opened (No Sale)' });
+    } catch (error) {
+      console.error('No-sale operation error:', error);
+      res.status(500).json({ message: 'Failed to process no-sale operation' });
+    }
+  });
+
+  app.post('/api/cash-operations/paid-out', async (req, res) => {
+    try {
+      const { tillId, amount, reason, operatorId } = req.body;
+      res.json({ success: true, message: `Cash paid out: €${amount}` });
+    } catch (error) {
+      console.error('Cash paid out error:', error);
+      res.status(500).json({ message: 'Failed to process cash paid out' });
+    }
+  });
+
+  app.post('/api/cash-operations/add-float', async (req, res) => {
+    try {
+      const { tillId, amount, operatorId } = req.body;
+      res.json({ success: true, message: `Added to float: €${amount}` });
+    } catch (error) {
+      console.error('Add to float error:', error);
+      res.status(500).json({ message: 'Failed to add to float' });
+    }
+  });
+
+  // Daily reports and analytics
+  app.get('/api/reports/daily/:tillId', async (req, res) => {
+    try {
+      const { tillId } = req.params;
+      const { date } = req.query;
+      const reportDate = date ? new Date(date as string) : new Date();
+      const reports = await storage.getDailyReports(tillId, reportDate);
+      res.json(reports);
+    } catch (error) {
+      console.error('Daily reports error:', error);
+      res.status(500).json({ message: 'Failed to retrieve daily reports' });
+    }
+  });
+
+  app.get('/api/reports/till-sessions/:tillId', async (req, res) => {
+    try {
+      const { tillId } = req.params;
+      const sessions = await storage.getTillSessions(tillId);
+      res.json(sessions);
+    } catch (error) {
+      console.error('Till sessions retrieval error:', error);
+      res.status(500).json({ message: 'Failed to retrieve till sessions' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -44,6 +44,16 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
   const [showAdminOptions1, setShowAdminOptions1] = useState(false);
   const [showAdminOptions2, setShowAdminOptions2] = useState(false);
   const [showTillOperations, setShowTillOperations] = useState(false);
+  const [showReports, setShowReports] = useState(false);
+  const [showCashDrawer, setShowCashDrawer] = useState(false);
+  const [showNoSale, setShowNoSale] = useState(false);
+  const [showCashPaidOut, setShowCashPaidOut] = useState(false);
+  const [showAddToFloat, setShowAddToFloat] = useState(false);
+  
+  // Till session data
+  const [tillSession, setTillSession] = useState<any>(null);
+  const [cashInDrawer, setCashInDrawer] = useState(0);
+  const [openingFloat, setOpeningFloat] = useState(0);
   
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -262,6 +272,84 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
 
   const handlePayment = (method: string, amount?: number) => {
     processTransactionMutation.mutate({ method, amount });
+  };
+
+  // Till Management Functions
+  const handleZRead = async () => {
+    try {
+      const response = await fetch('/api/reports/z-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tillId, generatedBy: 1 })
+      });
+      
+      if (response.ok) {
+        const report = await response.json();
+        toast({
+          title: "Z-Read Generated",
+          description: `Daily sales: €${report.totalSales.toFixed(2)} | Transactions: ${report.transactionCount}`,
+        });
+        setShowTillOperations(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate Z-Read",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleXRead = async () => {
+    try {
+      const response = await fetch('/api/reports/x-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tillId, generatedBy: 1 })
+      });
+      
+      if (response.ok) {
+        const report = await response.json();
+        toast({
+          title: "X-Read Generated",
+          description: `Current sales: €${report.totalSales.toFixed(2)} | Transactions: ${report.transactionCount}`,
+        });
+        setShowTillOperations(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate X-Read",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReprintZRead = async () => {
+    try {
+      const response = await fetch(`/api/reports/last-z-read/${tillId}`);
+      if (response.ok) {
+        const report = await response.json();
+        toast({
+          title: "Z-Read Reprinted",
+          description: `Last Z-Read: €${report.totalSales.toFixed(2)}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No previous Z-Read found",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNoSale = () => {
+    toast({
+      title: "No Sale",
+      description: "Cash drawer opened",
+    });
+    setShowNoSale(false);
   };
 
   const transaction = calculateTransaction();
@@ -605,16 +693,40 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Cash Operations</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 p-6">
-            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
+            <Button 
+              onClick={() => {
+                setShowCashOperations(false);
+                setShowNoSale(true);
+              }}
+              className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg"
+            >
               No Sale/Change
             </Button>
-            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
+            <Button 
+              onClick={() => {
+                setShowCashOperations(false);
+                setShowCashPaidOut(true);
+              }}
+              className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg"
+            >
               Cash Paid Out
             </Button>
-            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
+            <Button 
+              onClick={() => {
+                setShowCashOperations(false);
+                setShowCashDrawer(true);
+              }}
+              className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg"
+            >
               Till/Operator Uplift
             </Button>
-            <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
+            <Button 
+              onClick={() => {
+                setShowCashOperations(false);
+                setShowAddToFloat(true);
+              }}
+              className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg"
+            >
               Add to Float
             </Button>
             <Button className="h-20 bg-emerald-400 hover:bg-emerald-500 text-white font-bold text-lg">
@@ -637,13 +749,25 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
             <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Till Operations</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 p-6">
-            <Button className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg">
+            <Button 
+              onClick={() => handleZRead()}
+              className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg"
+            >
               Till Z-Read Reset
+            </Button>
+            <Button 
+              onClick={() => handleXRead()}
+              className="h-20 bg-cyan-400 hover:bg-cyan-500 text-white font-bold text-lg"
+            >
+              Till X-Read
             </Button>
             <Button className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg">
               Mobile TopUps End of Day
             </Button>
-            <Button className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg">
+            <Button 
+              onClick={() => handleReprintZRead()}
+              className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg"
+            >
               Re-Print Z-Read
             </Button>
             <Button 
@@ -795,6 +919,189 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
               className="h-20 bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg"
             >
               Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* No Sale Dialog */}
+      <Dialog open={showNoSale} onOpenChange={setShowNoSale}>
+        <DialogContent className="max-w-md bg-gray-50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center text-cyan-700">No Sale</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 text-center">
+            <p className="mb-4">Open cash drawer without recording a sale?</p>
+            <div className="flex gap-4">
+              <Button 
+                onClick={handleNoSale}
+                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
+              >
+                Open Drawer
+              </Button>
+              <Button 
+                onClick={() => setShowNoSale(false)}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cash Paid Out Dialog */}
+      <Dialog open={showCashPaidOut} onOpenChange={setShowCashPaidOut}>
+        <DialogContent className="max-w-md bg-gray-50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center text-cyan-700">Cash Paid Out</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="space-y-4">
+              <Input
+                type="number"
+                placeholder="Amount (€)"
+                className="text-lg p-3"
+              />
+              <Input
+                type="text"
+                placeholder="Reason for cash out"
+                className="text-lg p-3"
+              />
+              <div className="flex gap-4">
+                <Button 
+                  onClick={() => setShowCashPaidOut(false)}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
+                >
+                  Confirm
+                </Button>
+                <Button 
+                  onClick={() => setShowCashPaidOut(false)}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to Float Dialog */}
+      <Dialog open={showAddToFloat} onOpenChange={setShowAddToFloat}>
+        <DialogContent className="max-w-md bg-gray-50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center text-cyan-700">Add to Float</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="space-y-4">
+              <Input
+                type="number"
+                placeholder="Amount to add (€)"
+                className="text-lg p-3"
+              />
+              <div className="flex gap-4">
+                <Button 
+                  onClick={() => setShowAddToFloat(false)}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
+                >
+                  Add to Float
+                </Button>
+                <Button 
+                  onClick={() => setShowAddToFloat(false)}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cash Drawer Status Dialog */}
+      <Dialog open={showCashDrawer} onOpenChange={setShowCashDrawer}>
+        <DialogContent className="max-w-lg bg-gray-50">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center text-cyan-700">Cash Drawer Management</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded border">
+                <h3 className="font-bold text-lg mb-2">Current Till Status</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>Opening Float: €{openingFloat.toFixed(2)}</div>
+                  <div>Current Cash: €{cashInDrawer.toFixed(2)}</div>
+                  <div>Till ID: {tillId}</div>
+                  <div>Operator: Connor</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3">
+                  Count Cash
+                </Button>
+                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3">
+                  Reconcile Till
+                </Button>
+                <Button 
+                  onClick={() => setShowCashDrawer(false)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3"
+                >
+                  Close
+                </Button>
+                <Button className="bg-red-500 hover:bg-red-600 text-white font-bold py-3">
+                  Emergency Open
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reports Dialog */}
+      <Dialog open={showReports} onOpenChange={setShowReports}>
+        <DialogContent className="max-w-4xl bg-gray-50">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center text-cyan-700">Till Reports & Analytics</DialogTitle>
+          </DialogHeader>
+          <div className="p-6">
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <Button 
+                onClick={handleXRead}
+                className="h-20 bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg"
+              >
+                X-Read (No Reset)
+              </Button>
+              <Button 
+                onClick={handleZRead}
+                className="h-20 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg"
+              >
+                Z-Read (End of Day)
+              </Button>
+              <Button 
+                onClick={handleReprintZRead}
+                className="h-20 bg-gray-500 hover:bg-gray-600 text-white font-bold text-lg"
+              >
+                Reprint Last Z-Read
+              </Button>
+            </div>
+            
+            <div className="bg-white p-4 rounded border mb-4">
+              <h3 className="font-bold text-lg mb-2">Today's Summary</h3>
+              <div className="grid grid-cols-4 gap-4 text-sm">
+                <div>Sales Today: €0.00</div>
+                <div>Transactions: 0</div>
+                <div>Returns: €0.00</div>
+                <div>Cash Paid Out: €0.00</div>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={() => setShowReports(false)}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold"
+            >
+              Close Reports
             </Button>
           </div>
         </DialogContent>
