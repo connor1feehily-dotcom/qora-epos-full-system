@@ -43,6 +43,11 @@ function AppContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [lastActivity, setLastActivity] = useState<Date>(new Date());
 
+  // Debug mode changes
+  useEffect(() => {
+    console.log("App mode changed to:", mode);
+  }, [mode]);
+
   // Auto-seed the database on first load with 25-second loading
   const { data: seedResult, isLoading: isSeeding } = useAutoSeed();
 
@@ -52,6 +57,7 @@ function AppContent() {
   };
 
   const handleGoInactive = () => {
+    console.log("Setting mode to inactive");
     setMode('inactive');
     setLastActivity(new Date());
   };

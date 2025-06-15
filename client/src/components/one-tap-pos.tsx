@@ -172,11 +172,29 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
           >
             Quick Test
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              console.log("Force inactive button clicked");
+              if (onGoInactive) {
+                onGoInactive();
+              }
+            }}
+            className="bg-purple-100 hover:bg-purple-200"
+          >
+            Force Inactive
+          </Button>
           {onGoInactive && (
             <Button
               variant="outline"
               size="sm"
-              onClick={onGoInactive}
+              onClick={() => {
+                console.log("Go Inactive button clicked");
+                if (onGoInactive) {
+                  onGoInactive();
+                }
+              }}
               className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200"
             >
               <Moon className="w-4 h-4" />
