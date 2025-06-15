@@ -254,7 +254,7 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
   const transaction = calculateTransaction();
 
   return (
-    <div className="h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 text-white overflow-hidden">
+    <div className="h-screen bg-gray-100 text-black overflow-hidden">
       {/* Hidden input for barcode scanning */}
       <input
         ref={hiddenInputRef}
@@ -263,215 +263,209 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
         tabIndex={-1}
       />
 
-      {/* Modern Header Bar */}
-      <div className="bg-gradient-to-r from-black/40 via-black/30 to-black/40 backdrop-blur-xl border-b border-cyan-400/30 px-8 py-6 flex items-center justify-between shadow-2xl">
-        <div className="flex items-center space-x-8">
+      {/* Simple Header */}
+      <div className="bg-blue-600 px-6 py-3 flex items-center justify-between shadow-lg">
+        <div className="flex items-center space-x-4">
           <Button 
             onClick={onBackToMenu} 
-            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 px-8 py-4 text-lg font-bold rounded-2xl shadow-xl hover:shadow-cyan-500/30 transition-all duration-300 hover:scale-105"
+            className="bg-red-500 hover:bg-red-600 text-white border-0 px-6 py-2 text-sm font-bold rounded"
           >
-            ← Main Menu
+            Exit
           </Button>
-          <div className="flex flex-col">
-            <div className="text-4xl font-black bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Till {tillId}
-            </div>
-            <div className="text-cyan-400/80 text-sm font-medium">Point of Sale System</div>
+          <div className="text-white text-xl font-bold">
+            Till {tillId} - Operator: Connor
           </div>
         </div>
-        <div className="text-right bg-black/20 backdrop-blur-sm rounded-2xl px-6 py-4 border border-emerald-400/30">
-          <div className="text-5xl font-black text-emerald-400 mb-1">€{transaction.total.toFixed(2)}</div>
-          <div className="text-cyan-300 text-lg font-medium">{transaction.itemCount} items in cart</div>
+        <div className="text-white text-right">
+          <div className="text-sm">15/06/2025 09:12:27</div>
         </div>
       </div>
 
-      <div className="h-[calc(100vh-120px)] grid grid-cols-12 gap-6 p-6">
-        {/* Left Section - Products (7 columns) */}
-        <div className="col-span-7 flex flex-col space-y-6">
-          {/* Enhanced Search Bar */}
-          <div className="bg-gradient-to-r from-black/30 via-black/20 to-black/30 backdrop-blur-xl border border-cyan-400/40 rounded-2xl p-6 shadow-2xl">
-            <div className="relative">
-              <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-cyan-400 h-6 w-6" />
-              <Input
-                placeholder="🔍 Search products or scan barcode..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-16 bg-black/60 border-cyan-400/50 text-white placeholder-cyan-300/80 text-xl h-16 rounded-xl focus:border-cyan-300 focus:ring-cyan-300/30 focus:ring-4 font-medium shadow-inner"
-              />
+      <div className="h-[calc(100vh-72px)] flex">
+        {/* Left Section - Transaction Area */}
+        <div className="w-2/5 bg-white border-r-2 border-gray-300 p-4">
+          {/* Transaction Header */}
+          <div className="bg-gray-200 p-3 mb-4 rounded border">
+            <div className="grid grid-cols-4 gap-2 text-sm font-bold text-center">
+              <div>Quantity</div>
+              <div>Description - Preset 1</div>
+              <div>Unit Price €</div>
+              <div>Price €</div>
             </div>
           </div>
 
-          {/* Product Grid - Enhanced with Better Visuals */}
-          <div className="flex-1 bg-gradient-to-br from-black/30 via-black/20 to-black/30 backdrop-blur-xl border border-cyan-400/40 rounded-2xl p-6 overflow-hidden shadow-2xl">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold text-white mb-2">Product Categories</h2>
-              <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full"></div>
-            </div>
-            <div className="h-[calc(100%-80px)] grid grid-cols-5 gap-4">
-              {filteredProducts.map((product) => {
-                const getCategoryIcon = (category: string) => {
-                  switch(category.toLowerCase()) {
-                    case 'drinks': return '🥤';
-                    case 'deli': return '🥪';
-                    case 'fuel': return '⛽';
-                    case 'fruit': return '🍌';
-                    case 'vegetables': return '🥕';
-                    case 'bakery': return '🍞';
-                    case 'dairy': return '🥛';
-                    case 'tobacco': return '🚬';
-                    case 'newspapers': return '📰';
-                    case 'lottery': return '🎫';
-                    default: return '📦';
-                  }
-                };
-
-                return (
-                  <Button
-                    key={product.id}
-                    onClick={() => addToCart(product)}
-                    className="h-28 bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 hover:from-cyan-600/30 hover:via-blue-600/30 hover:to-emerald-600/30 border-2 border-slate-600/60 hover:border-cyan-400/80 rounded-2xl flex flex-col items-center justify-center p-4 text-white transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-500/20 hover:scale-110 hover:-translate-y-1 group"
-                  >
-                    <div className="text-2xl mb-2 group-hover:scale-125 transition-transform duration-300">
-                      {getCategoryIcon(product.category)}
-                    </div>
-                    <span className="text-sm font-bold text-center leading-tight truncate w-full mb-2 group-hover:text-cyan-300 transition-colors">
-                      {product.name}
-                    </span>
-                    <span className="text-lg font-black text-emerald-400 group-hover:text-emerald-300 transition-colors">
-                      €{parseFloat(product.price.toString()).toFixed(2)}
-                    </span>
-                    <Badge 
-                      variant="outline" 
-                      className="text-xs px-2 py-1 mt-2 border-cyan-500/50 text-cyan-300 bg-cyan-500/10 group-hover:bg-cyan-400/20 group-hover:border-cyan-400 transition-all"
-                    >
-                      {product.category}
-                    </Badge>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Section - Enhanced Cart (5 columns) */}
-        <div className="col-span-5 flex flex-col h-full space-y-6">
-          {/* Cart Section */}
-          <div className="flex-1 bg-gradient-to-br from-black/30 via-black/20 to-black/30 backdrop-blur-xl border border-cyan-400/40 rounded-2xl p-6 flex flex-col shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <ShoppingCart className="h-8 w-8 text-cyan-400" />
-                <div>
-                  <h3 className="text-2xl font-bold text-white">Shopping Cart</h3>
-                  <div className="w-16 h-1 bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full"></div>
-                </div>
-              </div>
-              {cart.length > 0 && (
-                <Button 
-                  onClick={clearCart}
-                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 px-4 py-2 rounded-xl font-bold shadow-lg hover:shadow-red-500/25 transition-all duration-300"
-                >
-                  🗑️ Clear All
-                </Button>
-              )}
-            </div>
-            
+          {/* Transaction Items */}
+          <div className="flex-1 bg-white border border-gray-300 p-2 mb-4 min-h-96">
             {cart.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center bg-black/20 rounded-2xl border-2 border-dashed border-cyan-400/30">
-                <div className="text-6xl mb-4">🛒</div>
-                <p className="text-2xl font-bold text-cyan-300 mb-2">Cart is Empty</p>
-                <p className="text-cyan-400/80 text-lg text-center">
-                  Scan barcodes or tap products<br/>to add items to your cart
-                </p>
+              <div className="text-center text-gray-500 py-8">
+                No items scanned
               </div>
             ) : (
-              <div className="flex-1 space-y-3 overflow-y-auto">
+              <div className="space-y-1">
                 {cart.map((item, index) => (
-                  <div key={item.id} className="bg-gradient-to-r from-slate-800/80 via-slate-700/80 to-slate-800/80 border-2 border-slate-600/50 rounded-2xl p-5 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center text-cyan-400 font-bold text-sm">
-                            {index + 1}
-                          </div>
-                          <p className="font-bold text-white text-lg">{item.name}</p>
-                        </div>
-                        <p className="text-cyan-400 text-base ml-11">€{item.price.toFixed(2)} per item</p>
-                      </div>
-                      <Button
-                        onClick={() => removeFromCart(item.productId)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/20 p-2 rounded-xl transition-all duration-300"
-                        variant="ghost"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 bg-black/30 rounded-2xl p-2">
-                        <Button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                          className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white p-2 h-12 w-12 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 hover:scale-110"
-                        >
-                          <Minus className="h-5 w-5" />
-                        </Button>
-                        <span className="text-2xl font-black text-white w-16 text-center bg-cyan-500/20 rounded-xl py-2">
-                          {item.quantity}
-                        </span>
-                        <Button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white p-2 h-12 w-12 rounded-xl font-bold text-lg shadow-lg transition-all duration-300 hover:scale-110"
-                        >
-                          <Plus className="h-5 w-5" />
-                        </Button>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-black text-emerald-400">€{item.total.toFixed(2)}</div>
-                        <div className="text-sm text-cyan-300">Item Total</div>
-                      </div>
-                    </div>
+                  <div key={item.id} className="grid grid-cols-4 gap-2 text-sm py-1 hover:bg-gray-100">
+                    <div className="text-center">{item.quantity}</div>
+                    <div className="truncate">{item.name}</div>
+                    <div className="text-center">€{item.price.toFixed(2)}</div>
+                    <div className="text-center font-bold">€{item.total.toFixed(2)}</div>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Enhanced Payment Section */}
-          <div className="bg-gradient-to-br from-emerald-900/40 via-black/30 to-emerald-900/40 backdrop-blur-xl border-2 border-emerald-400/50 rounded-2xl p-6 shadow-2xl">
-            <div className="mb-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="text-3xl">💰</div>
-                <h3 className="text-2xl font-bold text-white">Order Summary</h3>
-              </div>
-              <div className="w-20 h-1 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"></div>
+          {/* Controls */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="space-y-2">
+              <Button className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-6 text-lg">
+                ↑
+              </Button>
+              <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-6 text-lg">
+                +
+              </Button>
+              <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-6 text-lg">
+                -
+              </Button>
+              <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 text-lg">
+                ↓
+              </Button>
             </div>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between items-center py-2 border-b border-emerald-400/20">
-                <span className="text-cyan-300 text-lg">Subtotal:</span>
-                <span className="text-white font-bold text-xl">€{transaction.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-emerald-400/20">
-                <span className="text-cyan-300 text-lg">VAT (23%):</span>
-                <span className="text-white font-bold text-xl">€{transaction.vatAmount.toFixed(2)}</span>
-              </div>
-              <div className="bg-emerald-500/10 rounded-2xl p-4 border border-emerald-400/30">
-                <div className="flex justify-between items-center">
-                  <span className="text-white text-2xl font-bold">TOTAL:</span>
-                  <span className="text-emerald-400 text-4xl font-black">€{transaction.total.toFixed(2)}</span>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Button 
+                onClick={clearCart}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4"
+              >
+                X
+              </Button>
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold py-4">
+                Choose Customer
+              </Button>
+              <Button className="w-full bg-blue-400 hover:bg-blue-500 text-white font-bold py-4">
+                Enquiry
+              </Button>
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold py-4">
+                Recall Sale
+              </Button>
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold py-4">
+                Mobile Topups
+              </Button>
             </div>
-            
-            <Button
-              onClick={() => setShowPayment(true)}
-              disabled={cart.length === 0}
-              className="w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 hover:from-emerald-400 hover:via-emerald-500 hover:to-emerald-600 disabled:from-slate-600 disabled:to-slate-700 text-white border-0 py-6 text-2xl font-black rounded-2xl shadow-2xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105 disabled:hover:scale-100"
+          </div>
+
+          {/* Total */}
+          <div className="bg-blue-800 text-white p-4 rounded text-center">
+            <div className="text-3xl font-bold">Item Total</div>
+            <div className="text-6xl font-bold">{cart.reduce((sum, item) => sum + item.quantity, 0)}</div>
+            <div className="text-xl">Sale Total €</div>
+            <div className="text-4xl font-bold">€{transaction.total.toFixed(2)}</div>
+          </div>
+        </div>
+
+        {/* Right Section - Product Categories */}
+        <div className="flex-1 bg-white p-4">
+          <div className="grid grid-cols-6 gap-2 h-full">
+            {/* Category Buttons */}
+            <Button 
+              onClick={() => addToCart(filteredProducts.find(p => p.category === 'Misc') || filteredProducts[0])}
+              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
             >
-              <CreditCard className="h-8 w-8 mr-4" />
-              {cart.length === 0 ? 'Add Items to Cart' : 'Complete Sale'}
+              MISC
             </Button>
+            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+              COMPLETE CUISINE
+            </Button>
+            <Button 
+              onClick={() => addToCart(filteredProducts.find(p => p.category === 'Deli') || filteredProducts[0])}
+              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+            >
+              DELI
+            </Button>
+            <Button 
+              onClick={() => addToCart(filteredProducts.find(p => p.category === 'Vegetables') || filteredProducts[0])}
+              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+            >
+              VEGETABLES
+            </Button>
+            <Button 
+              onClick={() => addToCart(filteredProducts.find(p => p.category === 'Fruit') || filteredProducts[0])}
+              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+            >
+              FRUIT
+            </Button>
+            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+              CHRISTMAS
+            </Button>
+
+            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+              STATIONARY
+            </Button>
+            <Button 
+              onClick={() => addToCart(filteredProducts.find(p => p.category === 'Dairy') || filteredProducts[0])}
+              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+            >
+              ICE CREAM
+            </Button>
+            <Button 
+              onClick={() => addToCart(filteredProducts.find(p => p.category === 'Fuel') || filteredProducts[0])}
+              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+            >
+              FUEL
+            </Button>
+            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+              MASS BOOKLETS
+            </Button>
+            <Button className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm">
+              ORS
+            </Button>
+            <Button 
+              onClick={() => addToCart(filteredProducts.find(p => p.category === 'Bakery') || filteredProducts[0])}
+              className="bg-blue-400 hover:bg-blue-500 text-white font-bold text-sm"
+            >
+              Bakery
+            </Button>
+
+            {/* Individual Product Buttons */}
+            {filteredProducts.map((product) => (
+              <Button
+                key={product.id}
+                onClick={() => addToCart(product)}
+                className="bg-gray-200 hover:bg-gray-300 text-black font-bold text-xs p-2 h-16 flex flex-col justify-center"
+              >
+                <div className="truncate">{product.name}</div>
+                <div className="text-xs">€{parseFloat(product.price.toString()).toFixed(2)}</div>
+              </Button>
+            ))}
+
+            {/* Right side buttons */}
+            <div className="col-start-6 space-y-2">
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+                Admin Menu
+              </Button>
+              <Button 
+                onClick={() => setShowPayment(true)}
+                disabled={cart.length === 0}
+                className="w-full bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2"
+              >
+                Exit
+              </Button>
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+                Print Receipt
+              </Button>
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+                ID Prompt
+              </Button>
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+                Postpoint BillPay
+              </Button>
+              <Button className="w-full bg-gray-300 hover:bg-gray-400 text-black font-bold text-xs py-2">
+                Codax
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+
 
       {/* Payment Modal */}
       <PaymentModal
