@@ -11,6 +11,8 @@ interface InactiveScreenProps {
 
 export function InactiveScreen({ onActivate, lastActivity }: InactiveScreenProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  console.log("InactiveScreen component rendered");
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -21,21 +23,26 @@ export function InactiveScreen({ onActivate, lastActivity }: InactiveScreenProps
   }, []);
 
   useEffect(() => {
-    const handleActivity = () => {
-      onActivate();
+    let activityTimeout: NodeJS.Timeout;
+    
+    const handleActivity = (e: Event) => {
+      // Only activate on significant interactions, not initial page load events
+      if (e.type === 'click' || (e.type === 'keydown' && (e as KeyboardEvent).key === 'Enter')) {
+        console.log("Inactive screen - user interaction detected:", e.type);
+        onActivate();
+      }
     };
 
-    // Listen for any user activity
-    document.addEventListener('click', handleActivity);
-    document.addEventListener('keydown', handleActivity);
-    document.addEventListener('mousemove', handleActivity);
-    document.addEventListener('touchstart', handleActivity);
+    // Wait a moment before adding listeners to avoid immediate activation
+    activityTimeout = setTimeout(() => {
+      document.addEventListener('click', handleActivity);
+      document.addEventListener('keydown', handleActivity);
+    }, 1000);
 
     return () => {
+      clearTimeout(activityTimeout);
       document.removeEventListener('click', handleActivity);
       document.removeEventListener('keydown', handleActivity);
-      document.removeEventListener('mousemove', handleActivity);
-      document.removeEventListener('touchstart', handleActivity);
     };
   }, [onActivate]);
 
