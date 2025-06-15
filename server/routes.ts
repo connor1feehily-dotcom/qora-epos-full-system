@@ -55,38 +55,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ]).onConflictDoNothing();
 
-      // Seed essential products only
+      // Seed ONE test product only
       await db.insert(products).values([
         {
-          name: 'Coca Cola 500ml',
-          barcode: '5449000214911',
+          name: 'Test Item',
+          barcode: '1234567890123',
           price: '1.50',
           cost: '0.80',
-          category: 'Drinks',
-          stock: 24,
+          category: 'Test',
+          stock: 100,
           minStock: 5,
           vatRate: '23.00',
-          isActive: true
-        },
-        {
-          name: 'Coffee Large',
-          price: '2.80',
-          cost: '1.00',
-          category: 'Hot Drinks',
-          stock: 50,
-          minStock: 10,
-          vatRate: '13.50',
-          isActive: true
-        },
-        {
-          name: 'White Bread',
-          barcode: '5099821001236',
-          price: '2.20',
-          cost: '1.50',
-          category: 'Food',
-          stock: 12,
-          minStock: 3,
-          vatRate: '0.00',
           isActive: true
         }
       ]).onConflictDoNothing();
