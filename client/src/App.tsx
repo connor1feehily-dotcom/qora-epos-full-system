@@ -42,74 +42,13 @@ function AppContent() {
   const [selectedTill, setSelectedTill] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [lastActivity, setLastActivity] = useState<Date>(new Date());
-  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Auto-seed the database on first load with 25-second loading
   const { data: seedResult, isLoading: isSeeding } = useAutoSeed();
 
-  // Activity monitoring for inactivity timeout (5 minutes)
-  const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-  const resetInactivityTimer = () => {
-    setLastActivity(new Date());
-    
-    if (inactivityTimer) {
-      clearTimeout(inactivityTimer);
-    }
-
-    const timer = setTimeout(() => {
-      if (mode !== 'inactive') {
-        setMode('inactive');
-      }
-    }, INACTIVITY_TIMEOUT);
-    
-    setInactivityTimer(timer);
-  };
-
-  // Set up activity listeners
-  useEffect(() => {
-    const handleActivity = () => {
-      if (mode !== 'inactive') {
-        setLastActivity(new Date());
-        
-        if (inactivityTimer) {
-          clearTimeout(inactivityTimer);
-        }
-
-        const timer = setTimeout(() => {
-          setMode('inactive');
-        }, INACTIVITY_TIMEOUT);
-        
-        setInactivityTimer(timer);
-      }
-    };
-
-    // Listen for user activity
-    document.addEventListener('mousedown', handleActivity);
-    document.addEventListener('keydown', handleActivity);
-    document.addEventListener('touchstart', handleActivity);
-    document.addEventListener('scroll', handleActivity);
-
-    // Initialize timer on mount
-    if (mode !== 'inactive') {
-      handleActivity();
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleActivity);
-      document.removeEventListener('keydown', handleActivity);
-      document.removeEventListener('touchstart', handleActivity);
-      document.removeEventListener('scroll', handleActivity);
-      
-      if (inactivityTimer) {
-        clearTimeout(inactivityTimer);
-      }
-    };
-  }, [mode]);
-
   const handleActivateFromInactive = () => {
     setMode('main-menu');
-    resetInactivityTimer();
+    setLastActivity(new Date());
   };
 
   const handleModeSelect = (selectedMode: 'pos' | 'back-office', tillId?: string) => {
@@ -119,7 +58,7 @@ function AppContent() {
     } else if (selectedMode === 'back-office') {
       setMode('back-office');
     }
-    resetInactivityTimer();
+    setLastActivity(new Date());
   };
 
   const handleStaffLogin = () => {
@@ -145,12 +84,20 @@ function AppContent() {
     return <KerrigansLoadingScreen />;
   }
 
+  // Show inactive screen
+  if (mode === 'inactive') {
+    return (
+      <InactiveScreen 
+        onActivate={handleActivateFromInactive}
+        lastActivity={lastActivity}
+      />
+    );
+  }
+
   return (
     <TooltipProvider>
       <Toaster />
       
-
-
       {mode === 'main-menu' && (
         <MainMenu
           onSelectMode={handleModeSelect}
@@ -171,6 +118,11 @@ function AppContent() {
       {mode === 'back-office' && (
         <BackOfficeRouter onBackToMenu={handleBackToMenu} />
       )}
+
+      {/* Customer Display Route */}
+      <Switch>
+        <Route path="/customer-display" component={CustomerDisplayPage} />
+      </Switch>
     </TooltipProvider>
   );
 }
