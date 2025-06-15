@@ -275,12 +275,34 @@ Payment: ${receiptData.paymentMethod}
           </div>
 
           <div className="bg-white p-4 rounded border">
-            <h3 className="font-bold mb-2">Setup Instructions</h3>
-            <div className="text-sm space-y-1">
-              <p>• Connect Epson printer via USB</p>
-              <p>• Set scanner to HID/Keyboard mode</p>
-              <p>• Enable browser permissions for hardware</p>
-              <p>• Test connections before use</p>
+            <h3 className="font-bold mb-2">Quick Test</h3>
+            <div className="space-y-2">
+              <Button 
+                onClick={() => {
+                  const testData = {
+                    storeName: "KERRIGAN'S XL",
+                    transactionId: 1001,
+                    tillId: "TILL-01",
+                    dateTime: new Date().toLocaleString(),
+                    items: [{ name: "Test Item", quantity: 1, price: 1.00 }],
+                    subtotal: 1.00,
+                    vatAmount: 0.23,
+                    total: 1.23,
+                    paymentMethod: "CASH"
+                  };
+                  printReceipt(testData);
+                }}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm"
+              >
+                Test Print Receipt
+              </Button>
+              
+              <div className="text-sm space-y-1">
+                <p>• Connect Epson printer via USB</p>
+                <p>• Set scanner to HID/Keyboard mode</p>
+                <p>• Enable browser permissions for hardware</p>
+                <p>• Scan any barcode to test scanner</p>
+              </div>
             </div>
           </div>
 

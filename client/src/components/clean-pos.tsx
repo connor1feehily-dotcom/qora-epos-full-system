@@ -79,27 +79,53 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
     (product.barcode && product.barcode.includes(searchTerm))
   );
 
-  // Auto-focus hidden input for barcode scanning
+  // Enhanced barcode scanning for physical scanners
   useEffect(() => {
-    const focusHiddenInput = () => {
-      if (hiddenInputRef.current && document.activeElement !== hiddenInputRef.current) {
-        hiddenInputRef.current.focus();
+    let scanBuffer = '';
+    let scanTimeout: NodeJS.Timeout;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Skip if user is actively typing in form fields
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Skip if modal dialogs are open
+      if (showPayment || showAdminOptions1 || showAdminOptions2 || showTillOperations) {
+        return;
+      }
+
+      // Build scan buffer for rapid barcode input
+      if (e.key.length === 1 || e.key === 'Enter') {
+        clearTimeout(scanTimeout);
+        
+        if (e.key === 'Enter') {
+          // Process complete barcode scan
+          if (scanBuffer.length >= 6) {
+            handleBarcodeScanned(scanBuffer.trim());
+          }
+          scanBuffer = '';
+        } else {
+          scanBuffer += e.key;
+          
+          // Clear buffer after delay (scanners input very quickly, humans slower)
+          scanTimeout = setTimeout(() => {
+            scanBuffer = '';
+          }, 150);
+        }
+        
+        // Prevent default to avoid interfering with UI
+        e.preventDefault();
       }
     };
 
-    // Focus on load and periodically refocus
-    focusHiddenInput();
-    const interval = setInterval(focusHiddenInput, 1000);
-
-    // Focus when clicking anywhere on the page
-    const handleClick = () => focusHiddenInput();
-    document.addEventListener('click', handleClick);
+    document.addEventListener('keydown', handleGlobalKeyDown);
 
     return () => {
-      clearInterval(interval);
-      document.removeEventListener('click', handleClick);
+      clearTimeout(scanTimeout);
+      document.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, []);
+  }, [showPayment, showAdminOptions1, showAdminOptions2, showTillOperations, products]);
 
   // Handle barcode scanner input
   useEffect(() => {
@@ -424,6 +450,10 @@ export function CleanPOS({ tillId, onBackToMenu }: CleanPOSProps) {
     if (product) {
       addToCart(product);
       updateCustomerDisplay();
+      toast({
+        title: "Item Added",
+        description: `${product.name} - €${Number(product.price).toFixed(2)}`,
+      });
     } else {
       toast({
         title: "Product Not Found",
