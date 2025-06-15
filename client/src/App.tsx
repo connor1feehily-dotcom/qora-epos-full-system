@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { SimplePOS } from "@/components/simple-pos";
 import { CustomerDisplayPage } from "@/components/customer-display";
 import { BackOfficeLayout } from "@/components/back-office/back-office-layout";
+import { InactiveScreen } from "@/components/inactive-screen";
 import BackOffice from "@/pages/back-office";
 import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";
@@ -34,15 +35,82 @@ function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
   return <BackOfficeLayout onBackToMenu={onBackToMenu} />;
 }
 
-type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office';
+type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'inactive';
 
 function AppContent() {
   const [mode, setMode] = useState<AppMode>('main-menu');
   const [selectedTill, setSelectedTill] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [lastActivity, setLastActivity] = useState<Date>(new Date());
+  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Auto-seed the database on first load with 25-second loading
   const { data: seedResult, isLoading: isSeeding } = useAutoSeed();
+
+  // Activity monitoring for inactivity timeout (5 minutes)
+  const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+  const resetInactivityTimer = () => {
+    setLastActivity(new Date());
+    
+    if (inactivityTimer) {
+      clearTimeout(inactivityTimer);
+    }
+
+    const timer = setTimeout(() => {
+      if (mode !== 'inactive') {
+        setMode('inactive');
+      }
+    }, INACTIVITY_TIMEOUT);
+    
+    setInactivityTimer(timer);
+  };
+
+  // Set up activity listeners
+  useEffect(() => {
+    const handleActivity = () => {
+      if (mode !== 'inactive') {
+        setLastActivity(new Date());
+        
+        if (inactivityTimer) {
+          clearTimeout(inactivityTimer);
+        }
+
+        const timer = setTimeout(() => {
+          setMode('inactive');
+        }, INACTIVITY_TIMEOUT);
+        
+        setInactivityTimer(timer);
+      }
+    };
+
+    // Listen for user activity
+    document.addEventListener('mousedown', handleActivity);
+    document.addEventListener('keydown', handleActivity);
+    document.addEventListener('touchstart', handleActivity);
+    document.addEventListener('scroll', handleActivity);
+
+    // Initialize timer on mount
+    if (mode !== 'inactive') {
+      handleActivity();
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleActivity);
+      document.removeEventListener('keydown', handleActivity);
+      document.removeEventListener('touchstart', handleActivity);
+      document.removeEventListener('scroll', handleActivity);
+      
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+    };
+  }, [mode]);
+
+  const handleActivateFromInactive = () => {
+    setMode('main-menu');
+    resetInactivityTimer();
+  };
 
   const handleModeSelect = (selectedMode: 'pos' | 'back-office', tillId?: string) => {
     if (selectedMode === 'pos' && tillId) {
@@ -51,6 +119,7 @@ function AppContent() {
     } else if (selectedMode === 'back-office') {
       setMode('back-office');
     }
+    resetInactivityTimer();
   };
 
   const handleStaffLogin = () => {
