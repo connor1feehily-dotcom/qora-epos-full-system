@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { PaymentInterface } from "@/components/payment-interface";
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -23,7 +24,9 @@ interface OneTapPOSProps {
 export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentInterface, setShowPaymentInterface] = useState(false);
   const [lastTransactionAmount, setLastTransactionAmount] = useState(0);
+  const [lastChange, setLastChange] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -37,7 +40,7 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
 
   // Transaction mutation
   const createTransactionMutation = useMutation({
-    mutationFn: async ({ product, paymentMethod }: { product: Product; paymentMethod: 'cash' | 'card' }) => {
+    mutationFn: async ({ product, paymentMethod, amountGiven, change }: { product: Product; paymentMethod: 'cash' | 'card'; amountGiven?: number; change?: number }) => {
       console.log("Starting transaction for product:", product.name, "payment:", paymentMethod);
       
       const total = Number(product.price);
@@ -84,7 +87,7 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
         
         const data = await response.json();
         console.log("Transaction response:", data);
-        return { transaction: data.transaction, amount: total };
+        return { transaction: data.transaction, amount: total, change: change || 0 };
       } catch (error) {
         console.error("API request failed:", error);
         throw error;
@@ -92,14 +95,16 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
     },
     onSuccess: (data) => {
       setLastTransactionAmount(data.amount);
+      setLastChange(data.change || 0);
       setShowPaymentSuccess(true);
+      setShowPaymentInterface(false);
       setSelectedProduct(null);
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       
-      // Auto-hide success message after 3 seconds
+      // Auto-hide success message after 5 seconds
       setTimeout(() => {
         setShowPaymentSuccess(false);
-      }, 3000);
+      }, 5000);
     },
     onError: (error) => {
       console.error("Transaction error:", error);
@@ -113,12 +118,23 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
 
   const handleProductSelect = (product: Product) => {
     setSelectedProduct(product);
+    setShowPaymentInterface(true);
   };
 
-  const handlePayment = (paymentMethod: 'cash' | 'card') => {
+  const handlePaymentComplete = (paymentMethod: 'cash' | 'card', amountGiven?: number, change?: number) => {
     if (selectedProduct) {
-      createTransactionMutation.mutate({ product: selectedProduct, paymentMethod });
+      createTransactionMutation.mutate({ 
+        product: selectedProduct, 
+        paymentMethod, 
+        amountGiven, 
+        change 
+      });
     }
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentInterface(false);
+    setSelectedProduct(null);
   };
 
   const handleNewSale = () => {
