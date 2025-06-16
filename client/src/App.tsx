@@ -124,7 +124,7 @@ function AppContent() {
         />
       )}
       {mode === 'pos' && selectedTill && (
-        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} onGoInactive={handleGoInactive} currentUser={currentUser} />
+        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
       )}
       {mode === 'back-office' && (
         <BackOfficeRouter onBackToMenu={handleBackToMenu} />

@@ -212,6 +212,62 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive, currentUser }: O
         </div>
         
         <div className="flex items-center space-x-2">
+          {/* User Info */}
+          {currentUser && (
+            <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-lg">
+              <div className="w-8 h-8 bg-cyan-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-semibold">
+                  {currentUser.firstName?.charAt(0) || currentUser.username.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-sm font-medium">{currentUser.firstName || currentUser.username}</span>
+            </div>
+          )}
+
+          {/* Admin Menu */}
+          {currentUser?.role === 'admin' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-cyan-100 hover:bg-cyan-200">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin Menu
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/products'] })}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh Products
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Till Calculator
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Printer className="w-4 h-4 mr-2" />
+                  Print Test Receipt
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Daily X Report
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Daily Z Report
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Open Till Session
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Close Till Session
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           <Button
             variant="outline"
             size="sm"
@@ -225,30 +281,17 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive, currentUser }: O
           >
             Quick Test
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              console.log("Force inactive button clicked");
-              if (onGoInactive) {
-                onGoInactive();
-              }
-            }}
-            className="bg-purple-100 hover:bg-purple-200"
-          >
-            Force Inactive
-          </Button>
+          
           {onGoInactive && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
-                console.log("Go Inactive button clicked");
-                if (onGoInactive) {
-                  onGoInactive();
-                }
+                console.log("Force inactive button clicked");
+                console.log("Setting mode to inactive");
+                onGoInactive();
               }}
-              className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200"
+              className="bg-purple-100 hover:bg-purple-200 text-purple-700"
             >
               <Moon className="w-4 h-4" />
               <span>Go Inactive</span>
