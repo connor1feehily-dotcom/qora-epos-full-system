@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { PaymentInterface } from "@/components/payment-interface";
@@ -11,17 +12,24 @@ import {
   Banknote,
   CheckCircle,
   DollarSign,
-  Moon
+  Moon,
+  Settings,
+  ShoppingCart,
+  FileText,
+  Calculator,
+  Printer,
+  RefreshCw
 } from "lucide-react";
-import type { Product, InsertTransaction, InsertTransactionItem } from "@shared/schema";
+import type { Product, InsertTransaction, InsertTransactionItem, User } from "@shared/schema";
 
 interface OneTapPOSProps {
   tillId: string;
   onBackToMenu: () => void;
   onGoInactive?: () => void;
+  currentUser?: User;
 }
 
-export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps) {
+export function OneTapPOS({ tillId, onBackToMenu, onGoInactive, currentUser }: OneTapPOSProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showPaymentInterface, setShowPaymentInterface] = useState(false);
