@@ -19,6 +19,7 @@ import { Dashboard } from "./dashboard";
 import { InventoryManagement } from "./inventory-management";
 import { SalesReports } from "./sales-reports";
 import { UserManagement } from "./user-management";
+import { SimpleProductManager } from "@/components/simple-product-manager";
 
 interface BackOfficeLayoutProps {
   onBackToMenu: () => void;
@@ -29,7 +30,8 @@ export function BackOfficeLayout({ onBackToMenu }: BackOfficeLayoutProps) {
 
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, description: "Overview & Analytics" },
-    { id: "inventory", label: "Inventory", icon: Package, description: "Product Management" },
+    { id: "products", label: "Products", icon: Package, description: "Add & Manage Products" },
+    { id: "inventory", label: "Inventory", icon: Archive, description: "Stock Management" },
     { id: "sales", label: "Sales Reports", icon: BarChart3, description: "Transaction Analysis" },
     { id: "users", label: "User Management", icon: Users, description: "Staff & Permissions" },
     { id: "settings", label: "System Settings", icon: Settings, description: "Configuration" }
@@ -39,6 +41,8 @@ export function BackOfficeLayout({ onBackToMenu }: BackOfficeLayoutProps) {
     switch (activeSection) {
       case "dashboard":
         return <Dashboard />;
+      case "products":
+        return <SimpleProductManager />;
       case "inventory":
         return <InventoryManagement />;
       case "sales":

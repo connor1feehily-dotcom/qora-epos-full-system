@@ -24,23 +24,26 @@ export function InactiveScreen({ onActivate, lastActivity }: InactiveScreenProps
 
   useEffect(() => {
     let activityTimeout: NodeJS.Timeout;
+    let isReady = false;
     
     const handleActivity = (e: Event) => {
-      // Only activate on significant interactions, not initial page load events
-      if (e.type === 'click' || (e.type === 'keydown' && (e as KeyboardEvent).key === 'Enter')) {
+      // Only activate after a delay and on significant interactions
+      if (isReady && (e.type === 'click' || (e.type === 'keydown' && (e as KeyboardEvent).key === 'Enter'))) {
         console.log("Inactive screen - user interaction detected:", e.type);
         onActivate();
       }
     };
 
-    // Wait a moment before adding listeners to avoid immediate activation
+    // Wait longer before adding listeners to avoid immediate activation
     activityTimeout = setTimeout(() => {
+      isReady = true;
       document.addEventListener('click', handleActivity);
       document.addEventListener('keydown', handleActivity);
-    }, 1000);
+    }, 2000);
 
     return () => {
       clearTimeout(activityTimeout);
+      isReady = false;
       document.removeEventListener('click', handleActivity);
       document.removeEventListener('keydown', handleActivity);
     };
