@@ -70,9 +70,21 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
       console.log("Transaction payload:", payload);
 
       try {
-        const response = await apiRequest('/api/transactions', 'POST', payload) as any;
-        console.log("Transaction response:", response);
-        return { transaction: response.transaction, amount: total };
+        const response = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Transaction failed: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Transaction response:", data);
+        return { transaction: data.transaction, amount: total };
       } catch (error) {
         console.error("API request failed:", error);
         throw error;

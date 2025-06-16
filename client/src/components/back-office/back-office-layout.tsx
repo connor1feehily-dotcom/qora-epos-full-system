@@ -13,13 +13,15 @@ import {
   Shield,
   Home,
   Monitor,
-  Archive
+  Archive,
+  Truck
 } from "lucide-react";
 import { Dashboard } from "./dashboard";
 import { InventoryManagement } from "./inventory-management";
 import { SalesReports } from "./sales-reports";
 import { UserManagement } from "./user-management";
 import { SimpleProductManager } from "@/components/simple-product-manager";
+import { DeliveryManagement } from "@/components/delivery-management";
 
 interface BackOfficeLayoutProps {
   onBackToMenu: () => void;
@@ -31,6 +33,7 @@ export function BackOfficeLayout({ onBackToMenu }: BackOfficeLayoutProps) {
   const sidebarItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, description: "Overview & Analytics" },
     { id: "products", label: "Products", icon: Package, description: "Add & Manage Products" },
+    { id: "deliveries", label: "Deliveries", icon: Truck, description: "Scan & Process Deliveries" },
     { id: "inventory", label: "Inventory", icon: Archive, description: "Stock Management" },
     { id: "sales", label: "Sales Reports", icon: BarChart3, description: "Transaction Analysis" },
     { id: "users", label: "User Management", icon: Users, description: "Staff & Permissions" },
@@ -43,6 +46,8 @@ export function BackOfficeLayout({ onBackToMenu }: BackOfficeLayoutProps) {
         return <Dashboard />;
       case "products":
         return <SimpleProductManager />;
+      case "deliveries":
+        return <DeliveryManagement />;
       case "inventory":
         return <InventoryManagement />;
       case "sales":
