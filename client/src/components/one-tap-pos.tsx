@@ -142,6 +142,18 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
     setSelectedProduct(null);
   };
 
+  // Show payment interface
+  if (showPaymentInterface && selectedProduct) {
+    return (
+      <PaymentInterface
+        product={selectedProduct}
+        onPaymentComplete={handlePaymentComplete}
+        onCancel={handlePaymentCancel}
+        isProcessing={createTransactionMutation.isPending}
+      />
+    );
+  }
+
   // Show success screen
   if (showPaymentSuccess) {
     return (
@@ -151,9 +163,14 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
             <CheckCircle className="w-16 h-16 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-green-800 mb-4">Sale Complete!</h1>
-          <p className="text-2xl text-green-700 mb-8">
+          <p className="text-2xl text-green-700 mb-4">
             €{lastTransactionAmount.toFixed(2)} processed successfully
           </p>
+          {lastChange > 0 && (
+            <p className="text-xl text-green-600 mb-8">
+              Change: €{lastChange.toFixed(2)}
+            </p>
+          )}
           <Button
             size="lg"
             onClick={handleNewSale}
@@ -286,28 +303,9 @@ export function OneTapPOS({ tillId, onBackToMenu, onGoInactive }: OneTapPOSProps
                 </CardContent>
               </Card>
 
-              {/* Payment Buttons */}
-              <div className="space-y-4">
-                <Button
-                  size="lg"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-2xl"
-                  onClick={() => handlePayment('cash')}
-                  disabled={createTransactionMutation.isPending}
-                >
-                  <Banknote className="w-8 h-8 mr-4" />
-                  Pay with Cash
-                </Button>
-                
-                <Button
-                  size="lg"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 text-2xl"
-                  onClick={() => handlePayment('card')}
-                  disabled={createTransactionMutation.isPending}
-                >
-                  <CreditCard className="w-8 h-8 mr-4" />
-                  Pay with Card
-                </Button>
-              </div>
+              <p className="text-gray-600 text-lg mb-6">
+                Product selected! The payment interface will appear next.
+              </p>
 
               <Button
                 variant="outline"
