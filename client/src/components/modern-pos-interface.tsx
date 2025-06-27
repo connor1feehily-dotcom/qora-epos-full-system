@@ -564,7 +564,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       {/* Payment Interface Modal */}
       {showPaymentInterface && (
         <PaymentInterface
-          amount={total}
+          total={total}
           onPaymentComplete={() => {
             setShowPaymentInterface(false);
             setCart([]);
