@@ -12,7 +12,7 @@ import { FloatingNavigation } from "@/components/floating-navigation";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
-import { OneTapPOS } from "@/components/one-tap-pos";
+import { ModernPOSInterface } from "@/components/modern-pos-interface";
 import { CustomerDisplayPage } from "@/components/customer-display";
 import { BackOfficeDashboard } from "@/components/back-office-dashboard";
 import { InactiveScreen } from "@/components/inactive-screen";
@@ -27,7 +27,7 @@ import type { User } from "@shared/schema";
 
 function POSRouter({ tillId, onBackToMenu, onGoInactive, currentUser }: { tillId: string; onBackToMenu: () => void; onGoInactive?: () => void; currentUser?: User }) {
   return (
-    <OneTapPOS tillId={tillId} onBackToMenu={onBackToMenu} onGoInactive={onGoInactive} currentUser={currentUser} />
+    <ModernPOSInterface tillId={tillId} onBackToMenu={onBackToMenu} onGoInactive={onGoInactive} currentUser={currentUser} />
   );
 }
 
