@@ -532,3 +532,4 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
     </div>
   );
 }
+}

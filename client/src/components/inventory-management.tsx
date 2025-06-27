@@ -286,7 +286,7 @@ export function InventoryManagement() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+        </div>
 
       {/* Stock Alerts */}
       {lowStockProducts.length > 0 && (
