@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, decimal, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, decimal, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -205,9 +205,257 @@ export const staffSchedules = pgTable("staff_schedules", {
   notes: text("notes"),
 });
 
+// Receipt Templates
+export const receiptTemplates = pgTable("receipt_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  storeId: text("store_id"),
+  tillId: text("till_id"),
+  template: json("template").notNull(), // JSON structure for receipt layout
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// UI Layout Configurations
+export const uiLayouts = pgTable("ui_layouts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  scope: text("scope").notNull(), // 'global', 'store', 'terminal'
+  scopeId: text("scope_id"), // store ID or terminal ID
+  layout: json("layout").notNull(), // JSON configuration for UI layout
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Theme Configurations
+export const themes = pgTable("themes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  scope: text("scope").notNull(), // 'global', 'store', 'terminal'
+  scopeId: text("scope_id"), // store ID or terminal ID
+  colors: json("colors").notNull(), // Color scheme configuration
+  typography: json("typography").notNull(), // Font configurations
+  spacing: json("spacing").notNull(), // Spacing and sizing
+  borderRadius: text("border_radius").default("medium"),
+  mode: text("mode").notNull().default("light"), // 'light', 'dark', 'auto'
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Mobile App Notifications
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  type: text("type").notNull(), // 'sale_alert', 'inventory_low', 'approval_request', 'shift_alert'
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  data: json("data"), // Additional notification data
+  isRead: boolean("is_read").notNull().default(false),
+  priority: text("priority").notNull().default("normal"), // 'low', 'normal', 'high', 'urgent'
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
+// Mobile Device Registrations
+export const mobileDevices = pgTable("mobile_devices", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  deviceId: text("device_id").notNull().unique(),
+  deviceName: text("device_name").notNull(),
+  platform: text("platform").notNull(), // 'ios', 'android', 'web'
+  pushToken: text("push_token"),
+  isActive: boolean("is_active").notNull().default(true),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Approval Workflows
+export const approvalWorkflows = pgTable("approval_workflows", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'purchase_order', 'staff_shift', 'inventory_adjustment'
+  referenceId: integer("reference_id").notNull(), // ID of the item needing approval
+  requestedBy: integer("requested_by").references(() => users.id),
+  approverRole: text("approver_role").notNull(), // 'manager', 'admin'
+  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvalNotes: text("approval_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+});
+
+// AI Analytics and Predictions
+export const aiInsights = pgTable("ai_insights", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'demand_forecast', 'shrinkage_alert', 'promotion_suggestion'
+  category: text("category").notNull(), // 'inventory', 'sales', 'staff', 'customer'
+  productId: integer("product_id").references(() => products.id),
+  customerId: integer("customer_id").references(() => customers.id),
+  tillId: text("till_id"),
+  confidence: decimal("confidence", { precision: 5, scale: 2 }).notNull(), // 0-100%
+  prediction: json("prediction").notNull(), // AI prediction data
+  metadata: json("metadata"), // Additional context data
+  isActioned: boolean("is_actioned").notNull().default(false),
+  actionTaken: text("action_taken"),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+// Customer Behavior Analytics
+export const customerBehavior = pgTable("customer_behavior", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id),
+  sessionId: text("session_id").notNull(),
+  productId: integer("product_id").references(() => products.id),
+  action: text("action").notNull(), // 'view', 'scan', 'purchase', 'return'
+  duration: integer("duration"), // seconds spent
+  quantity: integer("quantity").default(1),
+  location: text("location"), // area of store
+  tillId: text("till_id"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Store Health Metrics
+export const storeMetrics = pgTable("store_metrics", {
+  id: serial("id").primaryKey(),
+  tillId: text("till_id"),
+  metricType: text("metric_type").notNull(), // 'queue_length', 'sales_velocity', 'staff_efficiency'
+  value: decimal("value", { precision: 10, scale: 2 }).notNull(),
+  target: decimal("target", { precision: 10, scale: 2 }),
+  unit: text("unit").notNull(), // 'customers', 'seconds', 'percentage'
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Staff Performance & Gamification
+export const staffPerformance = pgTable("staff_performance", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  tillId: text("till_id"),
+  shiftDate: timestamp("shift_date").notNull(),
+  transactionsProcessed: integer("transactions_processed").default(0),
+  averageTransactionTime: decimal("avg_transaction_time", { precision: 8, scale: 2 }),
+  upsellsAchieved: integer("upsells_achieved").default(0),
+  accuracyScore: decimal("accuracy_score", { precision: 5, scale: 2 }).default("100.00"), // percentage
+  customerSatisfaction: decimal("customer_satisfaction", { precision: 3, scale: 2 }),
+  points: integer("points").default(0),
+  badges: json("badges"), // Array of earned badges
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Product Heatmap Data
+export const productHeatmap = pgTable("product_heatmap", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id),
+  locationX: integer("location_x").notNull(), // store grid position
+  locationY: integer("location_y").notNull(),
+  scanCount: integer("scan_count").default(0),
+  purchaseCount: integer("purchase_count").default(0),
+  dwellTime: integer("dwell_time").default(0), // seconds
+  date: timestamp("date").defaultNow(),
+});
+
+// Loyalty & Rewards Engine
+export const loyaltyTransactions = pgTable("loyalty_transactions", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id),
+  transactionId: integer("transaction_id").references(() => transactions.id),
+  pointsEarned: integer("points_earned").default(0),
+  pointsRedeemed: integer("points_redeemed").default(0),
+  tierLevel: text("tier_level").default("bronze"), // bronze, silver, gold, platinum
+  specialOffer: json("special_offer"), // Dynamic offer data
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Plugin System
+export const installedPlugins = pgTable("installed_plugins", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  version: text("version").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // 'inventory', 'payment', 'analytics', 'integration'
+  config: json("config"), // Plugin configuration
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  installDate: timestamp("install_date").defaultNow(),
+  lastUpdate: timestamp("last_update").defaultNow(),
+  permissions: json("permissions"), // Required permissions
+});
+
+// Natural Language Queries
+export const nlQueries = pgTable("nl_queries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  query: text("query").notNull(),
+  intent: text("intent"), // Detected query intent
+  entities: json("entities"), // Extracted entities
+  sqlGenerated: text("sql_generated"),
+  response: json("response"),
+  confidence: decimal("confidence", { precision: 5, scale: 2 }),
+  executionTime: integer("execution_time"), // milliseconds
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Offline Sync Queue
+export const syncQueue = pgTable("sync_queue", {
+  id: serial("id").primaryKey(),
+  tillId: text("till_id").notNull(),
+  operation: text("operation").notNull(), // 'create', 'update', 'delete'
+  tableName: text("table_name").notNull(),
+  recordId: text("record_id").notNull(),
+  data: json("data").notNull(),
+  priority: integer("priority").default(1), // 1=high, 5=low
+  retryCount: integer("retry_count").default(0),
+  lastAttempt: timestamp("last_attempt"),
+  status: text("status").default("pending"), // pending, synced, failed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+});
+
+export const insertReceiptTemplateSchema = createInsertSchema(receiptTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUiLayoutSchema = createInsertSchema(uiLayouts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertThemeSchema = createInsertSchema(themes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
+export const insertMobileDeviceSchema = createInsertSchema(mobileDevices).omit({
+  id: true,
+  createdAt: true,
+  lastSeen: true,
+});
+
+export const insertApprovalWorkflowSchema = createInsertSchema(approvalWorkflows).omit({
+  id: true,
+  createdAt: true,
+  approvedAt: true,
 });
 
 export const insertProductSchema = createInsertSchema(products).omit({

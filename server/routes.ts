@@ -7,6 +7,19 @@ import {
   getPaymentMethods, 
   validateCard 
 } from "./routes/payment-routes";
+import {
+  getNotifications,
+  markNotificationRead,
+  registerMobileDevice,
+  getSalesAlerts,
+  getMobileInventory,
+  adjustInventory,
+  getPendingApprovals,
+  processApproval,
+  getMobileDashboard,
+  getStaffShifts,
+  approveShift
+} from "./routes/mobile-routes";
 import { securityHeaders } from "./security/pci-compliance";
 import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema } from "@shared/schema";
 import { z } from 'zod';
@@ -20,6 +33,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payment/refund", ...processRefund);
   app.get("/api/payment/methods", ...getPaymentMethods);
   app.post("/api/payment/validate-card", ...validateCard);
+
+  // Mobile companion app routes
+  app.get("/api/mobile/notifications", ...getNotifications);
+  app.put("/api/mobile/notifications/:notificationId/read", ...markNotificationRead);
+  app.post("/api/mobile/device/register", ...registerMobileDevice);
+  app.get("/api/mobile/sales-alerts", ...getSalesAlerts);
+  app.get("/api/mobile/inventory", ...getMobileInventory);
+  app.post("/api/mobile/inventory/adjust", ...adjustInventory);
+  app.get("/api/mobile/approvals/pending", ...getPendingApprovals);
+  app.post("/api/mobile/approvals/:approvalId/process", ...processApproval);
+  app.get("/api/mobile/dashboard", ...getMobileDashboard);
+  app.get("/api/mobile/shifts", ...getStaffShifts);
+  app.post("/api/mobile/shifts/:shiftId/approve", ...approveShift);
   // Database seeding endpoint
   app.post("/api/seed", async (req, res) => {
     try {
