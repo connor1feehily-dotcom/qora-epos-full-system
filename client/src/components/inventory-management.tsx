@@ -140,7 +140,7 @@ export function InventoryManagement() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = [...new Set(products.map((p: Product) => p.category))];
+  const categories = Array.from(new Set(products.map((p: Product) => p.category)));
   const lowStockProducts = products.filter((p: Product) => p.stock <= p.minStock);
 
   const getStockStatus = (product: Product) => {
@@ -176,117 +176,118 @@ export function InventoryManagement() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {editingProduct ? "Edit Product" : "Add New Product"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Product Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="barcode">Barcode</Label>
-                <Input
-                  id="barcode"
-                  value={formData.barcode}
-                  onChange={(e) => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingProduct ? "Edit Product" : "Add New Product"}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="price">Price (€)</Label>
+                  <Label htmlFor="name">Product Name</Label>
                   <Input
-                    id="price"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="barcode">Barcode</Label>
+                  <Input
+                    id="barcode"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="price">Price (€)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="cost">Cost (€)</Label>
+                    <Input
+                      id="cost"
+                      type="number"
+                      step="0.01"
+                      value={formData.cost}
+                      onChange={(e) => setFormData(prev => ({ ...prev, cost: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="stock">Current Stock</Label>
+                    <Input
+                      id="stock"
+                      type="number"
+                      value={formData.stock}
+                      onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="minStock">Min Stock</Label>
+                    <Input
+                      id="minStock"
+                      type="number"
+                      value={formData.minStock}
+                      onChange={(e) => setFormData(prev => ({ ...prev, minStock: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="vatRate">VAT Rate (%)</Label>
+                  <Input
+                    id="vatRate"
                     type="number"
                     step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                    value={formData.vatRate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vatRate: e.target.value }))}
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="cost">Cost (€)</Label>
-                  <Input
-                    id="cost"
-                    type="number"
-                    step="0.01"
-                    value={formData.cost}
-                    onChange={(e) => setFormData(prev => ({ ...prev, cost: e.target.value }))}
-                  />
+
+                <div className="flex gap-2 pt-4">
+                  <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                    {editingProduct ? "Update" : "Create"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="stock">Current Stock</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    value={formData.stock}
-                    onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="minStock">Min Stock</Label>
-                  <Input
-                    id="minStock"
-                    type="number"
-                    value={formData.minStock}
-                    onChange={(e) => setFormData(prev => ({ ...prev, minStock: e.target.value }))}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="vatRate">VAT Rate (%)</Label>
-                <Input
-                  id="vatRate"
-                  type="number"
-                  step="0.01"
-                  value={formData.vatRate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, vatRate: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {editingProduct ? "Update" : "Create"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
+      </div>
 
       {/* Stock Alerts */}
       {lowStockProducts.length > 0 && (
@@ -336,7 +337,7 @@ export function InventoryManagement() {
               className="px-3 py-2 border rounded-md"
             >
               <option value="">All Categories</option>
-              {categories.map(category => (
+              {categories.map((category: string) => (
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
