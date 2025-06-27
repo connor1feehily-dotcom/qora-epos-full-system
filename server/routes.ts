@@ -29,6 +29,7 @@ import {
   getStoreHealthDashboard,
   triggerAiAnalysis
 } from "./routes/ai-routes";
+import { scanDocket, importDelivery, getDeliveryHistory, getProductSuggestions } from "./routes/delivery-routes";
 import { securityHeaders } from "./security/pci-compliance";
 import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema } from "@shared/schema";
 import { z } from 'zod';
@@ -64,6 +65,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ai/inventory-forecast", ...generateInventoryForecast);
   app.get("/api/ai/store-health", ...getStoreHealthDashboard);
   app.post("/api/ai/analyze", ...triggerAiAnalysis);
+
+  // Delivery Management routes for Valerie
+  app.post("/api/delivery/scan-docket", scanDocket);
+  app.post("/api/delivery/import", importDelivery);
+  app.get("/api/delivery/history", getDeliveryHistory);
+  app.get("/api/delivery/product-suggestions", getProductSuggestions);
   // Database seeding endpoint
   app.post("/api/seed", async (req, res) => {
     try {

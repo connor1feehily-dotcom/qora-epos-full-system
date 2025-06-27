@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Package, Plus, Edit, Trash2, AlertTriangle, Search, Filter } from "lucide-react";
+import { Package, Plus, Edit, Trash2, AlertTriangle, Search, Filter, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { DeliveryScanner } from "./delivery-scanner";
 
 interface Product {
   id: number;
@@ -27,6 +28,7 @@ export function InventoryManagement() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [showDeliveryScanner, setShowDeliveryScanner] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     barcode: "",
@@ -158,13 +160,21 @@ export function InventoryManagement() {
           <h2 className="text-2xl font-bold">Inventory Management</h2>
           <p className="text-gray-600">Manage products and stock levels</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { resetForm(); setEditingProduct(null); }}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowDeliveryScanner(true)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Truck className="w-4 h-4 mr-2" />
+            Scan Delivery for Valerie
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { resetForm(); setEditingProduct(null); }}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Product
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
