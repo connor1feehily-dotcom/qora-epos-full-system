@@ -175,7 +175,7 @@ export function InventoryManagement() {
                 Add Product
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {editingProduct ? "Edit Product" : "Add New Product"}
@@ -406,6 +406,11 @@ export function InventoryManagement() {
             Add Product
           </Button>
         </Card>
+      )}
+
+      {/* Delivery Scanner Modal */}
+      {showDeliveryScanner && (
+        <DeliveryScanner onClose={() => setShowDeliveryScanner(false)} />
       )}
     </div>
   );
