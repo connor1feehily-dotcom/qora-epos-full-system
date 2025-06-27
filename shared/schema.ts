@@ -114,6 +114,97 @@ export const dailyReports = pgTable("daily_reports", {
   generatedBy: integer("generated_by").notNull().references(() => users.id),
 });
 
+// POS Button Configuration
+export const posButtons = pgTable("pos_buttons", {
+  id: serial("id").primaryKey(),
+  tillId: text("till_id").notNull(),
+  buttonType: text("button_type").notNull(), // "product", "category", "action", "payment"
+  label: text("label").notNull(),
+  position: integer("position").notNull(),
+  color: text("color").default("#3b82f6"),
+  productId: integer("product_id").references(() => products.id),
+  categoryName: text("category_name"),
+  actionType: text("action_type"), // "discount", "void", "hold", "receipt"
+  paymentMethod: text("payment_method"), // "cash", "card", "voucher"
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Purchase Orders
+export const purchaseOrders = pgTable("purchase_orders", {
+  id: serial("id").primaryKey(),
+  poNumber: text("po_number").notNull().unique(),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  status: text("status").notNull().default("pending"), // pending, sent, received, cancelled
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }),
+  orderDate: timestamp("order_date").defaultNow(),
+  expectedDate: timestamp("expected_date"),
+  receivedDate: timestamp("received_date"),
+  createdBy: integer("created_by").references(() => users.id),
+  notes: text("notes"),
+});
+
+export const purchaseOrderItems = pgTable("purchase_order_items", {
+  id: serial("id").primaryKey(),
+  purchaseOrderId: integer("purchase_order_id").references(() => purchaseOrders.id),
+  productId: integer("product_id").references(() => products.id),
+  quantity: integer("quantity").notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
+  totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
+  received: integer("received").default(0),
+});
+
+// Promotions Engine
+export const promotionRules = pgTable("promotion_rules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // "percentage", "fixed", "bogof", "mix_match"
+  value: decimal("value", { precision: 10, scale: 2 }),
+  conditions: text("conditions"), // JSON string for complex rules
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  priority: integer("priority").default(1),
+  usageLimit: integer("usage_limit"),
+  usedCount: integer("used_count").default(0),
+});
+
+export const promotionProducts = pgTable("promotion_products", {
+  id: serial("id").primaryKey(),
+  promotionId: integer("promotion_id").references(() => promotionRules.id),
+  productId: integer("product_id").references(() => products.id),
+  categoryName: text("category_name"),
+});
+
+// Audit Logs
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  action: text("action").notNull(), // "create", "update", "delete", "login", "sale"
+  tableName: text("table_name"),
+  recordId: integer("record_id"),
+  oldValues: text("old_values"), // JSON string
+  newValues: text("new_values"), // JSON string
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Staff Schedules
+export const staffSchedules = pgTable("staff_schedules", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  tillId: text("till_id"),
+  shiftStart: timestamp("shift_start").notNull(),
+  shiftEnd: timestamp("shift_end").notNull(),
+  breakStart: timestamp("break_start"),
+  breakEnd: timestamp("break_end"),
+  clockIn: timestamp("clock_in"),
+  clockOut: timestamp("clock_out"),
+  hoursWorked: decimal("hours_worked", { precision: 4, scale: 2 }),
+  notes: text("notes"),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -154,6 +245,37 @@ export const insertDailyReportSchema = createInsertSchema(dailyReports).omit({
   reportDate: true,
 });
 
+export const insertPosButtonSchema = createInsertSchema(posButtons).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).omit({
+  id: true,
+  orderDate: true,
+});
+
+export const insertPurchaseOrderItemSchema = createInsertSchema(purchaseOrderItems).omit({
+  id: true,
+});
+
+export const insertPromotionRuleSchema = createInsertSchema(promotionRules).omit({
+  id: true,
+});
+
+export const insertPromotionProductSchema = createInsertSchema(promotionProducts).omit({
+  id: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStaffScheduleSchema = createInsertSchema(staffSchedules).omit({
+  id: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type Product = typeof products.$inferSelect;
@@ -174,3 +296,20 @@ export type InsertTransactionItem = z.infer<typeof insertTransactionItemSchema>;
 export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
 export type InsertTillSession = z.infer<typeof insertTillSessionSchema>;
 export type InsertDailyReport = z.infer<typeof insertDailyReportSchema>;
+
+// New types for extended functionality
+export type PosButton = typeof posButtons.$inferSelect;
+export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
+export type PurchaseOrderItem = typeof purchaseOrderItems.$inferSelect;
+export type PromotionRule = typeof promotionRules.$inferSelect;
+export type PromotionProduct = typeof promotionProducts.$inferSelect;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type StaffSchedule = typeof staffSchedules.$inferSelect;
+
+export type InsertPosButton = z.infer<typeof insertPosButtonSchema>;
+export type InsertPurchaseOrder = z.infer<typeof insertPurchaseOrderSchema>;
+export type InsertPurchaseOrderItem = z.infer<typeof insertPurchaseOrderItemSchema>;
+export type InsertPromotionRule = z.infer<typeof insertPromotionRuleSchema>;
+export type InsertPromotionProduct = z.infer<typeof insertPromotionProductSchema>;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type InsertStaffSchedule = z.infer<typeof insertStaffScheduleSchema>;

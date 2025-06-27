@@ -1,10 +1,14 @@
 import {
   users, products, customers, suppliers, transactions, transactionItems, promotions, tillSessions, dailyReports,
+  posButtons, purchaseOrders, purchaseOrderItems, promotionRules, promotionProducts, auditLogs, staffSchedules,
   type User, type Product, type Customer, type Supplier, type Transaction, type TransactionItem, type Promotion,
-  type TillSession, type DailyReport,
+  type TillSession, type DailyReport, type PosButton, type PurchaseOrder, type PurchaseOrderItem,
+  type PromotionRule, type PromotionProduct, type AuditLog, type StaffSchedule,
   type InsertUser, type InsertProduct, type InsertCustomer, type InsertSupplier, 
   type InsertTransaction, type InsertTransactionItem, type InsertPromotion,
-  type InsertTillSession, type InsertDailyReport
+  type InsertTillSession, type InsertDailyReport, type InsertPosButton, type InsertPurchaseOrder,
+  type InsertPurchaseOrderItem, type InsertPromotionRule, type InsertPromotionProduct, 
+  type InsertAuditLog, type InsertStaffSchedule
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -64,6 +68,38 @@ export interface IStorage {
   generateDailyReport(tillId: string, reportType: 'X' | 'Z', generatedBy: number): Promise<DailyReport>;
   getDailyReports(tillId?: string, date?: Date): Promise<DailyReport[]>;
   getLastZReport(tillId: string): Promise<DailyReport | undefined>;
+  
+  // POS Button Configuration
+  getPosButtons(tillId?: string): Promise<PosButton[]>;
+  createPosButton(button: InsertPosButton): Promise<PosButton>;
+  updatePosButton(id: number, button: Partial<InsertPosButton>): Promise<PosButton | undefined>;
+  deletePosButton(id: number): Promise<boolean>;
+  
+  // Purchase Orders
+  getPurchaseOrders(): Promise<PurchaseOrder[]>;
+  getPurchaseOrder(id: number): Promise<PurchaseOrder | undefined>;
+  createPurchaseOrder(po: InsertPurchaseOrder): Promise<PurchaseOrder>;
+  updatePurchaseOrder(id: number, po: Partial<InsertPurchaseOrder>): Promise<PurchaseOrder | undefined>;
+  getPurchaseOrderItems(poId: number): Promise<PurchaseOrderItem[]>;
+  addPurchaseOrderItem(item: InsertPurchaseOrderItem): Promise<PurchaseOrderItem>;
+  
+  // Promotion Rules
+  getPromotionRules(): Promise<PromotionRule[]>;
+  getPromotionRule(id: number): Promise<PromotionRule | undefined>;
+  createPromotionRule(rule: InsertPromotionRule): Promise<PromotionRule>;
+  updatePromotionRule(id: number, rule: Partial<InsertPromotionRule>): Promise<PromotionRule | undefined>;
+  deletePromotionRule(id: number): Promise<boolean>;
+  getPromotionProducts(promotionId: number): Promise<PromotionProduct[]>;
+  addPromotionProduct(item: InsertPromotionProduct): Promise<PromotionProduct>;
+  
+  // Audit Logs
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(userId?: number, tableName?: string): Promise<AuditLog[]>;
+  
+  // Staff Schedules
+  getStaffSchedules(userId?: number, date?: Date): Promise<StaffSchedule[]>;
+  createStaffSchedule(schedule: InsertStaffSchedule): Promise<StaffSchedule>;
+  updateStaffSchedule(id: number, schedule: Partial<InsertStaffSchedule>): Promise<StaffSchedule | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -360,6 +396,147 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(dailyReports.reportDate))
       .limit(1);
     return report || undefined;
+  }
+
+  // POS Button Configuration
+  async getPosButtons(tillId?: string): Promise<PosButton[]> {
+    if (tillId) {
+      return await db.select().from(posButtons)
+        .where(and(eq(posButtons.tillId, tillId), eq(posButtons.isActive, true)))
+        .orderBy(posButtons.position);
+    }
+    return await db.select().from(posButtons)
+      .where(eq(posButtons.isActive, true))
+      .orderBy(posButtons.position);
+  }
+
+  async createPosButton(button: InsertPosButton): Promise<PosButton> {
+    const [newButton] = await db.insert(posButtons).values(button).returning();
+    return newButton;
+  }
+
+  async updatePosButton(id: number, button: Partial<InsertPosButton>): Promise<PosButton | undefined> {
+    const [updated] = await db.update(posButtons).set(button).where(eq(posButtons.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deletePosButton(id: number): Promise<boolean> {
+    const result = await db.delete(posButtons).where(eq(posButtons.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Purchase Orders
+  async getPurchaseOrders(): Promise<PurchaseOrder[]> {
+    return await db.select().from(purchaseOrders).orderBy(desc(purchaseOrders.orderDate));
+  }
+
+  async getPurchaseOrder(id: number): Promise<PurchaseOrder | undefined> {
+    const [po] = await db.select().from(purchaseOrders).where(eq(purchaseOrders.id, id));
+    return po || undefined;
+  }
+
+  async createPurchaseOrder(po: InsertPurchaseOrder): Promise<PurchaseOrder> {
+    const [newPO] = await db.insert(purchaseOrders).values(po).returning();
+    return newPO;
+  }
+
+  async updatePurchaseOrder(id: number, po: Partial<InsertPurchaseOrder>): Promise<PurchaseOrder | undefined> {
+    const [updated] = await db.update(purchaseOrders).set(po).where(eq(purchaseOrders.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async getPurchaseOrderItems(poId: number): Promise<PurchaseOrderItem[]> {
+    return await db.select().from(purchaseOrderItems).where(eq(purchaseOrderItems.purchaseOrderId, poId));
+  }
+
+  async addPurchaseOrderItem(item: InsertPurchaseOrderItem): Promise<PurchaseOrderItem> {
+    const [newItem] = await db.insert(purchaseOrderItems).values(item).returning();
+    return newItem;
+  }
+
+  // Promotion Rules
+  async getPromotionRules(): Promise<PromotionRule[]> {
+    return await db.select().from(promotionRules).where(eq(promotionRules.isActive, true));
+  }
+
+  async getPromotionRule(id: number): Promise<PromotionRule | undefined> {
+    const [rule] = await db.select().from(promotionRules).where(eq(promotionRules.id, id));
+    return rule || undefined;
+  }
+
+  async createPromotionRule(rule: InsertPromotionRule): Promise<PromotionRule> {
+    const [newRule] = await db.insert(promotionRules).values(rule).returning();
+    return newRule;
+  }
+
+  async updatePromotionRule(id: number, rule: Partial<InsertPromotionRule>): Promise<PromotionRule | undefined> {
+    const [updated] = await db.update(promotionRules).set(rule).where(eq(promotionRules.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deletePromotionRule(id: number): Promise<boolean> {
+    const result = await db.delete(promotionRules).where(eq(promotionRules.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getPromotionProducts(promotionId: number): Promise<PromotionProduct[]> {
+    return await db.select().from(promotionProducts).where(eq(promotionProducts.promotionId, promotionId));
+  }
+
+  async addPromotionProduct(item: InsertPromotionProduct): Promise<PromotionProduct> {
+    const [newItem] = await db.insert(promotionProducts).values(item).returning();
+    return newItem;
+  }
+
+  // Audit Logs
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [newLog] = await db.insert(auditLogs).values(log).returning();
+    return newLog;
+  }
+
+  async getAuditLogs(userId?: number, tableName?: string): Promise<AuditLog[]> {
+    let query = db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt));
+    
+    if (userId && tableName) {
+      query = query.where(and(eq(auditLogs.userId, userId), eq(auditLogs.tableName, tableName)));
+    } else if (userId) {
+      query = query.where(eq(auditLogs.userId, userId));
+    } else if (tableName) {
+      query = query.where(eq(auditLogs.tableName, tableName));
+    }
+    
+    return await query;
+  }
+
+  // Staff Schedules
+  async getStaffSchedules(userId?: number, date?: Date): Promise<StaffSchedule[]> {
+    let query = db.select().from(staffSchedules).orderBy(staffSchedules.shiftStart);
+    
+    if (userId && date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      query = query.where(and(
+        eq(staffSchedules.userId, userId),
+        // Filter by date range would need additional logic
+      ));
+    } else if (userId) {
+      query = query.where(eq(staffSchedules.userId, userId));
+    }
+    
+    return await query;
+  }
+
+  async createStaffSchedule(schedule: InsertStaffSchedule): Promise<StaffSchedule> {
+    const [newSchedule] = await db.insert(staffSchedules).values(schedule).returning();
+    return newSchedule;
+  }
+
+  async updateStaffSchedule(id: number, schedule: Partial<InsertStaffSchedule>): Promise<StaffSchedule | undefined> {
+    const [updated] = await db.update(staffSchedules).set(schedule).where(eq(staffSchedules.id, id)).returning();
+    return updated || undefined;
   }
 }
 
