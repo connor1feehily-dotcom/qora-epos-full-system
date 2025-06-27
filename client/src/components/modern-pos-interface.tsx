@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { PaymentInterface } from "@/components/payment-interface";
+import SecurePaymentInterface from "@/components/secure-payment-interface";
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -561,14 +561,17 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         </div>
       </div>
 
-      {/* Payment Interface Modal */}
+      {/* Secure Payment Interface Modal */}
       {showPaymentInterface && (
-        <PaymentInterface
+        <SecurePaymentInterface
           total={total}
-          onPaymentComplete={() => {
+          onPaymentComplete={(result: any) => {
             setShowPaymentInterface(false);
             setCart([]);
-            toast({ title: "Payment successful", description: `Transaction completed for €${total.toFixed(2)}` });
+            toast({ 
+              title: "Payment Successful", 
+              description: `Transaction ${result.transactionId} completed. Card: ${result.maskedCardNumber}` 
+            });
           }}
           onCancel={() => setShowPaymentInterface(false)}
         />
