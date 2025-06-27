@@ -343,7 +343,7 @@ export const staffPerformance = pgTable("staff_performance", {
   transactionsProcessed: integer("transactions_processed").default(0),
   averageTransactionTime: decimal("avg_transaction_time", { precision: 8, scale: 2 }),
   upsellsAchieved: integer("upsells_achieved").default(0),
-  accuracyScore: decimal("accuracy_score", { precision: 5, scale: 2 }).default("100.00"), // percentage
+  accuracyScore: decimal("accuracy_score", { precision: 5, scale: 2 }).default("100.00"),
   customerSatisfaction: decimal("customer_satisfaction", { precision: 3, scale: 2 }),
   points: integer("points").default(0),
   badges: json("badges"), // Array of earned badges
@@ -521,6 +521,42 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
 });
 
 export const insertStaffScheduleSchema = createInsertSchema(staffSchedules).omit({
+  id: true,
+});
+
+export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({
+  id: true,
+});
+
+export const insertCustomerBehaviorSchema = createInsertSchema(customerBehavior).omit({
+  id: true,
+});
+
+export const insertStoreMetricSchema = createInsertSchema(storeMetrics).omit({
+  id: true,
+});
+
+export const insertStaffPerformanceSchema = createInsertSchema(staffPerformance).omit({
+  id: true,
+});
+
+export const insertProductHeatmapSchema = createInsertSchema(productHeatmap).omit({
+  id: true,
+});
+
+export const insertLoyaltyTransactionSchema = createInsertSchema(loyaltyTransactions).omit({
+  id: true,
+});
+
+export const insertInstalledPluginSchema = createInsertSchema(installedPlugins).omit({
+  id: true,
+});
+
+export const insertNlQuerySchema = createInsertSchema(nlQueries).omit({
+  id: true,
+});
+
+export const insertSyncQueueSchema = createInsertSchema(syncQueue).omit({
   id: true,
 });
 
