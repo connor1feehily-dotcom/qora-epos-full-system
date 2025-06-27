@@ -16,6 +16,8 @@ import { ModernPOSInterface } from "@/components/modern-pos-interface";
 import { CustomerDisplayPage } from "@/components/customer-display";
 import { BackOfficeDashboard } from "@/components/back-office-dashboard";
 import { InactiveScreen } from "@/components/inactive-screen";
+import ValBotAssistant from "@/components/valbot-assistant";
+import MobileCompanion from "@/components/mobile-companion";
 import BackOffice from "@/pages/back-office";
 import Inventory from "@/pages/inventory";
 import Customers from "@/pages/customers";

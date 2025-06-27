@@ -20,6 +20,15 @@ import {
   getStaffShifts,
   approveShift
 } from "./routes/mobile-routes";
+import {
+  getAiInsights,
+  processNaturalLanguageQuery,
+  getStaffPerformanceAnalytics,
+  getCustomerBehaviorAnalytics,
+  generateInventoryForecast,
+  getStoreHealthDashboard,
+  triggerAiAnalysis
+} from "./routes/ai-routes";
 import { securityHeaders } from "./security/pci-compliance";
 import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema } from "@shared/schema";
 import { z } from 'zod';
@@ -46,6 +55,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mobile/dashboard", ...getMobileDashboard);
   app.get("/api/mobile/shifts", ...getStaffShifts);
   app.post("/api/mobile/shifts/:shiftId/approve", ...approveShift);
+
+  // ValBot AI Assistant routes
+  app.get("/api/ai/insights", ...getAiInsights);
+  app.post("/api/ai/query", ...processNaturalLanguageQuery);
+  app.get("/api/ai/staff-performance", ...getStaffPerformanceAnalytics);
+  app.get("/api/ai/customer-behavior", ...getCustomerBehaviorAnalytics);
+  app.get("/api/ai/inventory-forecast", ...generateInventoryForecast);
+  app.get("/api/ai/store-health", ...getStoreHealthDashboard);
+  app.post("/api/ai/analyze", ...triggerAiAnalysis);
   // Database seeding endpoint
   app.post("/api/seed", async (req, res) => {
     try {
