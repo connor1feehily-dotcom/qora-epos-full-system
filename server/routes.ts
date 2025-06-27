@@ -1,10 +1,25 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { 
+  processPayment, 
+  processRefund, 
+  getPaymentMethods, 
+  validateCard 
+} from "./routes/payment-routes";
+import { securityHeaders } from "./security/pci-compliance";
 import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema } from "@shared/schema";
 import { z } from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply security headers to all routes
+  app.use(securityHeaders);
+  
+  // PCI DSS compliant payment routes
+  app.post("/api/payment/process", ...processPayment);
+  app.post("/api/payment/refund", ...processRefund);
+  app.get("/api/payment/methods", ...getPaymentMethods);
+  app.post("/api/payment/validate-card", ...validateCard);
   // Database seeding endpoint
   app.post("/api/seed", async (req, res) => {
     try {
