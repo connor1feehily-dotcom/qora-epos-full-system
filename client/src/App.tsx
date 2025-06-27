@@ -14,7 +14,7 @@ import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { OneTapPOS } from "@/components/one-tap-pos";
 import { CustomerDisplayPage } from "@/components/customer-display";
-import { BackOfficeLayout } from "@/components/back-office/back-office-layout";
+import { BackOfficeDashboard } from "@/components/back-office-dashboard";
 import { InactiveScreen } from "@/components/inactive-screen";
 import BackOffice from "@/pages/back-office";
 import Inventory from "@/pages/inventory";
@@ -31,8 +31,8 @@ function POSRouter({ tillId, onBackToMenu, onGoInactive, currentUser }: { tillId
   );
 }
 
-function BackOfficeRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
-  return <BackOfficeLayout onBackToMenu={onBackToMenu} />;
+function BackOfficeRouter({ onBackToMenu, currentUser }: { onBackToMenu: () => void; currentUser?: User }) {
+  return <BackOfficeDashboard onBackToMenu={onBackToMenu} currentUser={currentUser} />;
 }
 
 type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'inactive';
@@ -127,7 +127,7 @@ function AppContent() {
         <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
       )}
       {mode === 'back-office' && (
-        <BackOfficeRouter onBackToMenu={handleBackToMenu} />
+        <BackOfficeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser || undefined} />
       )}
       {mode === 'inactive' ? (
         <InactiveScreen onActivate={handleActivateFromInactive} lastActivity={lastActivity} />

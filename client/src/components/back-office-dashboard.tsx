@@ -26,7 +26,6 @@ import { InventoryManagement } from "./inventory-management";
 import { StaffManagement } from "./staff-management";
 import { PromotionsEngine } from "./promotions-engine";
 import { PurchaseOrderManagement } from "./purchase-order-management";
-import { AdvancedAnalytics } from "./advanced-analytics";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -205,7 +204,32 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
       case "purchase-orders":
         return <PurchaseOrderManagement />;
       case "analytics":
-        return <AdvancedAnalytics />;
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Advanced Analytics</CardTitle>
+                <p className="text-gray-600">Detailed reports and insights</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="font-semibold">Sales Performance</h3>
+                    <div className="h-32 bg-gray-100 rounded flex items-center justify-center">
+                      <p className="text-gray-500">Sales chart will appear here</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="font-semibold">Top Products</h3>
+                    <div className="h-32 bg-gray-100 rounded flex items-center justify-center">
+                      <p className="text-gray-500">Product ranking will appear here</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
       default:
         return (
           <div className="space-y-6">
