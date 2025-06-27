@@ -996,6 +996,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POS Button Configuration routes
+  app.get("/api/pos-buttons", async (req, res) => {
+    try {
+      const { tillId } = req.query;
+      const buttons = await storage.getPosButtons(tillId as string);
+      res.json(buttons);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch POS buttons" });
+    }
+  });
+
+  app.post("/api/pos-buttons", async (req, res) => {
+    try {
+      const buttonData = req.body;
+      const button = await storage.createPosButton(buttonData);
+      res.status(201).json(button);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create POS button" });
+    }
+  });
+
+  app.put("/api/pos-buttons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const buttonData = req.body;
+      const button = await storage.updatePosButton(id, buttonData);
+      if (!button) {
+        return res.status(404).json({ message: "POS button not found" });
+      }
+      res.json(button);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update POS button" });
+    }
+  });
+
+  app.delete("/api/pos-buttons/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deletePosButton(id);
+      if (!success) {
+        return res.status(404).json({ message: "POS button not found" });
+      }
+      res.json({ message: "POS button deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete POS button" });
+    }
+  });
+
+  // Purchase Orders routes
+  app.get("/api/purchase-orders", async (req, res) => {
+    try {
+      const orders = await storage.getPurchaseOrders();
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch purchase orders" });
+    }
+  });
+
+  app.post("/api/purchase-orders", async (req, res) => {
+    try {
+      const orderData = req.body;
+      const order = await storage.createPurchaseOrder(orderData);
+      res.status(201).json(order);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create purchase order" });
+    }
+  });
+
+  // Promotion Rules routes
+  app.get("/api/promotion-rules", async (req, res) => {
+    try {
+      const rules = await storage.getPromotionRules();
+      res.json(rules);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch promotion rules" });
+    }
+  });
+
+  app.post("/api/promotion-rules", async (req, res) => {
+    try {
+      const ruleData = req.body;
+      const rule = await storage.createPromotionRule(ruleData);
+      res.status(201).json(rule);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create promotion rule" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
