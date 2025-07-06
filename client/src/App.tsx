@@ -1,40 +1,49 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TillSelector } from "@/components/till-selector";
-import { Sidebar } from "@/components/sidebar";
 import { MainMenu } from "@/components/main-menu";
 import { StaffLogin } from "@/components/staff-login";
-import { FloatingNavigation } from "@/components/floating-navigation";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
-import { ModernPOSInterface } from "@/components/modern-pos-interface";
-import { CustomerDisplayPage } from "@/components/customer-display";
-import { BackOfficeDashboard } from "@/components/back-office-dashboard";
 import { InactiveScreen } from "@/components/inactive-screen";
-import ValBotAssistant from "@/components/valbot-assistant";
-import MobileCompanion from "@/components/mobile-companion";
-import BackOffice from "@/pages/back-office";
-import Inventory from "@/pages/inventory";
-import Customers from "@/pages/customers";
-import Suppliers from "@/pages/suppliers";
-import Reports from "@/pages/reports";
-import TillManagementPage from "@/pages/till-management";
-import NotFound from "@/pages/not-found";
+import { ComponentPreloader } from "@/utils/preloader";
 import type { User } from "@shared/schema";
+
+// Lazy load heavy components
+const ModernPOSInterface = lazy(() => import("@/components/modern-pos-interface").then(m => ({ default: m.ModernPOSInterface })));
+const BackOfficeDashboard = lazy(() => import("@/components/back-office-dashboard").then(m => ({ default: m.BackOfficeDashboard })));
+const CustomerDisplayPage = lazy(() => import("@/components/customer-display").then(m => ({ default: m.CustomerDisplayPage })));
+const ValBotAssistant = lazy(() => import("@/components/valbot-assistant"));
+const MobileCompanion = lazy(() => import("@/components/mobile-companion"));
+
+// Lazy load pages that aren't immediately needed
+const BackOffice = lazy(() => import("@/pages/back-office"));
+const Inventory = lazy(() => import("@/pages/inventory"));
+const Customers = lazy(() => import("@/pages/customers"));
+const Suppliers = lazy(() => import("@/pages/suppliers"));
+const Reports = lazy(() => import("@/pages/reports"));
+const TillManagementPage = lazy(() => import("@/pages/till-management"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 function POSRouter({ tillId, onBackToMenu, onGoInactive, currentUser }: { tillId: string; onBackToMenu: () => void; onGoInactive?: () => void; currentUser?: User }) {
   return (
-    <ModernPOSInterface tillId={tillId} onBackToMenu={onBackToMenu} onGoInactive={onGoInactive} currentUser={currentUser} />
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div></div>}>
+      <ModernPOSInterface tillId={tillId} onBackToMenu={onBackToMenu} onGoInactive={onGoInactive} currentUser={currentUser} />
+    </Suspense>
   );
 }
 
 function BackOfficeRouter({ onBackToMenu, currentUser }: { onBackToMenu: () => void; currentUser?: User }) {
-  return <BackOfficeDashboard onBackToMenu={onBackToMenu} currentUser={currentUser} />;
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div></div>}>
+      <BackOfficeDashboard onBackToMenu={onBackToMenu} currentUser={currentUser} />
+    </Suspense>
+  );
 }
 
 type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'inactive';
@@ -50,8 +59,15 @@ function AppContent() {
     console.log("App mode changed to:", mode);
   }, [mode]);
 
-  // Auto-seed the database on first load with 25-second loading
+  // Auto-seed the database on first load with optimized 9-second loading
   const { data: seedResult, isLoading: isSeeding } = useAutoSeed();
+  
+  // Preload critical resources for faster performance
+  useEffect(() => {
+    // Start preloading immediately
+    ComponentPreloader.preloadCriticalComponents();
+    ComponentPreloader.preloadDataEndpoints();
+  }, []);
 
   const handleActivateFromInactive = () => {
     setMode('main-menu');

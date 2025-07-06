@@ -6,14 +6,14 @@ export function KerrigansLoadingScreen() {
   const [currentStep, setCurrentStep] = useState("Initializing system...");
 
   const loadingSteps = [
-    { text: "Initializing Kerrigan's XL POS System...", duration: 3000 },
-    { text: "Connecting to database...", duration: 3000 },
-    { text: "Loading product catalog...", duration: 3000 },
-    { text: "Setting up payment systems...", duration: 3000 },
-    { text: "Configuring staff authentication...", duration: 3000 },
-    { text: "Preparing till stations...", duration: 3000 },
-    { text: "Loading inventory data...", duration: 3000 },
-    { text: "Finalizing setup...", duration: 4000 }
+    { text: "Initializing Kerrigan's XL POS System...", duration: 1200 },
+    { text: "Connecting to database...", duration: 1000 },
+    { text: "Loading product catalog...", duration: 1000 },
+    { text: "Setting up payment systems...", duration: 1200 },
+    { text: "Configuring staff authentication...", duration: 1000 },
+    { text: "Preparing till stations...", duration: 1200 },
+    { text: "Loading inventory data...", duration: 1000 },
+    { text: "Finalizing setup...", duration: 1400 }
   ];
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export function KerrigansLoadingScreen() {
 
     const updateProgress = () => {
       const elapsed = Date.now() - startTime;
-      const totalDuration = 25000; // 25 seconds
+      const totalDuration = 9000; // 9 seconds
       const newProgress = Math.min((elapsed / totalDuration) * 100, 100);
       
       setProgress(newProgress);
