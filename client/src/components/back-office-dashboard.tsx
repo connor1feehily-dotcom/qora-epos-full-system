@@ -26,6 +26,10 @@ import { InventoryManagement } from "./inventory-management";
 import { StaffManagement } from "./staff-management";
 import { PromotionsEngine } from "./promotions-engine";
 import { PurchaseOrderManagement } from "./purchase-order-management";
+import { ValueProjection } from "./value-projection";
+import { PackagesManagement } from "./packages-management";
+import { TillStockManagement } from "./till-stock-management";
+import { SystemMaintenance } from "./system-maintenance";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -121,108 +125,364 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
   const managementModules = [
     {
-      id: "pos-config",
-      title: "POS Configuration",
-      description: "Customize button layouts for each till",
-      icon: Grid,
+      id: "sales-ledger",
+      title: "Sales Ledger",
+      description: "Complete sales transaction management",
+      icon: FileText,
       color: "bg-blue-500",
-      features: ["Custom buttons", "Drag & drop layout", "Per-till configuration"]
+      features: ["Transaction history", "Customer accounts", "Payment tracking"]
     },
     {
-      id: "inventory",
-      title: "Inventory Management",
-      description: "Track stock levels and manage products",
+      id: "stock-ledger",
+      title: "Stock Ledger",
+      description: "Detailed stock movement tracking",
       icon: Package,
       color: "bg-green-500",
-      features: ["Real-time tracking", "Auto reorder", "Barcode scanning"]
+      features: ["Movement history", "Audit trails", "Stock valuation"]
     },
     {
-      id: "staff",
-      title: "Staff Management",
-      description: "Manage user accounts and permissions",
-      icon: Users,
+      id: "multi-price-changes",
+      title: "Multi Price Changes",
+      description: "Bulk price update management",
+      icon: DollarSign,
+      color: "bg-yellow-500",
+      features: ["Bulk updates", "Price history", "Automated pricing"]
+    },
+    {
+      id: "value-projection",
+      title: "Value Projection",
+      description: "Financial forecasting and projections",
+      icon: TrendingUp,
       color: "bg-purple-500",
-      features: ["Role-based access", "Shift scheduling", "Performance tracking"]
+      features: ["Revenue forecasts", "Cost analysis", "Profit margins"]
+    },
+    {
+      id: "packages",
+      title: "Packages",
+      description: "Bundle and package management",
+      icon: Grid,
+      color: "bg-indigo-500",
+      features: ["Product bundles", "Combo deals", "Package pricing"]
+    },
+    {
+      id: "reports",
+      title: "Reports",
+      description: "Comprehensive business reporting",
+      icon: Settings,
+      color: "bg-pink-500",
+      features: ["Sales reports", "Inventory reports", "Financial summaries"]
     },
     {
       id: "promotions",
-      title: "Promotions Engine",
-      description: "Create and manage promotional campaigns",
+      title: "Promotions",
+      description: "Marketing campaign management",
       icon: Target,
       color: "bg-orange-500",
-      features: ["BOGOF deals", "Time-based offers", "Customer targeting"]
+      features: ["Campaign creation", "Discount rules", "Performance tracking"]
     },
     {
-      id: "purchase-orders",
-      title: "Purchase Orders",
-      description: "Manage supplier orders and deliveries",
-      icon: FileText,
-      color: "bg-indigo-500",
-      features: ["Supplier management", "Order tracking", "Auto-generation"]
+      id: "management",
+      title: "Management",
+      description: "System administration and configuration",
+      icon: Users,
+      color: "bg-red-500",
+      features: ["User management", "System settings", "Security controls"]
     },
     {
-      id: "analytics",
-      title: "Advanced Analytics",
-      description: "Detailed reports and insights",
-      icon: TrendingUp,
-      color: "bg-pink-500",
-      features: ["Sales analysis", "Trend forecasting", "Custom reports"]
+      id: "price-updates",
+      title: "Price Updates",
+      description: "Dynamic pricing and updates",
+      icon: AlertTriangle,
+      color: "bg-cyan-500",
+      features: ["Real-time updates", "Price alerts", "Competitor tracking"]
+    },
+    {
+      id: "maintenance",
+      title: "Maintenance",
+      description: "System maintenance and diagnostics",
+      icon: Settings,
+      color: "bg-gray-500",
+      features: ["System health", "Database cleanup", "Performance monitoring"]
+    },
+    {
+      id: "till-stock",
+      title: "Till Stock",
+      description: "Till-specific inventory management",
+      icon: ShoppingCart,
+      color: "bg-teal-500",
+      features: ["Till allocation", "Stock transfers", "Float management"]
+    },
+    {
+      id: "stock-transfers",
+      title: "Stock Transfers",
+      description: "Inter-location stock movement",
+      icon: Package,
+      color: "bg-emerald-500",
+      features: ["Transfer orders", "Transit tracking", "Receiving confirmation"]
     }
   ];
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "pos-config":
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Till 1 Configuration</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PosButtonConfigurator tillId="till1" />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Till 2 Configuration</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PosButtonConfigurator tillId="till2" />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-      case "inventory":
-        return <InventoryManagement />;
-      case "staff":
-        return <StaffManagement />;
-      case "promotions":
-        return <PromotionsEngine />;
-      case "purchase-orders":
-        return <PurchaseOrderManagement />;
-      case "analytics":
+      case "sales-ledger":
         return (
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Advanced Analytics</CardTitle>
-                <p className="text-gray-600">Detailed reports and insights</p>
+                <CardTitle>Sales Ledger</CardTitle>
+                <p className="text-gray-600">Complete sales transaction management</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-blue-900">Today's Sales</h3>
+                      <p className="text-2xl font-bold text-blue-600">€{dashboardData?.dailyRevenue?.toFixed(2) || "0.00"}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-green-900">Total Transactions</h3>
+                      <p className="text-2xl font-bold text-green-600">{transactions.length}</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-purple-900">Average Sale</h3>
+                      <p className="text-2xl font-bold text-purple-600">€{transactions.length > 0 ? (transactions.reduce((sum: number, t: any) => sum + parseFloat(t.total), 0) / transactions.length).toFixed(2) : "0.00"}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Recent Transactions</h3>
+                    <div className="max-h-96 overflow-y-auto">
+                      {transactions.slice(0, 20).map((transaction: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">Transaction #{transaction.id}</p>
+                            <p className="text-sm text-gray-600">{new Date(transaction.createdAt).toLocaleString()}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">€{transaction.total}</p>
+                            <p className="text-sm text-gray-600">{transaction.paymentMethod}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "stock-ledger":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Stock Ledger</CardTitle>
+                <p className="text-gray-600">Detailed stock movement tracking</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-green-900">Total Products</h3>
+                      <p className="text-2xl font-bold text-green-600">{products.length}</p>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-yellow-900">Low Stock Items</h3>
+                      <p className="text-2xl font-bold text-yellow-600">{lowStockData.length}</p>
+                    </div>
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-red-900">Out of Stock</h3>
+                      <p className="text-2xl font-bold text-red-600">{products.filter((p: any) => p.stock === 0).length}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Stock Movements</h3>
+                    <div className="max-h-96 overflow-y-auto">
+                      {products.slice(0, 20).map((product: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-gray-600">{product.category}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">Stock: {product.stock}</p>
+                            <p className="text-sm text-gray-600">Min: {product.minStock}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "multi-price-changes":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Multi Price Changes</CardTitle>
+                <p className="text-gray-600">Bulk price update management</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="font-semibold mb-3">Bulk Price Update</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Category</label>
+                          <select className="w-full p-2 border rounded-lg">
+                            <option value="">Select Category</option>
+                            {Array.from(new Set(products.map((p: any) => p.category))).map((category: any) => (
+                              <option key={category} value={category}>{category}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Price Change Type</label>
+                          <select className="w-full p-2 border rounded-lg">
+                            <option value="percentage">Percentage Increase</option>
+                            <option value="fixed">Fixed Amount</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Value</label>
+                          <input 
+                            type="number" 
+                            className="w-full p-2 border rounded-lg" 
+                            placeholder="Enter value"
+                          />
+                        </div>
+                        <Button className="w-full">Apply Price Changes</Button>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-3">Price History</h3>
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {products.slice(0, 10).map((product: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-2 border rounded">
+                            <span className="text-sm">{product.name}</span>
+                            <span className="text-sm font-medium">€{product.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "value-projection":
+        return <ValueProjection />;
+      case "packages":
+        return <PackagesManagement />;
+      case "till-stock":
+        return <TillStockManagement />;
+      case "promotions":
+        return <PromotionsEngine />;
+      case "maintenance":
+        return <SystemMaintenance />;
+      case "reports":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Business Reports</CardTitle>
+                <p className="text-gray-600">Comprehensive business reporting</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500 text-white rounded-lg">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Sales Report</h3>
+                          <p className="text-sm text-gray-600">Daily/Weekly/Monthly sales</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-500 text-white rounded-lg">
+                          <Package className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Inventory Report</h3>
+                          <p className="text-sm text-gray-600">Stock levels and movements</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-500 text-white rounded-lg">
+                          <DollarSign className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">Financial Report</h3>
+                          <p className="text-sm text-gray-600">Revenue and profit analysis</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "management":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>System Management</CardTitle>
+                <p className="text-gray-600">System administration and configuration</p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Sales Performance</h3>
-                    <div className="h-32 bg-gray-100 rounded flex items-center justify-center">
-                      <p className="text-gray-500">Sales chart will appear here</p>
+                  <div>
+                    <h3 className="font-semibold mb-3">User Management</h3>
+                    <div className="space-y-2">
+                      {users.slice(0, 5).map((user: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{user.firstName} {user.lastName}</p>
+                            <p className="text-sm text-gray-600">{user.role}</p>
+                          </div>
+                          <Badge variant={user.isActive ? "default" : "secondary"}>
+                            {user.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
+                    <Button className="w-full mt-3">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add New User
+                    </Button>
                   </div>
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Top Products</h3>
-                    <div className="h-32 bg-gray-100 rounded flex items-center justify-center">
-                      <p className="text-gray-500">Product ranking will appear here</p>
+                  <div>
+                    <h3 className="font-semibold mb-3">System Settings</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <span>Automatic Backups</span>
+                        <Badge variant="default">Enabled</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <span>Security Updates</span>
+                        <Badge variant="default">Auto</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <span>Database Status</span>
+                        <Badge variant="default">Connected</Badge>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -368,14 +628,16 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="pos-config">POS Config</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="staff">Staff</TabsTrigger>
-            <TabsTrigger value="promotions">Promotions</TabsTrigger>
-            <TabsTrigger value="purchase-orders">Orders</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="sales-ledger">Sales</TabsTrigger>
+            <TabsTrigger value="stock-ledger">Stock</TabsTrigger>
+            <TabsTrigger value="value-projection">Value</TabsTrigger>
+            <TabsTrigger value="packages">Packages</TabsTrigger>
+            <TabsTrigger value="till-stock">Till Stock</TabsTrigger>
+            <TabsTrigger value="promotions">Promos</TabsTrigger>
+            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+            <TabsTrigger value="management">Admin</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab}>
