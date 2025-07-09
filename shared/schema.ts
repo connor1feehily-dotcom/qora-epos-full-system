@@ -417,6 +417,124 @@ export const syncQueue = pgTable("sync_queue", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Delivery Dockets for Valerie's mobile scanning
+export const deliveryDockets = pgTable("delivery_dockets", {
+  id: serial("id").primaryKey(),
+  docketNumber: text("docket_number").notNull(),
+  supplierName: text("supplier_name").notNull(),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  scannedByUserId: integer("scanned_by_user_id").references(() => users.id),
+  approvedByUserId: integer("approved_by_user_id").references(() => users.id),
+  deliveryDate: timestamp("delivery_date").notNull(),
+  totalItems: integer("total_items").notNull().default(0),
+  totalValue: decimal("total_value", { precision: 10, scale: 2 }).default("0.00"),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, processed
+  scanMethod: text("scan_method").notNull().default("mobile"), // mobile, manual, ocr
+  imageUrl: text("image_url"), // For OCR scanned images
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  processedAt: timestamp("processed_at"),
+});
+
+// Delivery Items from scanned dockets
+export const deliveryItems = pgTable("delivery_items", {
+  id: serial("id").primaryKey(),
+  docketId: integer("docket_id").references(() => deliveryDockets.id),
+  productId: integer("product_id").references(() => products.id),
+  barcode: text("barcode"),
+  productName: text("product_name").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  suggestedPrice: decimal("suggested_price", { precision: 10, scale: 2 }),
+  approvedPrice: decimal("approved_price", { precision: 10, scale: 2 }),
+  marginPercentage: decimal("margin_percentage", { precision: 5, scale: 2 }),
+  isMatched: boolean("is_matched").notNull().default(false),
+  needsApproval: boolean("needs_approval").notNull().default(true),
+  approvalStatus: text("approval_status").notNull().default("pending"), // pending, approved, rejected
+  stockAction: text("stock_action").default("add"), // add, update, reduce
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Supplier Performance Tracking
+export const supplierPerformance = pgTable("supplier_performance", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  deliveryDate: timestamp("delivery_date").notNull(),
+  onTimeDelivery: boolean("on_time_delivery").notNull().default(true),
+  accuracyScore: decimal("accuracy_score", { precision: 5, scale: 2 }).notNull().default("100.00"),
+  priceVariance: decimal("price_variance", { precision: 10, scale: 2 }).default("0.00"),
+  marginContribution: decimal("margin_contribution", { precision: 10, scale: 2 }).default("0.00"),
+  itemsDelivered: integer("items_delivered").notNull().default(0),
+  itemsReturned: integer("items_returned").notNull().default(0),
+  qualityRating: integer("quality_rating").default(5), // 1-5 scale
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Staff Activity Log
+export const staffActivityLog = pgTable("staff_activity_log", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  action: text("action").notNull(), // price_change, stock_update, delivery_approval, etc.
+  tableName: text("table_name").notNull(),
+  recordId: integer("record_id").notNull(),
+  oldValue: json("old_value"),
+  newValue: json("new_value"),
+  reason: text("reason"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// AI Price Optimization Suggestions
+export const priceOptimizations = pgTable("price_optimizations", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id),
+  currentPrice: decimal("current_price", { precision: 10, scale: 2 }).notNull(),
+  suggestedPrice: decimal("suggested_price", { precision: 10, scale: 2 }).notNull(),
+  reasoning: text("reasoning").notNull(),
+  confidence: decimal("confidence", { precision: 5, scale: 2 }).notNull(), // 0-100%
+  expectedMarginImprovement: decimal("expected_margin_improvement", { precision: 5, scale: 2 }),
+  salesVelocity: decimal("sales_velocity", { precision: 8, scale: 2 }),
+  marketTrend: text("market_trend"), // increasing, decreasing, stable
+  isApplied: boolean("is_applied").notNull().default(false),
+  appliedAt: timestamp("applied_at"),
+  appliedByUserId: integer("applied_by_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// System Alerts & Exceptions
+export const systemAlerts = pgTable("system_alerts", {
+  id: serial("id").primaryKey(),
+  alertType: text("alert_type").notNull(), // low_stock, margin_threshold, delivery_fail, etc.
+  severity: text("severity").notNull().default("medium"), // low, medium, high, critical
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedTable: text("related_table"),
+  relatedId: integer("related_id"),
+  isResolved: boolean("is_resolved").notNull().default(false),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedByUserId: integer("resolved_by_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Offline Sync Queue for Mobile
+export const offlineQueue = pgTable("offline_queue", {
+  id: serial("id").primaryKey(),
+  deviceId: text("device_id").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  operation: text("operation").notNull(), // scan, price_update, stock_adjustment
+  tableName: text("table_name").notNull(),
+  data: json("data").notNull(),
+  priority: integer("priority").default(1),
+  retryCount: integer("retry_count").default(0),
+  status: text("status").default("pending"), // pending, synced, failed
+  createdAt: timestamp("created_at").defaultNow(),
+  syncedAt: timestamp("synced_at"),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -560,6 +678,46 @@ export const insertSyncQueueSchema = createInsertSchema(syncQueue).omit({
   id: true,
 });
 
+export const insertDeliveryDocketSchema = createInsertSchema(deliveryDockets).omit({
+  id: true,
+  createdAt: true,
+  approvedAt: true,
+  processedAt: true,
+});
+
+export const insertDeliveryItemSchema = createInsertSchema(deliveryItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSupplierPerformanceSchema = createInsertSchema(supplierPerformance).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStaffActivityLogSchema = createInsertSchema(staffActivityLog).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPriceOptimizationSchema = createInsertSchema(priceOptimizations).omit({
+  id: true,
+  createdAt: true,
+  appliedAt: true,
+});
+
+export const insertSystemAlertSchema = createInsertSchema(systemAlerts).omit({
+  id: true,
+  createdAt: true,
+  resolvedAt: true,
+});
+
+export const insertOfflineQueueSchema = createInsertSchema(offlineQueue).omit({
+  id: true,
+  createdAt: true,
+  syncedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type Product = typeof products.$inferSelect;
@@ -597,3 +755,22 @@ export type InsertPromotionRule = z.infer<typeof insertPromotionRuleSchema>;
 export type InsertPromotionProduct = z.infer<typeof insertPromotionProductSchema>;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type InsertStaffSchedule = z.infer<typeof insertStaffScheduleSchema>;
+
+// Delivery types
+export type DeliveryDocket = typeof deliveryDockets.$inferSelect;
+export type DeliveryItem = typeof deliveryItems.$inferSelect;
+export type InsertDeliveryDocket = z.infer<typeof insertDeliveryDocketSchema>;
+export type InsertDeliveryItem = z.infer<typeof insertDeliveryItemSchema>;
+
+// Advanced management types
+export type SupplierPerformance = typeof supplierPerformance.$inferSelect;
+export type StaffActivityLog = typeof staffActivityLog.$inferSelect;
+export type PriceOptimization = typeof priceOptimizations.$inferSelect;
+export type SystemAlert = typeof systemAlerts.$inferSelect;
+export type OfflineQueue = typeof offlineQueue.$inferSelect;
+
+export type InsertSupplierPerformance = z.infer<typeof insertSupplierPerformanceSchema>;
+export type InsertStaffActivityLog = z.infer<typeof insertStaffActivityLogSchema>;
+export type InsertPriceOptimization = z.infer<typeof insertPriceOptimizationSchema>;
+export type InsertSystemAlert = z.infer<typeof insertSystemAlertSchema>;
+export type InsertOfflineQueue = z.infer<typeof insertOfflineQueueSchema>;

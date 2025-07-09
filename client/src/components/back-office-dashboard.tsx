@@ -30,6 +30,12 @@ import { ValueProjection } from "./value-projection";
 import { PackagesManagement } from "./packages-management";
 import { TillStockManagement } from "./till-stock-management";
 import { SystemMaintenance } from "./system-maintenance";
+import { DeliveryApprovalDashboard } from "./delivery-approval-dashboard";
+import { SupplierPerformanceDashboard } from "./supplier-performance-dashboard";
+import { StaffActivityLog } from "./staff-activity-log";
+import { AIPriceOptimization } from "./ai-price-optimization";
+import { SystemAlerts } from "./system-alerts";
+import { EnhancedMobileScanner } from "./enhanced-mobile-scanner";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -490,6 +496,18 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
             </Card>
           </div>
         );
+      case "deliveries":
+        return <DeliveryApprovalDashboard currentUser={currentUser} />;
+      case "suppliers":
+        return <SupplierPerformanceDashboard />;
+      case "ai-optimization":
+        return <AIPriceOptimization />;
+      case "staff-activity":
+        return <StaffActivityLog />;
+      case "alerts":
+        return <SystemAlerts />;
+      case "mobile-scanner":
+        return <EnhancedMobileScanner userId={currentUser?.id} userName={`${currentUser?.firstName} ${currentUser?.lastName}`} />;
       default:
         return (
           <div className="space-y-6">
@@ -628,7 +646,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-12">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sales-ledger">Sales</TabsTrigger>
             <TabsTrigger value="stock-ledger">Stock</TabsTrigger>
@@ -638,6 +656,12 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
             <TabsTrigger value="promotions">Promos</TabsTrigger>
             <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
             <TabsTrigger value="management">Admin</TabsTrigger>
+            <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
+            <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
+            <TabsTrigger value="ai-optimization">AI Price</TabsTrigger>
+            <TabsTrigger value="staff-activity">Activity</TabsTrigger>
+            <TabsTrigger value="alerts">Alerts</TabsTrigger>
+            <TabsTrigger value="mobile-scanner">Mobile</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab}>

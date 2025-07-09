@@ -1,14 +1,19 @@
 import {
   users, products, customers, suppliers, transactions, transactionItems, promotions, tillSessions, dailyReports,
   posButtons, purchaseOrders, purchaseOrderItems, promotionRules, promotionProducts, auditLogs, staffSchedules,
+  deliveryDockets, deliveryItems, supplierPerformance, staffActivityLog, priceOptimizations, systemAlerts, offlineQueue,
   type User, type Product, type Customer, type Supplier, type Transaction, type TransactionItem, type Promotion,
   type TillSession, type DailyReport, type PosButton, type PurchaseOrder, type PurchaseOrderItem,
   type PromotionRule, type PromotionProduct, type AuditLog, type StaffSchedule,
+  type DeliveryDocket, type DeliveryItem, type SupplierPerformance, type StaffActivityLog,
+  type PriceOptimization, type SystemAlert, type OfflineQueue,
   type InsertUser, type InsertProduct, type InsertCustomer, type InsertSupplier, 
   type InsertTransaction, type InsertTransactionItem, type InsertPromotion,
   type InsertTillSession, type InsertDailyReport, type InsertPosButton, type InsertPurchaseOrder,
   type InsertPurchaseOrderItem, type InsertPromotionRule, type InsertPromotionProduct, 
-  type InsertAuditLog, type InsertStaffSchedule
+  type InsertAuditLog, type InsertStaffSchedule, type InsertDeliveryDocket, type InsertDeliveryItem,
+  type InsertSupplierPerformance, type InsertStaffActivityLog, type InsertPriceOptimization,
+  type InsertSystemAlert, type InsertOfflineQueue
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -100,6 +105,36 @@ export interface IStorage {
   getStaffSchedules(userId?: number, date?: Date): Promise<StaffSchedule[]>;
   createStaffSchedule(schedule: InsertStaffSchedule): Promise<StaffSchedule>;
   updateStaffSchedule(id: number, schedule: Partial<InsertStaffSchedule>): Promise<StaffSchedule | undefined>;
+  
+  // Delivery Management
+  getDeliveryDockets(status?: string): Promise<DeliveryDocket[]>;
+  createDeliveryDocket(docket: InsertDeliveryDocket): Promise<DeliveryDocket>;
+  getDeliveryItems(docketId: number): Promise<DeliveryItem[]>;
+  createDeliveryItem(item: InsertDeliveryItem): Promise<DeliveryItem>;
+  approveDeliveryDocket(docketId: number, approvedBy: number): Promise<DeliveryDocket>;
+  
+  // Supplier Performance
+  getSupplierPerformance(supplierId?: number): Promise<SupplierPerformance[]>;
+  createSupplierPerformance(performance: InsertSupplierPerformance): Promise<SupplierPerformance>;
+  
+  // Staff Activity Logging
+  createStaffActivity(activity: InsertStaffActivityLog): Promise<StaffActivityLog>;
+  getStaffActivities(userId?: number, action?: string): Promise<StaffActivityLog[]>;
+  
+  // AI Price Optimization
+  getPriceOptimizations(): Promise<PriceOptimization[]>;
+  createPriceOptimization(optimization: InsertPriceOptimization): Promise<PriceOptimization>;
+  applyPriceOptimization(optimizationId: number, userId: number): Promise<PriceOptimization>;
+  
+  // System Alerts
+  getSystemAlerts(severity?: string, resolved?: boolean): Promise<SystemAlert[]>;
+  createSystemAlert(alert: InsertSystemAlert): Promise<SystemAlert>;
+  resolveSystemAlert(alertId: number, resolvedBy: number): Promise<SystemAlert>;
+  
+  // Offline Sync
+  addToOfflineQueue(operation: InsertOfflineQueue): Promise<OfflineQueue>;
+  getOfflineQueue(deviceId: string): Promise<OfflineQueue[]>;
+  markOfflineOperationSynced(operationId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
