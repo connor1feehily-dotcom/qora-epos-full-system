@@ -36,6 +36,9 @@ import { StaffActivityLog } from "./staff-activity-log";
 import { AIPriceOptimization } from "./ai-price-optimization";
 import { SystemAlerts } from "./system-alerts";
 import { EnhancedMobileScanner } from "./enhanced-mobile-scanner";
+import AdvancedInventoryTweaks from "./advanced-inventory-tweaks";
+import AdvancedStaffManagement from "./advanced-staff-management";
+import SmartAnalytics from "./smart-analytics";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -508,6 +511,12 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
         return <SystemAlerts />;
       case "mobile-scanner":
         return <EnhancedMobileScanner userId={currentUser?.id} userName={`${currentUser?.firstName} ${currentUser?.lastName}`} />;
+      case "advanced-inventory":
+        return <AdvancedInventoryTweaks />;
+      case "advanced-staff":
+        return <AdvancedStaffManagement />;
+      case "smart-analytics":
+        return <SmartAnalytics />;
       default:
         return (
           <div className="space-y-6">
@@ -646,7 +655,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-12">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-18">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sales-ledger">Sales</TabsTrigger>
             <TabsTrigger value="stock-ledger">Stock</TabsTrigger>
@@ -662,6 +671,9 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
             <TabsTrigger value="staff-activity">Activity</TabsTrigger>
             <TabsTrigger value="alerts">Alerts</TabsTrigger>
             <TabsTrigger value="mobile-scanner">Mobile</TabsTrigger>
+            <TabsTrigger value="advanced-inventory">Adv Inv</TabsTrigger>
+            <TabsTrigger value="advanced-staff">Adv Staff</TabsTrigger>
+            <TabsTrigger value="smart-analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab}>

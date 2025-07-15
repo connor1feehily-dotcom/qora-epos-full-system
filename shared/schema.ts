@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, decimal, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, decimal, timestamp, json, varchar, date, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -774,3 +774,260 @@ export type InsertStaffActivityLog = z.infer<typeof insertStaffActivityLogSchema
 export type InsertPriceOptimization = z.infer<typeof insertPriceOptimizationSchema>;
 export type InsertSystemAlert = z.infer<typeof insertSystemAlertSchema>;
 export type InsertOfflineQueue = z.infer<typeof insertOfflineQueueSchema>;
+
+// Advanced Features - Additional Tables
+
+// Batch Edit Operations
+export const batchEditOperations = pgTable('batch_edit_operations', {
+  id: serial('id').primaryKey(),
+  operationType: varchar('operation_type', { length: 50 }).notNull(), // 'price_update', 'category_change', 'supplier_update'
+  targetTable: varchar('target_table', { length: 50 }).notNull(),
+  filters: jsonb('filters').notNull(), // conditions for which records to update
+  updateData: jsonb('update_data').notNull(), // what to update
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // 'pending', 'processing', 'completed', 'failed'
+  recordsAffected: integer('records_affected').default(0),
+  createdBy: integer('created_by').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+  error: text('error')
+});
+
+// Expiry Tracking
+export const expiryTracking = pgTable('expiry_tracking', {
+  id: serial('id').primaryKey(),
+  productId: integer('product_id').references(() => products.id).notNull(),
+  batchNumber: varchar('batch_number', { length: 100 }),
+  expiryDate: date('expiry_date').notNull(),
+  quantityRemaining: integer('quantity_remaining').notNull(),
+  alertThreshold: integer('alert_threshold').default(7).notNull(), // days before expiry to alert
+  status: varchar('status', { length: 20 }).default('active').notNull(), // 'active', 'expired', 'marked_down', 'disposed'
+  markdownPrice: decimal('markdown_price', { precision: 10, scale: 2 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Stock Forecasting
+export const stockForecasting = pgTable('stock_forecasting', {
+  id: serial('id').primaryKey(),
+  productId: integer('product_id').references(() => products.id).notNull(),
+  currentStock: integer('current_stock').notNull(),
+  averageDailySales: decimal('average_daily_sales', { precision: 8, scale: 2 }),
+  daysOfStock: integer('days_of_stock'),
+  reorderPoint: integer('reorder_point'),
+  suggestedOrderQuantity: integer('suggested_order_quantity'),
+  lastOrderDate: date('last_order_date'),
+  leadTimeDays: integer('lead_time_days').default(7),
+  confidenceScore: decimal('confidence_score', { precision: 3, scale: 2 }),
+  forecastDate: date('forecast_date').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Time Clock
+export const timeClock = pgTable('time_clock', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  clockIn: timestamp('clock_in').notNull(),
+  clockOut: timestamp('clock_out'),
+  breakStart: timestamp('break_start'),
+  breakEnd: timestamp('break_end'),
+  totalHours: decimal('total_hours', { precision: 4, scale: 2 }),
+  hourlyRate: decimal('hourly_rate', { precision: 6, scale: 2 }),
+  overtimeHours: decimal('overtime_hours', { precision: 4, scale: 2 }),
+  status: varchar('status', { length: 20 }).default('active').notNull(), // 'active', 'break', 'completed'
+  tillId: varchar('till_id', { length: 20 }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Staff Incentives
+export const staffIncentives = pgTable('staff_incentives', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  incentiveType: varchar('incentive_type', { length: 50 }).notNull(), // 'sales_target', 'upsell_bonus', 'customer_service'
+  targetValue: decimal('target_value', { precision: 10, scale: 2 }),
+  currentValue: decimal('current_value', { precision: 10, scale: 2 }).default('0'),
+  bonusAmount: decimal('bonus_amount', { precision: 8, scale: 2 }),
+  periodStart: date('period_start').notNull(),
+  periodEnd: date('period_end').notNull(),
+  status: varchar('status', { length: 20 }).default('active').notNull(), // 'active', 'achieved', 'expired'
+  achievedAt: timestamp('achieved_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Staff Messages
+export const staffMessages = pgTable('staff_messages', {
+  id: serial('id').primaryKey(),
+  fromUserId: integer('from_user_id').references(() => users.id),
+  toUserId: integer('to_user_id').references(() => users.id),
+  messageType: varchar('message_type', { length: 30 }).notNull(), // 'bulletin', 'shift_note', 'private', 'alert'
+  title: varchar('title', { length: 200 }).notNull(),
+  content: text('content').notNull(),
+  priority: varchar('priority', { length: 20 }).default('normal').notNull(), // 'low', 'normal', 'high', 'urgent'
+  readAt: timestamp('read_at'),
+  expiresAt: timestamp('expires_at'),
+  tillId: varchar('till_id', { length: 20 }),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Product Performance Analytics
+export const productPerformance = pgTable('product_performance', {
+  id: serial('id').primaryKey(),
+  productId: integer('product_id').references(() => products.id).notNull(),
+  date: date('date').notNull(),
+  unitsSold: integer('units_sold').default(0),
+  revenue: decimal('revenue', { precision: 10, scale: 2 }).default('0'),
+  profit: decimal('profit', { precision: 10, scale: 2 }).default('0'),
+  averageMargin: decimal('average_margin', { precision: 5, scale: 2 }),
+  returnsCount: integer('returns_count').default(0),
+  stockTurnover: decimal('stock_turnover', { precision: 5, scale: 2 }),
+  performanceScore: decimal('performance_score', { precision: 3, scale: 2 }),
+  category: varchar('category', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Custom Alerts
+export const customAlerts = pgTable('custom_alerts', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  alertType: varchar('alert_type', { length: 50 }).notNull(), // 'sales_drop', 'sales_spike', 'inventory_low', 'custom_metric'
+  metric: varchar('metric', { length: 50 }).notNull(),
+  threshold: decimal('threshold', { precision: 10, scale: 2 }).notNull(),
+  condition: varchar('condition', { length: 20 }).notNull(), // 'above', 'below', 'equals'
+  timeframe: varchar('timeframe', { length: 20 }).notNull(), // 'hourly', 'daily', 'weekly'
+  isActive: boolean('is_active').default(true),
+  lastTriggered: timestamp('last_triggered'),
+  createdBy: integer('created_by').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Demand Forecasting
+export const demandForecasting = pgTable('demand_forecasting', {
+  id: serial('id').primaryKey(),
+  productId: integer('product_id').references(() => products.id).notNull(),
+  forecastDate: date('forecast_date').notNull(),
+  predictedDemand: integer('predicted_demand').notNull(),
+  actualDemand: integer('actual_demand'),
+  seasonalityFactor: decimal('seasonality_factor', { precision: 3, scale: 2 }),
+  trendFactor: decimal('trend_factor', { precision: 3, scale: 2 }),
+  localEventImpact: decimal('local_event_impact', { precision: 3, scale: 2 }),
+  weatherImpact: decimal('weather_impact', { precision: 3, scale: 2 }),
+  confidenceLevel: decimal('confidence_level', { precision: 3, scale: 2 }),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// QR Code Supplier Receiving
+export const qrSupplierReceiving = pgTable('qr_supplier_receiving', {
+  id: serial('id').primaryKey(),
+  supplierId: integer('supplier_id').references(() => suppliers.id).notNull(),
+  purchaseOrderId: integer('purchase_order_id').references(() => purchaseOrders.id),
+  qrCode: varchar('qr_code', { length: 200 }).notNull(),
+  invoiceNumber: varchar('invoice_number', { length: 100 }),
+  invoiceData: jsonb('invoice_data'),
+  matchedItems: jsonb('matched_items'),
+  unmatchedItems: jsonb('unmatched_items'),
+  totalValue: decimal('total_value', { precision: 10, scale: 2 }),
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // 'pending', 'matched', 'approved', 'discrepancy'
+  receivedBy: integer('received_by').references(() => users.id).notNull(),
+  receivedAt: timestamp('received_at').defaultNow().notNull(),
+  approvedBy: integer('approved_by').references(() => users.id),
+  approvedAt: timestamp('approved_at')
+});
+
+// Promotion Templates
+export const promotionTemplates = pgTable('promotion_templates', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  templateType: varchar('template_type', { length: 50 }).notNull(), // 'weekly_deal', 'monthly_special', 'seasonal'
+  discountType: varchar('discount_type', { length: 20 }).notNull(),
+  discountValue: decimal('discount_value', { precision: 10, scale: 2 }).notNull(),
+  conditions: jsonb('conditions'),
+  applicableProducts: jsonb('applicable_products'),
+  schedule: jsonb('schedule'), // recurring schedule information
+  isActive: boolean('is_active').default(true),
+  usageCount: integer('usage_count').default(0),
+  createdBy: integer('created_by').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  lastUsed: timestamp('last_used')
+});
+
+// Customer Insights
+export const customerInsights = pgTable('customer_insights', {
+  id: serial('id').primaryKey(),
+  customerId: integer('customer_id').references(() => customers.id).notNull(),
+  totalPurchases: integer('total_purchases').default(0),
+  totalSpent: decimal('total_spent', { precision: 10, scale: 2 }).default('0'),
+  averageTransactionValue: decimal('average_transaction_value', { precision: 8, scale: 2 }),
+  lastVisit: timestamp('last_visit'),
+  visitFrequency: decimal('visit_frequency', { precision: 4, scale: 2 }), // visits per month
+  topCategories: jsonb('top_categories'),
+  preferredPaymentMethod: varchar('preferred_payment_method', { length: 30 }),
+  loyaltyTier: varchar('loyalty_tier', { length: 20 }),
+  churnRisk: decimal('churn_risk', { precision: 3, scale: 2 }),
+  lifetimeValue: decimal('lifetime_value', { precision: 10, scale: 2 }),
+  seasonalPreferences: jsonb('seasonal_preferences'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Push Notifications
+export const pushNotifications = pgTable('push_notifications', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id),
+  notificationType: varchar('notification_type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 200 }).notNull(),
+  message: text('message').notNull(),
+  data: jsonb('data'),
+  priority: varchar('priority', { length: 20 }).default('normal').notNull(),
+  deliveryMethod: varchar('delivery_method', { length: 20 }).default('push').notNull(), // 'push', 'sms', 'email'
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // 'pending', 'sent', 'delivered', 'failed'
+  sentAt: timestamp('sent_at'),
+  deliveredAt: timestamp('delivered_at'),
+  clickedAt: timestamp('clicked_at'),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Insert schemas for new tables
+export const insertBatchEditOperationSchema = createInsertSchema(batchEditOperations).omit({ id: true });
+export const insertExpiryTrackingSchema = createInsertSchema(expiryTracking).omit({ id: true });
+export const insertStockForecastingSchema = createInsertSchema(stockForecasting).omit({ id: true });
+export const insertTimeClockSchema = createInsertSchema(timeClock).omit({ id: true });
+export const insertStaffIncentiveSchema = createInsertSchema(staffIncentives).omit({ id: true });
+export const insertStaffMessageSchema = createInsertSchema(staffMessages).omit({ id: true });
+export const insertProductPerformanceSchema = createInsertSchema(productPerformance).omit({ id: true });
+export const insertCustomAlertSchema = createInsertSchema(customAlerts).omit({ id: true });
+export const insertDemandForecastingSchema = createInsertSchema(demandForecasting).omit({ id: true });
+export const insertQrSupplierReceivingSchema = createInsertSchema(qrSupplierReceiving).omit({ id: true });
+export const insertPromotionTemplateSchema = createInsertSchema(promotionTemplates).omit({ id: true });
+export const insertCustomerInsightSchema = createInsertSchema(customerInsights).omit({ id: true });
+export const insertPushNotificationSchema = createInsertSchema(pushNotifications).omit({ id: true });
+
+// Types for new tables
+export type BatchEditOperation = typeof batchEditOperations.$inferSelect;
+export type ExpiryTracking = typeof expiryTracking.$inferSelect;
+export type StockForecasting = typeof stockForecasting.$inferSelect;
+export type TimeClock = typeof timeClock.$inferSelect;
+export type StaffIncentive = typeof staffIncentives.$inferSelect;
+export type StaffMessage = typeof staffMessages.$inferSelect;
+export type ProductPerformance = typeof productPerformance.$inferSelect;
+export type CustomAlert = typeof customAlerts.$inferSelect;
+export type DemandForecasting = typeof demandForecasting.$inferSelect;
+export type QrSupplierReceiving = typeof qrSupplierReceiving.$inferSelect;
+export type PromotionTemplate = typeof promotionTemplates.$inferSelect;
+export type CustomerInsight = typeof customerInsights.$inferSelect;
+export type PushNotification = typeof pushNotifications.$inferSelect;
+
+export type InsertBatchEditOperation = z.infer<typeof insertBatchEditOperationSchema>;
+export type InsertExpiryTracking = z.infer<typeof insertExpiryTrackingSchema>;
+export type InsertStockForecasting = z.infer<typeof insertStockForecastingSchema>;
+export type InsertTimeClock = z.infer<typeof insertTimeClockSchema>;
+export type InsertStaffIncentive = z.infer<typeof insertStaffIncentiveSchema>;
+export type InsertStaffMessage = z.infer<typeof insertStaffMessageSchema>;
+export type InsertProductPerformance = z.infer<typeof insertProductPerformanceSchema>;
+export type InsertCustomAlert = z.infer<typeof insertCustomAlertSchema>;
+export type InsertDemandForecasting = z.infer<typeof insertDemandForecastingSchema>;
+export type InsertQrSupplierReceiving = z.infer<typeof insertQrSupplierReceivingSchema>;
+export type InsertPromotionTemplate = z.infer<typeof insertPromotionTemplateSchema>;
+export type InsertCustomerInsight = z.infer<typeof insertCustomerInsightSchema>;
+export type InsertPushNotification = z.infer<typeof insertPushNotificationSchema>;

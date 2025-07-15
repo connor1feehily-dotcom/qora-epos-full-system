@@ -2,18 +2,27 @@ import {
   users, products, customers, suppliers, transactions, transactionItems, promotions, tillSessions, dailyReports,
   posButtons, purchaseOrders, purchaseOrderItems, promotionRules, promotionProducts, auditLogs, staffSchedules,
   deliveryDockets, deliveryItems, supplierPerformance, staffActivityLog, priceOptimizations, systemAlerts, offlineQueue,
+  batchEditOperations, expiryTracking, stockForecasting, timeClock, staffIncentives, staffMessages,
+  productPerformance, customAlerts, demandForecasting, qrSupplierReceiving, promotionTemplates, customerInsights, pushNotifications,
   type User, type Product, type Customer, type Supplier, type Transaction, type TransactionItem, type Promotion,
   type TillSession, type DailyReport, type PosButton, type PurchaseOrder, type PurchaseOrderItem,
   type PromotionRule, type PromotionProduct, type AuditLog, type StaffSchedule,
   type DeliveryDocket, type DeliveryItem, type SupplierPerformance, type StaffActivityLog,
   type PriceOptimization, type SystemAlert, type OfflineQueue,
+  type BatchEditOperation, type ExpiryTracking, type StockForecasting, type TimeClock, type StaffIncentive,
+  type StaffMessage, type ProductPerformance, type CustomAlert, type DemandForecasting,
+  type QrSupplierReceiving, type PromotionTemplate, type CustomerInsight, type PushNotification,
   type InsertUser, type InsertProduct, type InsertCustomer, type InsertSupplier, 
   type InsertTransaction, type InsertTransactionItem, type InsertPromotion,
   type InsertTillSession, type InsertDailyReport, type InsertPosButton, type InsertPurchaseOrder,
   type InsertPurchaseOrderItem, type InsertPromotionRule, type InsertPromotionProduct, 
   type InsertAuditLog, type InsertStaffSchedule, type InsertDeliveryDocket, type InsertDeliveryItem,
   type InsertSupplierPerformance, type InsertStaffActivityLog, type InsertPriceOptimization,
-  type InsertSystemAlert, type InsertOfflineQueue
+  type InsertSystemAlert, type InsertOfflineQueue,
+  type InsertBatchEditOperation, type InsertExpiryTracking, type InsertStockForecasting, type InsertTimeClock,
+  type InsertStaffIncentive, type InsertStaffMessage, type InsertProductPerformance, type InsertCustomAlert,
+  type InsertDemandForecasting, type InsertQrSupplierReceiving, type InsertPromotionTemplate,
+  type InsertCustomerInsight, type InsertPushNotification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -135,6 +144,81 @@ export interface IStorage {
   addToOfflineQueue(operation: InsertOfflineQueue): Promise<OfflineQueue>;
   getOfflineQueue(deviceId: string): Promise<OfflineQueue[]>;
   markOfflineOperationSynced(operationId: number): Promise<void>;
+  
+  // Advanced Features - New Interface Methods
+  
+  // Batch Edit Operations
+  createBatchEditOperation(operation: InsertBatchEditOperation): Promise<BatchEditOperation>;
+  getBatchEditOperations(status?: string): Promise<BatchEditOperation[]>;
+  updateBatchEditOperation(id: number, updates: Partial<InsertBatchEditOperation>): Promise<BatchEditOperation>;
+  
+  // Expiry Tracking
+  getExpiryTracking(productId?: number, status?: string): Promise<ExpiryTracking[]>;
+  createExpiryTracking(tracking: InsertExpiryTracking): Promise<ExpiryTracking>;
+  updateExpiryTracking(id: number, updates: Partial<InsertExpiryTracking>): Promise<ExpiryTracking>;
+  getExpiringProducts(daysAhead: number): Promise<ExpiryTracking[]>;
+  
+  // Stock Forecasting
+  getStockForecasting(productId?: number): Promise<StockForecasting[]>;
+  createStockForecasting(forecast: InsertStockForecasting): Promise<StockForecasting>;
+  updateStockForecasting(id: number, updates: Partial<InsertStockForecasting>): Promise<StockForecasting>;
+  getReorderSuggestions(): Promise<StockForecasting[]>;
+  
+  // Time Clock
+  getTimeClock(userId?: number, status?: string): Promise<TimeClock[]>;
+  createTimeClock(clock: InsertTimeClock): Promise<TimeClock>;
+  updateTimeClock(id: number, updates: Partial<InsertTimeClock>): Promise<TimeClock>;
+  clockInUser(userId: number, tillId?: string): Promise<TimeClock>;
+  clockOutUser(userId: number): Promise<TimeClock>;
+  
+  // Staff Incentives
+  getStaffIncentives(userId?: number, status?: string): Promise<StaffIncentive[]>;
+  createStaffIncentive(incentive: InsertStaffIncentive): Promise<StaffIncentive>;
+  updateStaffIncentive(id: number, updates: Partial<InsertStaffIncentive>): Promise<StaffIncentive>;
+  getActiveIncentives(userId: number): Promise<StaffIncentive[]>;
+  
+  // Staff Messages
+  getStaffMessages(userId?: number, messageType?: string): Promise<StaffMessage[]>;
+  createStaffMessage(message: InsertStaffMessage): Promise<StaffMessage>;
+  markMessageAsRead(messageId: number): Promise<StaffMessage>;
+  getBulletins(tillId?: string): Promise<StaffMessage[]>;
+  
+  // Product Performance
+  getProductPerformance(productId?: number, date?: Date): Promise<ProductPerformance[]>;
+  createProductPerformance(performance: InsertProductPerformance): Promise<ProductPerformance>;
+  updateProductPerformance(id: number, updates: Partial<InsertProductPerformance>): Promise<ProductPerformance>;
+  getTopPerformingProducts(limit: number): Promise<ProductPerformance[]>;
+  
+  // Custom Alerts
+  getCustomAlerts(isActive?: boolean): Promise<CustomAlert[]>;
+  createCustomAlert(alert: InsertCustomAlert): Promise<CustomAlert>;
+  updateCustomAlert(id: number, updates: Partial<InsertCustomAlert>): Promise<CustomAlert>;
+  triggerCustomAlert(alertId: number): Promise<CustomAlert>;
+  
+  // Demand Forecasting
+  getDemandForecasting(productId?: number, date?: Date): Promise<DemandForecasting[]>;
+  createDemandForecasting(forecast: InsertDemandForecasting): Promise<DemandForecasting>;
+  updateDemandForecasting(id: number, updates: Partial<InsertDemandForecasting>): Promise<DemandForecasting>;
+  
+  // QR Supplier Receiving
+  getQrSupplierReceiving(status?: string): Promise<QrSupplierReceiving[]>;
+  createQrSupplierReceiving(receiving: InsertQrSupplierReceiving): Promise<QrSupplierReceiving>;
+  updateQrSupplierReceiving(id: number, updates: Partial<InsertQrSupplierReceiving>): Promise<QrSupplierReceiving>;
+  
+  // Promotion Templates
+  getPromotionTemplates(isActive?: boolean): Promise<PromotionTemplate[]>;
+  createPromotionTemplate(template: InsertPromotionTemplate): Promise<PromotionTemplate>;
+  updatePromotionTemplate(id: number, updates: Partial<InsertPromotionTemplate>): Promise<PromotionTemplate>;
+  
+  // Customer Insights
+  getCustomerInsights(customerId?: number): Promise<CustomerInsight[]>;
+  createCustomerInsight(insight: InsertCustomerInsight): Promise<CustomerInsight>;
+  updateCustomerInsight(id: number, updates: Partial<InsertCustomerInsight>): Promise<CustomerInsight>;
+  
+  // Push Notifications
+  getPushNotifications(userId?: number, status?: string): Promise<PushNotification[]>;
+  createPushNotification(notification: InsertPushNotification): Promise<PushNotification>;
+  updatePushNotification(id: number, updates: Partial<InsertPushNotification>): Promise<PushNotification>;
 }
 
 export class DatabaseStorage implements IStorage {
