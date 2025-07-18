@@ -669,7 +669,6 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
                         variant: "destructive"
                       });
                     }
-                    }
                   }}
                 >
                   <span className="font-medium">{button.label}</span>
