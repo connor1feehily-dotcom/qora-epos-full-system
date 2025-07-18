@@ -113,7 +113,18 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   // Fetch POS buttons
   const { data: posButtons = [] } = useQuery<PosButton[]>({
     queryKey: ['/api/pos-buttons', tillId],
-    queryFn: () => fetch(`/api/pos-buttons?tillId=${tillId}`).then(res => res.json()),
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/pos-buttons?tillId=${tillId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch POS buttons');
+        }
+        return response.json();
+      } catch (error) {
+        console.error('POS buttons fetch error:', error);
+        return [];
+      }
+    },
   });
 
   // Calculate totals
@@ -631,23 +642,33 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
                   className="h-20 flex flex-col items-center justify-center space-y-1 text-sm"
                   style={{ backgroundColor: button.color || undefined }}
                   onClick={() => {
-                    console.log('Button clicked:', button, 'Products:', products);
-                    if (button.buttonType === 'product' && button.productId) {
-                      const product = products.find(p => p.id === button.productId);
-                      console.log('Found product:', product);
-                      if (product) {
-                        addToCart(product);
-                        toast({
-                          title: "Added to Cart",
-                          description: `${product.name} added to cart`
-                        });
-                      } else {
-                        toast({
-                          title: "Product Not Found",
-                          description: `Product with ID ${button.productId} not found`,
-                          variant: "destructive"
-                        });
+                    try {
+                      console.log('Button clicked:', button, 'Products:', products);
+                      if (button.buttonType === 'product' && button.productId) {
+                        const product = products.find(p => p.id === button.productId);
+                        console.log('Found product:', product);
+                        if (product) {
+                          addToCart(product);
+                          toast({
+                            title: "Added to Cart",
+                            description: `${product.name} added to cart`
+                          });
+                        } else {
+                          toast({
+                            title: "Product Not Found",
+                            description: `Product with ID ${button.productId} not found`,
+                            variant: "destructive"
+                          });
+                        }
                       }
+                    } catch (error) {
+                      console.error('Button click error:', error);
+                      toast({
+                        title: "Error",
+                        description: "Button click failed",
+                        variant: "destructive"
+                      });
+                    }
                     }
                   }}
                 >
