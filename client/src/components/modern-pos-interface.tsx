@@ -1083,7 +1083,13 @@ function SalesReportModal({ tillId, onClose }: { tillId: string; onClose: () => 
 
   const { data: salesData, isLoading } = useQuery({
     queryKey: ['/api/reports/sales', tillId, dateRange],
-    queryFn: () => fetch(`/api/reports/sales?tillId=${tillId}&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/reports/sales?tillId=${tillId}&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch sales data');
+      }
+      return response.json();
+    },
     enabled: !!tillId
   });
 
