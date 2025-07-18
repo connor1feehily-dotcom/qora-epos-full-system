@@ -194,6 +194,130 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
     setCart([]);
   };
 
+  // Transaction mutation
+  const createTransactionMutation = useMutation({
+    mutationFn: async ({ paymentMethod, amountGiven, change }: { paymentMethod: 'cash' | 'card'; amountGiven?: number; change?: number }) => {
+      const transactionData: InsertTransaction = {
+        tillId,
+        userId: currentUser?.id || 1,
+        customerId: null,
+        status: 'completed',
+        subtotal: subtotal.toFixed(2),
+        vatAmount: taxAmount.toFixed(2),
+        total: total.toFixed(2),
+        paymentMethod,
+        itemCount: cart.reduce((sum, item) => sum + item.quantity, 0)
+      };
+
+      const response = await apiRequest('/api/transactions', {
+        method: 'POST',
+        body: JSON.stringify(transactionData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create transaction');
+      }
+
+      const transaction = await response.json();
+
+      // Create transaction items
+      for (const item of cart) {
+        const itemData: InsertTransactionItem = {
+          transactionId: transaction.id,
+          productId: item.product.id,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice.toFixed(2),
+          total: item.subtotal.toFixed(2)
+        };
+
+        const itemResponse = await apiRequest('/api/transaction-items', {
+          method: 'POST',
+          body: JSON.stringify(itemData)
+        });
+
+        if (!itemResponse.ok) {
+          throw new Error('Failed to create transaction item');
+        }
+      }
+
+      return {
+        transactionId: transaction.id,
+        total: total.toFixed(2),
+        paymentMethod,
+        amountGiven,
+        change
+      };
+    },
+    onSuccess: (result) => {
+      setCart([]);
+      queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      
+      toast({
+        title: "Transaction Completed",
+        description: `Transaction #${result.transactionId} completed successfully. Total: €${result.total}`
+      });
+    },
+    onError: (error) => {
+      console.error('Transaction error:', error);
+      toast({
+        title: "Transaction Failed",
+        description: "There was an error processing the transaction. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle cash payment
+  const handleCashPayment = () => {
+    if (cart.length === 0) return;
+    
+    const amountGiven = parseFloat(prompt(`Enter cash amount given (Total: €${total.toFixed(2)})`) || '0');
+    if (isNaN(amountGiven) || amountGiven <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid cash amount.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (amountGiven < total) {
+      toast({
+        title: "Insufficient Amount",
+        description: `Cash amount must be at least €${total.toFixed(2)}. You entered €${amountGiven.toFixed(2)}.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const change = amountGiven - total;
+    
+    // Show change calculation if any
+    if (change > 0) {
+      toast({
+        title: "Change Due",
+        description: `Change to give: €${change.toFixed(2)}`,
+        duration: 5000
+      });
+    }
+    
+    createTransactionMutation.mutate({
+      paymentMethod: 'cash',
+      amountGiven,
+      change
+    });
+  };
+
+  // Handle card payment
+  const handleCardPayment = () => {
+    if (cart.length === 0) return;
+    
+    createTransactionMutation.mutate({
+      paymentMethod: 'card'
+    });
+  };
+
   // Format time
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -533,21 +657,26 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
             <Separator />
 
             <div className="space-y-2">
-              <Button 
-                className="w-full h-12 text-lg font-semibold"
-                onClick={() => setShowPaymentInterface(true)}
-                disabled={cart.length === 0}
-              >
-                <CreditCard className="w-5 h-5 mr-2" />
-                Pay €{total.toFixed(2)}
-              </Button>
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Choose Payment Method</span>
+              </div>
               
               <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleCashPayment}
+                  disabled={cart.length === 0 || createTransactionMutation.isPending}
+                >
                   <Banknote className="w-4 h-4 mr-1" />
                   Cash
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleCardPayment}
+                  disabled={cart.length === 0 || createTransactionMutation.isPending}
+                >
                   <CreditCard className="w-4 h-4 mr-1" />
                   Card
                 </Button>
@@ -561,20 +690,15 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         </div>
       </div>
 
-      {/* Secure Payment Interface Modal */}
-      {showPaymentInterface && (
-        <SecurePaymentInterface
-          total={total}
-          onPaymentComplete={(result: any) => {
-            setShowPaymentInterface(false);
-            setCart([]);
-            toast({ 
-              title: "Payment Successful", 
-              description: `Transaction ${result.transactionId} completed. Card: ${result.maskedCardNumber}` 
-            });
-          }}
-          onCancel={() => setShowPaymentInterface(false)}
-        />
+      {/* Transaction processing indicator */}
+      {createTransactionMutation.isPending && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-lg font-semibold">Processing Transaction...</p>
+            <p className="text-gray-600 dark:text-gray-400">Please wait</p>
+          </div>
+        </div>
       )}
     </div>
   );

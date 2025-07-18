@@ -655,26 +655,141 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-18">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="sales-ledger">Sales</TabsTrigger>
-            <TabsTrigger value="stock-ledger">Stock</TabsTrigger>
-            <TabsTrigger value="value-projection">Value</TabsTrigger>
-            <TabsTrigger value="packages">Packages</TabsTrigger>
-            <TabsTrigger value="till-stock">Till Stock</TabsTrigger>
-            <TabsTrigger value="promotions">Promos</TabsTrigger>
-            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-            <TabsTrigger value="management">Admin</TabsTrigger>
-            <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
-            <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
-            <TabsTrigger value="ai-optimization">AI Price</TabsTrigger>
-            <TabsTrigger value="staff-activity">Activity</TabsTrigger>
-            <TabsTrigger value="alerts">Alerts</TabsTrigger>
-            <TabsTrigger value="mobile-scanner">Mobile</TabsTrigger>
-            <TabsTrigger value="advanced-inventory">Adv Inv</TabsTrigger>
-            <TabsTrigger value="advanced-staff">Adv Staff</TabsTrigger>
-            <TabsTrigger value="smart-analytics">Analytics</TabsTrigger>
-          </TabsList>
+          <div className="space-y-4">
+            {/* Primary Navigation */}
+            <div className="flex flex-wrap gap-2 p-4 bg-white dark:bg-gray-800 rounded-lg border">
+              <Button 
+                variant={activeTab === "overview" ? "default" : "outline"}
+                onClick={() => setActiveTab("overview")}
+                className="flex-1 min-w-[120px]"
+              >
+                Overview
+              </Button>
+              <Button 
+                variant={activeTab === "sales-ledger" ? "default" : "outline"}
+                onClick={() => setActiveTab("sales-ledger")}
+                className="flex-1 min-w-[120px]"
+              >
+                Sales Ledger
+              </Button>
+              <Button 
+                variant={activeTab === "stock-ledger" ? "default" : "outline"}
+                onClick={() => setActiveTab("stock-ledger")}
+                className="flex-1 min-w-[120px]"
+              >
+                Stock Ledger
+              </Button>
+              <Button 
+                variant={activeTab === "advanced-inventory" ? "default" : "outline"}
+                onClick={() => setActiveTab("advanced-inventory")}
+                className="flex-1 min-w-[120px]"
+              >
+                Advanced Inventory
+              </Button>
+              <Button 
+                variant={activeTab === "advanced-staff" ? "default" : "outline"}
+                onClick={() => setActiveTab("advanced-staff")}
+                className="flex-1 min-w-[120px]"
+              >
+                Advanced Staff
+              </Button>
+              <Button 
+                variant={activeTab === "smart-analytics" ? "default" : "outline"}
+                onClick={() => setActiveTab("smart-analytics")}
+                className="flex-1 min-w-[120px]"
+              >
+                Smart Analytics
+              </Button>
+            </div>
+
+            {/* Secondary Navigation */}
+            <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border">
+              <Button 
+                variant={activeTab === "deliveries" ? "default" : "outline"}
+                onClick={() => setActiveTab("deliveries")}
+                size="sm"
+              >
+                Deliveries
+              </Button>
+              <Button 
+                variant={activeTab === "suppliers" ? "default" : "outline"}
+                onClick={() => setActiveTab("suppliers")}
+                size="sm"
+              >
+                Suppliers
+              </Button>
+              <Button 
+                variant={activeTab === "ai-optimization" ? "default" : "outline"}
+                onClick={() => setActiveTab("ai-optimization")}
+                size="sm"
+              >
+                AI Price
+              </Button>
+              <Button 
+                variant={activeTab === "staff-activity" ? "default" : "outline"}
+                onClick={() => setActiveTab("staff-activity")}
+                size="sm"
+              >
+                Activity
+              </Button>
+              <Button 
+                variant={activeTab === "alerts" ? "default" : "outline"}
+                onClick={() => setActiveTab("alerts")}
+                size="sm"
+              >
+                Alerts
+              </Button>
+              <Button 
+                variant={activeTab === "mobile-scanner" ? "default" : "outline"}
+                onClick={() => setActiveTab("mobile-scanner")}
+                size="sm"
+              >
+                Mobile
+              </Button>
+              <Button 
+                variant={activeTab === "value-projection" ? "default" : "outline"}
+                onClick={() => setActiveTab("value-projection")}
+                size="sm"
+              >
+                Value Projection
+              </Button>
+              <Button 
+                variant={activeTab === "packages" ? "default" : "outline"}
+                onClick={() => setActiveTab("packages")}
+                size="sm"
+              >
+                Packages
+              </Button>
+              <Button 
+                variant={activeTab === "till-stock" ? "default" : "outline"}
+                onClick={() => setActiveTab("till-stock")}
+                size="sm"
+              >
+                Till Stock
+              </Button>
+              <Button 
+                variant={activeTab === "promotions" ? "default" : "outline"}
+                onClick={() => setActiveTab("promotions")}
+                size="sm"
+              >
+                Promotions
+              </Button>
+              <Button 
+                variant={activeTab === "maintenance" ? "default" : "outline"}
+                onClick={() => setActiveTab("maintenance")}
+                size="sm"
+              >
+                Maintenance
+              </Button>
+              <Button 
+                variant={activeTab === "management" ? "default" : "outline"}
+                onClick={() => setActiveTab("management")}
+                size="sm"
+              >
+                Admin
+              </Button>
+            </div>
+          </div>
 
           <TabsContent value={activeTab}>
             {renderTabContent()}
