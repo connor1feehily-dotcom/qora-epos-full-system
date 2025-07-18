@@ -219,15 +219,9 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         total: item.subtotal.toFixed(2)
       }));
 
-      const response = await apiRequest('/api/transactions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          transaction: transactionData,
-          items: items
-        })
+      const response = await apiRequest('POST', '/api/transactions', {
+        transaction: transactionData,
+        items: items
       });
 
       if (!response.ok) {
