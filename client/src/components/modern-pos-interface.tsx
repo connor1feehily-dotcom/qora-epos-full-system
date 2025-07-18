@@ -105,6 +105,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   // Fetch POS buttons
   const { data: posButtons = [] } = useQuery<PosButton[]>({
     queryKey: ['/api/pos-buttons', tillId],
+    queryFn: () => fetch(`/api/pos-buttons?tillId=${tillId}`).then(res => res.json()),
   });
 
   // Calculate totals
@@ -592,9 +593,23 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
                   className="h-20 flex flex-col items-center justify-center space-y-1 text-sm"
                   style={{ backgroundColor: button.color || undefined }}
                   onClick={() => {
+                    console.log('Button clicked:', button, 'Products:', products);
                     if (button.buttonType === 'product' && button.productId) {
                       const product = products.find(p => p.id === button.productId);
-                      if (product) addToCart(product);
+                      console.log('Found product:', product);
+                      if (product) {
+                        addToCart(product);
+                        toast({
+                          title: "Added to Cart",
+                          description: `${product.name} added to cart`
+                        });
+                      } else {
+                        toast({
+                          title: "Product Not Found",
+                          description: `Product with ID ${button.productId} not found`,
+                          variant: "destructive"
+                        });
+                      }
                     }
                   }}
                 >
