@@ -41,7 +41,9 @@ import {
   Percent,
   AlertTriangle,
   Lock,
-  LogOut
+  LogOut,
+  X,
+  Download
 } from "lucide-react";
 import type { Product, InsertTransaction, InsertTransactionItem, User as UserType, PosButton } from "@shared/schema";
 import kerrigansLogo from "@assets/NEW_1749822871411.png";
