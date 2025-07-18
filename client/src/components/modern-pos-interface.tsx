@@ -423,27 +423,88 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         {/* Left Sidebar - Navigation */}
         <div className="w-16 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           <div className="flex-1 flex flex-col space-y-2 p-2">
-            <Button variant="ghost" size="sm" className="w-full h-12 flex flex-col items-center space-y-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full h-12 flex flex-col items-center space-y-1"
+              onClick={() => {
+                toast({
+                  title: "Home",
+                  description: "You are already on the main POS screen"
+                });
+              }}
+            >
               <Home className="w-5 h-5" />
               <span className="text-xs">Home</span>
             </Button>
-            <Button variant="ghost" size="sm" className="w-full h-12 flex flex-col items-center space-y-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full h-12 flex flex-col items-center space-y-1"
+              onClick={() => {
+                toast({
+                  title: "Sales Mode",
+                  description: "You are currently in sales mode. Add items to cart to make a sale."
+                });
+              }}
+            >
               <ShoppingCart className="w-5 h-5" />
               <span className="text-xs">Sales</span>
             </Button>
-            <Button variant="ghost" size="sm" className="w-full h-12 flex flex-col items-center space-y-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full h-12 flex flex-col items-center space-y-1"
+              onClick={() => {
+                toast({
+                  title: "Returns",
+                  description: "Returns functionality - select items to return and process refund",
+                  variant: "default"
+                });
+              }}
+            >
               <RotateCcw className="w-5 h-5" />
               <span className="text-xs">Returns</span>
             </Button>
-            <Button variant="ghost" size="sm" className="w-full h-12 flex flex-col items-center space-y-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full h-12 flex flex-col items-center space-y-1"
+              onClick={() => {
+                toast({
+                  title: "Inventory",
+                  description: "Quick inventory check - current stock levels displayed on product buttons"
+                });
+              }}
+            >
               <Package className="w-5 h-5" />
               <span className="text-xs">Inventory</span>
             </Button>
-            <Button variant="ghost" size="sm" className="w-full h-12 flex flex-col items-center space-y-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full h-12 flex flex-col items-center space-y-1"
+              onClick={() => {
+                toast({
+                  title: "Customers",
+                  description: "Customer lookup and loyalty management"
+                });
+              }}
+            >
               <Users className="w-5 h-5" />
               <span className="text-xs">Customers</span>
             </Button>
-            <Button variant="ghost" size="sm" className="w-full h-12 flex flex-col items-center space-y-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full h-12 flex flex-col items-center space-y-1"
+              onClick={() => {
+                toast({
+                  title: "Settings",
+                  description: "POS settings and configuration options"
+                });
+              }}
+            >
               <Settings className="w-5 h-5" />
               <span className="text-xs">Settings</span>
             </Button>
