@@ -73,6 +73,12 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   const [shiftStartTime] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [heldTransactions, setHeldTransactions] = useState<CartItem[][]>([]);
+  const [showEndOfDayModal, setShowEndOfDayModal] = useState(false);
+  const [showSalesReportModal, setShowSalesReportModal] = useState(false);
+  const [showReturnsModal, setShowReturnsModal] = useState(false);
+  const [showInventoryModal, setShowInventoryModal] = useState(false);
+  const [showCustomersModal, setShowCustomersModal] = useState(false);
+  const [showSettlementsModal, setShowSettlementsModal] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -427,26 +433,16 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               variant="ghost" 
               size="sm" 
               className="w-full h-12 flex flex-col items-center space-y-1"
-              onClick={() => {
-                toast({
-                  title: "Home",
-                  description: "You are already on the main POS screen"
-                });
-              }}
+              onClick={() => setShowEndOfDayModal(true)}
             >
               <Home className="w-5 h-5" />
-              <span className="text-xs">Home</span>
+              <span className="text-xs">Z-Read</span>
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
               className="w-full h-12 flex flex-col items-center space-y-1"
-              onClick={() => {
-                toast({
-                  title: "Sales Mode",
-                  description: "You are currently in sales mode. Add items to cart to make a sale."
-                });
-              }}
+              onClick={() => setShowSalesReportModal(true)}
             >
               <ShoppingCart className="w-5 h-5" />
               <span className="text-xs">Sales</span>
@@ -455,13 +451,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               variant="ghost" 
               size="sm" 
               className="w-full h-12 flex flex-col items-center space-y-1"
-              onClick={() => {
-                toast({
-                  title: "Returns",
-                  description: "Returns functionality - select items to return and process refund",
-                  variant: "default"
-                });
-              }}
+              onClick={() => setShowReturnsModal(true)}
             >
               <RotateCcw className="w-5 h-5" />
               <span className="text-xs">Returns</span>
@@ -470,12 +460,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               variant="ghost" 
               size="sm" 
               className="w-full h-12 flex flex-col items-center space-y-1"
-              onClick={() => {
-                toast({
-                  title: "Inventory",
-                  description: "Quick inventory check - current stock levels displayed on product buttons"
-                });
-              }}
+              onClick={() => setShowInventoryModal(true)}
             >
               <Package className="w-5 h-5" />
               <span className="text-xs">Inventory</span>
@@ -484,12 +469,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               variant="ghost" 
               size="sm" 
               className="w-full h-12 flex flex-col items-center space-y-1"
-              onClick={() => {
-                toast({
-                  title: "Customers",
-                  description: "Customer lookup and loyalty management"
-                });
-              }}
+              onClick={() => setShowCustomersModal(true)}
             >
               <Users className="w-5 h-5" />
               <span className="text-xs">Customers</span>
@@ -498,15 +478,10 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               variant="ghost" 
               size="sm" 
               className="w-full h-12 flex flex-col items-center space-y-1"
-              onClick={() => {
-                toast({
-                  title: "Settings",
-                  description: "POS settings and configuration options"
-                });
-              }}
+              onClick={() => setShowSettlementsModal(true)}
             >
               <Settings className="w-5 h-5" />
-              <span className="text-xs">Settings</span>
+              <span className="text-xs">Settlements</span>
             </Button>
           </div>
         </div>
@@ -761,6 +736,54 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         </div>
       </div>
 
+      {/* Z-Read Modal */}
+      {showEndOfDayModal && (
+        <ZReadModal
+          tillId={tillId}
+          currentUser={currentUser}
+          onClose={() => setShowEndOfDayModal(false)}
+        />
+      )}
+
+      {/* Sales Report Modal */}
+      {showSalesReportModal && (
+        <SalesReportModal
+          tillId={tillId}
+          onClose={() => setShowSalesReportModal(false)}
+        />
+      )}
+
+      {/* Bank Settlement Modal */}
+      {showSettlementsModal && (
+        <BankSettlementModal
+          tillId={tillId}
+          onClose={() => setShowSettlementsModal(false)}
+        />
+      )}
+
+      {/* Returns Modal */}
+      {showReturnsModal && (
+        <ReturnsModal
+          tillId={tillId}
+          onClose={() => setShowReturnsModal(false)}
+        />
+      )}
+
+      {/* Inventory Modal */}
+      {showInventoryModal && (
+        <InventoryModal
+          products={products}
+          onClose={() => setShowInventoryModal(false)}
+        />
+      )}
+
+      {/* Customers Modal */}
+      {showCustomersModal && (
+        <CustomersModal
+          onClose={() => setShowCustomersModal(false)}
+        />
+      )}
+
       {/* Cash Input Modal */}
       {showCashInput && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -842,6 +865,378 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Z-Read Modal Component
+function ZReadModal({ tillId, currentUser, onClose }: { tillId: string; currentUser?: UserType; onClose: () => void }) {
+  const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [zReadData, setZReadData] = useState<any>(null);
+
+  const generateZRead = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await apiRequest('/api/reports/z-read', {
+        method: 'POST',
+        body: { tillId }
+      });
+      setZReadData(response);
+      toast({
+        title: "Z-Read Generated",
+        description: "End of day report generated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate Z-read report",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[600px] max-w-[90vw] max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Z-Read Report</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {!zReadData ? (
+          <div className="text-center py-8">
+            <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold mb-2">Generate End of Day Report</h3>
+            <p className="text-gray-600 mb-4">Generate a comprehensive Z-read report for {tillId}</p>
+            <Button onClick={generateZRead} disabled={isGenerating} className="w-full">
+              {isGenerating ? 'Generating...' : 'Generate Z-Read Report'}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+              <h3 className="font-semibold mb-2">Report Summary</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Till ID</p>
+                  <p className="font-semibold">{zReadData.zRead.tillId}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Report Date</p>
+                  <p className="font-semibold">{new Date(zReadData.zRead.reportDate).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Sales</p>
+                  <p className="font-semibold text-green-600">€{zReadData.zRead.totalSales.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Transaction Count</p>
+                  <p className="font-semibold">{zReadData.zRead.transactionCount}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Cash Sales</p>
+                  <p className="font-semibold">€{zReadData.zRead.cashSales.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Card Sales</p>
+                  <p className="font-semibold">€{zReadData.zRead.cardSales.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">VAT Total</p>
+                  <p className="font-semibold">€{zReadData.zRead.totalVat.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Closing Float</p>
+                  <p className="font-semibold">€{zReadData.zRead.closingFloat.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1">
+                <Printer className="w-4 h-4 mr-2" />
+                Print Report
+              </Button>
+              <Button variant="outline" className="flex-1">
+                <Download className="w-4 h-4 mr-2" />
+                Export PDF
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Bank Settlement Modal Component
+function BankSettlementModal({ tillId, onClose }: { tillId: string; onClose: () => void }) {
+  const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [settlementData, setSettlementData] = useState<any>(null);
+
+  const generateSettlement = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await apiRequest('/api/reports/settlement', {
+        method: 'POST',
+        body: { tillId }
+      });
+      setSettlementData(response);
+      toast({
+        title: "Settlement Generated",
+        description: "Bank settlement report generated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate settlement report",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[600px] max-w-[90vw] max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Bank Settlement</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {!settlementData ? (
+          <div className="text-center py-8">
+            <CreditCard className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold mb-2">Generate Settlement Report</h3>
+            <p className="text-gray-600 mb-4">Generate bank settlement report for card transactions</p>
+            <Button onClick={generateSettlement} disabled={isGenerating} className="w-full">
+              {isGenerating ? 'Generating...' : 'Generate Settlement'}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+              <h3 className="font-semibold mb-2">Settlement Summary</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Terminal ID</p>
+                  <p className="font-semibold">{settlementData.terminalId}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Merchant ID</p>
+                  <p className="font-semibold">{settlementData.merchantId}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Batch Number</p>
+                  <p className="font-semibold">{settlementData.batchNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Transaction Count</p>
+                  <p className="font-semibold">{settlementData.transactionCount}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Card Sales</p>
+                  <p className="font-semibold text-green-600">€{settlementData.totalCardSales.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Average Ticket</p>
+                  <p className="font-semibold">€{settlementData.averageTicket.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1">
+                <Printer className="w-4 h-4 mr-2" />
+                Print Settlement
+              </Button>
+              <Button variant="outline" className="flex-1">
+                <Download className="w-4 h-4 mr-2" />
+                Export to Bank
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Sales Report Modal Component
+function SalesReportModal({ tillId, onClose }: { tillId: string; onClose: () => void }) {
+  const { toast } = useToast();
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0]
+  });
+
+  const { data: salesData, isLoading } = useQuery({
+    queryKey: ['/api/reports/sales', tillId, dateRange],
+    queryFn: () => fetch(`/api/reports/sales?tillId=${tillId}&startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`).then(res => res.json()),
+    enabled: !!tillId
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[600px] max-w-[90vw] max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Sales Report</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Start Date</label>
+              <Input
+                type="date"
+                value={dateRange.startDate}
+                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">End Date</label>
+              <Input
+                type="date"
+                value={dateRange.endDate}
+                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p>Loading sales data...</p>
+            </div>
+          ) : salesData ? (
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+              <h3 className="font-semibold mb-2">Sales Summary</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Total Sales</p>
+                  <p className="font-semibold text-green-600">€{salesData.summary.totalSales.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total Transactions</p>
+                  <p className="font-semibold">{salesData.summary.totalTransactions}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Cash Sales</p>
+                  <p className="font-semibold">€{salesData.summary.cashSales.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Card Sales</p>
+                  <p className="font-semibold">€{salesData.summary.cardSales.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1">
+              <Printer className="w-4 h-4 mr-2" />
+              Print Report
+            </Button>
+            <Button variant="outline" className="flex-1">
+              <Download className="w-4 h-4 mr-2" />
+              Export Excel
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Simple modal components for other features
+function ReturnsModal({ tillId, onClose }: { tillId: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[500px] max-w-[90vw]">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Returns Processing</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="text-center py-8">
+          <RotateCcw className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-semibold mb-2">Process Returns</h3>
+          <p className="text-gray-600 mb-4">Scan receipt or enter transaction ID to process returns</p>
+          <Input placeholder="Enter transaction ID or scan receipt" className="mb-4" />
+          <Button className="w-full">Process Return</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InventoryModal({ products, onClose }: { products: any[]; onClose: () => void }) {
+  const lowStockProducts = products.filter(p => p.stock <= p.minStock);
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[600px] max-w-[90vw] max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Inventory Status</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
+            <h3 className="font-semibold mb-2 text-red-800 dark:text-red-200">Low Stock Alert</h3>
+            <p className="text-sm text-red-600 dark:text-red-300">{lowStockProducts.length} products below minimum stock level</p>
+          </div>
+          
+          <div className="space-y-2">
+            {lowStockProducts.map(product => (
+              <div key={product.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                <div>
+                  <p className="font-medium">{product.name}</p>
+                  <p className="text-sm text-gray-600">Stock: {product.stock} / Min: {product.minStock}</p>
+                </div>
+                <Badge variant="destructive">Low Stock</Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CustomersModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[500px] max-w-[90vw]">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Customer Management</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="text-center py-8">
+          <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <h3 className="text-lg font-semibold mb-2">Customer Database</h3>
+          <p className="text-gray-600 mb-4">Search customers, view loyalty points, and manage accounts</p>
+          <Input placeholder="Search customers..." className="mb-4" />
+          <Button className="w-full">Search Customers</Button>
+        </div>
+      </div>
     </div>
   );
 }

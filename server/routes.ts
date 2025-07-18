@@ -71,6 +71,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/delivery/import", importDelivery);
   app.get("/api/delivery/history", getDeliveryHistory);
   app.get("/api/delivery/product-suggestions", getProductSuggestions);
+  // Z-Read and End of Day Reports
+  app.post("/api/reports/z-read", async (req, res) => {
+    try {
+      const { tillId } = req.body;
+      const today = new Date();
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+      
+      // Get all transactions for today
+      const transactions = await storage.getTransactionsByDateRange(startOfDay, endOfDay, tillId);
+      
+      const totalSales = transactions.reduce((sum, t) => sum + parseFloat(t.total), 0);
+      const totalVat = transactions.reduce((sum, t) => sum + parseFloat(t.vatAmount), 0);
+      const cashSales = transactions.filter(t => t.paymentMethod === 'cash').reduce((sum, t) => sum + parseFloat(t.total), 0);
+      const cardSales = transactions.filter(t => t.paymentMethod === 'card').reduce((sum, t) => sum + parseFloat(t.total), 0);
+      
+      const zRead = {
+        reportType: 'Z',
+        tillId,
+        reportDate: new Date(),
+        totalSales,
+        totalVat,
+        transactionCount: transactions.length,
+        cashSales,
+        cardSales,
+        openingFloat: 100.00, // Default opening float
+        closingFloat: 100.00 + cashSales, // Opening + cash sales
+        generatedBy: 1
+      };
+      
+      res.json({ zRead, transactions });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate Z-read" });
+    }
+  });
+
+  // Bank Settlement Report
+  app.post("/api/reports/settlement", async (req, res) => {
+    try {
+      const { tillId, date } = req.body;
+      const targetDate = date ? new Date(date) : new Date();
+      const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+      
+      const transactions = await storage.getTransactionsByDateRange(startOfDay, endOfDay, tillId);
+      const cardTransactions = transactions.filter(t => t.paymentMethod === 'card');
+      
+      const settlement = {
+        date: targetDate,
+        tillId,
+        totalCardSales: cardTransactions.reduce((sum, t) => sum + parseFloat(t.total), 0),
+        transactionCount: cardTransactions.length,
+        averageTicket: cardTransactions.length > 0 ? cardTransactions.reduce((sum, t) => sum + parseFloat(t.total), 0) / cardTransactions.length : 0,
+        terminalId: `TERM_${tillId.toUpperCase()}`,
+        merchantId: "KERRIGANS_XL_001",
+        batchNumber: Math.floor(Math.random() * 10000),
+        cardTransactions: cardTransactions.map(t => ({
+          ...t,
+          cardType: 'VISA/MC', // Mock card type
+          authCode: Math.random().toString(36).substr(2, 6).toUpperCase(),
+          reference: `REF${t.id.toString().padStart(6, '0')}`
+        }))
+      };
+      
+      res.json(settlement);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate settlement report" });
+    }
+  });
+
+  // Sales Report
+  app.get("/api/reports/sales", async (req, res) => {
+    try {
+      const { tillId, startDate, endDate } = req.query;
+      const start = startDate ? new Date(startDate as string) : new Date(new Date().setHours(0, 0, 0, 0));
+      const end = endDate ? new Date(endDate as string) : new Date(new Date().setHours(23, 59, 59, 999));
+      
+      const transactions = await storage.getTransactionsByDateRange(start, end, tillId as string);
+      
+      const report = {
+        period: { start, end },
+        tillId,
+        summary: {
+          totalSales: transactions.reduce((sum, t) => sum + parseFloat(t.total), 0),
+          totalTransactions: transactions.length,
+          averageTicket: transactions.length > 0 ? transactions.reduce((sum, t) => sum + parseFloat(t.total), 0) / transactions.length : 0,
+          cashSales: transactions.filter(t => t.paymentMethod === 'cash').reduce((sum, t) => sum + parseFloat(t.total), 0),
+          cardSales: transactions.filter(t => t.paymentMethod === 'card').reduce((sum, t) => sum + parseFloat(t.total), 0)
+        },
+        transactions
+      };
+      
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate sales report" });
+    }
+  });
+
   // Database seeding endpoint
   app.post("/api/seed", async (req, res) => {
     try {

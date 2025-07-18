@@ -25,7 +25,7 @@ import {
   type InsertCustomerInsight, type InsertPushNotification
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -62,6 +62,7 @@ export interface IStorage {
   getTransactions(): Promise<Transaction[]>;
   getTransaction(id: number): Promise<Transaction | undefined>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransactionsByDateRange(startDate: Date, endDate: Date, tillId?: string): Promise<Transaction[]>;
   getTransactionItems(transactionId: number): Promise<TransactionItem[]>;
   addTransactionItem(item: InsertTransactionItem): Promise<TransactionItem>;
   
@@ -395,6 +396,21 @@ export class DatabaseStorage implements IStorage {
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
     const [transaction] = await db.insert(transactions).values(insertTransaction).returning();
     return transaction;
+  }
+
+  async getTransactionsByDateRange(startDate: Date, endDate: Date, tillId?: string): Promise<Transaction[]> {
+    let query = db.select().from(transactions).where(
+      and(
+        gte(transactions.createdAt, startDate),
+        lte(transactions.createdAt, endDate)
+      )
+    );
+    
+    if (tillId) {
+      query = query.where(eq(transactions.tillId, tillId));
+    }
+    
+    return await query;
   }
 
   async getTransactionItems(transactionId: number): Promise<TransactionItem[]> {
