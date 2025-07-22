@@ -653,142 +653,178 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="space-y-4">
-            {/* Primary Navigation */}
-            <div className="flex flex-wrap gap-2 p-4 bg-white dark:bg-gray-800 rounded-lg border">
-              <Button 
-                variant={activeTab === "overview" ? "default" : "outline"}
-                onClick={() => setActiveTab("overview")}
-                className="flex-1 min-w-[120px]"
-              >
-                Overview
-              </Button>
-              <Button 
-                variant={activeTab === "sales-ledger" ? "default" : "outline"}
-                onClick={() => setActiveTab("sales-ledger")}
-                className="flex-1 min-w-[120px]"
-              >
-                Sales Ledger
-              </Button>
-              <Button 
-                variant={activeTab === "stock-ledger" ? "default" : "outline"}
-                onClick={() => setActiveTab("stock-ledger")}
-                className="flex-1 min-w-[120px]"
-              >
-                Stock Ledger
-              </Button>
-              <Button 
-                variant={activeTab === "advanced-inventory" ? "default" : "outline"}
-                onClick={() => setActiveTab("advanced-inventory")}
-                className="flex-1 min-w-[120px]"
-              >
-                Advanced Inventory
-              </Button>
-              <Button 
-                variant={activeTab === "advanced-staff" ? "default" : "outline"}
-                onClick={() => setActiveTab("advanced-staff")}
-                className="flex-1 min-w-[120px]"
-              >
-                Advanced Staff
-              </Button>
-              <Button 
-                variant={activeTab === "smart-analytics" ? "default" : "outline"}
-                onClick={() => setActiveTab("smart-analytics")}
-                className="flex-1 min-w-[120px]"
-              >
-                Smart Analytics
-              </Button>
-            </div>
-
-            {/* Secondary Navigation */}
-            <div className="flex flex-wrap gap-2 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border">
-              <Button 
-                variant={activeTab === "deliveries" ? "default" : "outline"}
-                onClick={() => setActiveTab("deliveries")}
-                size="sm"
-              >
-                Deliveries
-              </Button>
-              <Button 
-                variant={activeTab === "suppliers" ? "default" : "outline"}
-                onClick={() => setActiveTab("suppliers")}
-                size="sm"
-              >
-                Suppliers
-              </Button>
-              <Button 
-                variant={activeTab === "ai-optimization" ? "default" : "outline"}
-                onClick={() => setActiveTab("ai-optimization")}
-                size="sm"
-              >
-                AI Price
-              </Button>
-              <Button 
-                variant={activeTab === "staff-activity" ? "default" : "outline"}
-                onClick={() => setActiveTab("staff-activity")}
-                size="sm"
-              >
-                Activity
-              </Button>
-              <Button 
-                variant={activeTab === "alerts" ? "default" : "outline"}
-                onClick={() => setActiveTab("alerts")}
-                size="sm"
-              >
-                Alerts
-              </Button>
-              <Button 
-                variant={activeTab === "mobile-scanner" ? "default" : "outline"}
-                onClick={() => setActiveTab("mobile-scanner")}
-                size="sm"
-              >
-                Mobile
-              </Button>
-              <Button 
-                variant={activeTab === "value-projection" ? "default" : "outline"}
-                onClick={() => setActiveTab("value-projection")}
-                size="sm"
-              >
-                Value Projection
-              </Button>
-              <Button 
-                variant={activeTab === "packages" ? "default" : "outline"}
-                onClick={() => setActiveTab("packages")}
-                size="sm"
-              >
-                Packages
-              </Button>
-              <Button 
-                variant={activeTab === "till-stock" ? "default" : "outline"}
-                onClick={() => setActiveTab("till-stock")}
-                size="sm"
-              >
-                Till Stock
-              </Button>
-              <Button 
-                variant={activeTab === "promotions" ? "default" : "outline"}
-                onClick={() => setActiveTab("promotions")}
-                size="sm"
-              >
-                Promotions
-              </Button>
-              <Button 
-                variant={activeTab === "maintenance" ? "default" : "outline"}
-                onClick={() => setActiveTab("maintenance")}
-                size="sm"
-              >
-                Maintenance
-              </Button>
-              <Button 
-                variant={activeTab === "management" ? "default" : "outline"}
-                onClick={() => setActiveTab("management")}
-                size="sm"
-              >
-                Admin
-              </Button>
-            </div>
+          {/* Mobile-Friendly Navigation Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+            <Button 
+              variant={activeTab === "overview" ? "default" : "outline"}
+              onClick={() => setActiveTab("overview")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Settings className="w-4 h-4" />
+              Overview
+            </Button>
+            <Button 
+              variant={activeTab === "pos-config" ? "default" : "outline"}
+              onClick={() => setActiveTab("pos-config")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Grid className="w-4 h-4" />
+              POS Config
+            </Button>
+            <Button 
+              variant={activeTab === "inventory" ? "default" : "outline"}
+              onClick={() => setActiveTab("inventory")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Package className="w-4 h-4" />
+              Inventory
+            </Button>
+            <Button 
+              variant={activeTab === "staff" ? "default" : "outline"}
+              onClick={() => setActiveTab("staff")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Users className="w-4 h-4" />
+              Staff
+            </Button>
+            <Button 
+              variant={activeTab === "sales-ledger" ? "default" : "outline"}
+              onClick={() => setActiveTab("sales-ledger")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <FileText className="w-4 h-4" />
+              Sales
+            </Button>
+            <Button 
+              variant={activeTab === "stock-ledger" ? "default" : "outline"}
+              onClick={() => setActiveTab("stock-ledger")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Package className="w-4 h-4" />
+              Stock
+            </Button>
+            <Button 
+              variant={activeTab === "advanced-inventory" ? "default" : "outline"}
+              onClick={() => setActiveTab("advanced-inventory")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Plus className="w-4 h-4" />
+              Adv Stock
+            </Button>
+            <Button 
+              variant={activeTab === "advanced-staff" ? "default" : "outline"}
+              onClick={() => setActiveTab("advanced-staff")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Clock className="w-4 h-4" />
+              Adv Staff
+            </Button>
+            <Button 
+              variant={activeTab === "smart-analytics" ? "default" : "outline"}
+              onClick={() => setActiveTab("smart-analytics")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <TrendingUp className="w-4 h-4" />
+              Analytics
+            </Button>
+            <Button 
+              variant={activeTab === "deliveries" ? "default" : "outline"}
+              onClick={() => setActiveTab("deliveries")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Deliveries
+            </Button>
+            <Button 
+              variant={activeTab === "suppliers" ? "default" : "outline"}
+              onClick={() => setActiveTab("suppliers")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Users className="w-4 h-4" />
+              Suppliers
+            </Button>
+            <Button 
+              variant={activeTab === "ai-optimization" ? "default" : "outline"}
+              onClick={() => setActiveTab("ai-optimization")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Target className="w-4 h-4" />
+              AI Price
+            </Button>
+            <Button 
+              variant={activeTab === "staff-activity" ? "default" : "outline"}
+              onClick={() => setActiveTab("staff-activity")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Eye className="w-4 h-4" />
+              Activity
+            </Button>
+            <Button 
+              variant={activeTab === "alerts" ? "default" : "outline"}
+              onClick={() => setActiveTab("alerts")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              Alerts
+            </Button>
+            <Button 
+              variant={activeTab === "mobile-scanner" ? "default" : "outline"}
+              onClick={() => setActiveTab("mobile-scanner")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Package className="w-4 h-4" />
+              Scanner
+            </Button>
+            <Button 
+              variant={activeTab === "value-projection" ? "default" : "outline"}
+              onClick={() => setActiveTab("value-projection")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <DollarSign className="w-4 h-4" />
+              Forecast
+            </Button>
+            <Button 
+              variant={activeTab === "packages" ? "default" : "outline"}
+              onClick={() => setActiveTab("packages")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Grid className="w-4 h-4" />
+              Packages
+            </Button>
+            <Button 
+              variant={activeTab === "till-stock" ? "default" : "outline"}
+              onClick={() => setActiveTab("till-stock")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Till Stock
+            </Button>
+            <Button 
+              variant={activeTab === "promotions" ? "default" : "outline"}
+              onClick={() => setActiveTab("promotions")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Target className="w-4 h-4" />
+              Promos
+            </Button>
+            <Button 
+              variant={activeTab === "maintenance" ? "default" : "outline"}
+              onClick={() => setActiveTab("maintenance")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Settings className="w-4 h-4" />
+              Maintain
+            </Button>
+            <Button 
+              variant={activeTab === "management" ? "default" : "outline"}
+              onClick={() => setActiveTab("management")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Users className="w-4 h-4" />
+              Admin
+            </Button>
           </div>
 
           <TabsContent value={activeTab}>
