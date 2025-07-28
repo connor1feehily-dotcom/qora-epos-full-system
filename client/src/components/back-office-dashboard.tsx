@@ -40,6 +40,7 @@ import AdvancedInventoryTweaks from "./advanced-inventory-tweaks";
 import AdvancedStaffManagement from "./advanced-staff-management";
 import SmartAnalytics from "./smart-analytics";
 import { SupplierOrderIntegration } from "./supplier-order-integration";
+import { SupplierDashboard } from "./supplier-dashboard";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -520,6 +521,8 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
         return <SmartAnalytics />;
       case "supplier-integration":
         return <SupplierOrderIntegration />;
+      case "supplier-dashboard":
+        return <SupplierDashboard onBackToMenu={() => setActiveTab("overview")} currentUser={currentUser} />;
       case "pos-config":
         return <PosButtonConfigurator tillId="till1" />;
       case "inventory":
@@ -839,6 +842,14 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
             >
               <Users className="w-4 h-4" />
               Admin
+            </Button>
+            <Button 
+              variant={activeTab === "supplier-dashboard" ? "default" : "outline"}
+              onClick={() => setActiveTab("supplier-dashboard")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <Package className="w-4 h-4" />
+              AI Orders
             </Button>
           </div>
 

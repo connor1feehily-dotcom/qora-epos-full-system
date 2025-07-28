@@ -718,6 +718,10 @@ export const insertOfflineQueueSchema = createInsertSchema(offlineQueue).omit({
   syncedAt: true,
 });
 
+
+
+
+
 // Types
 export type User = typeof users.$inferSelect;
 export type Product = typeof products.$inferSelect;

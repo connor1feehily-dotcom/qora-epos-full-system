@@ -72,7 +72,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/delivery/history", getDeliveryHistory);
   app.get("/api/delivery/product-suggestions", getProductSuggestions);
 
-  // Supplier Order Integration routes
+  // Supplier Dashboard Integration
+  const { registerSupplierDashboardRoutes } = await import('./supplier-dashboard-routes');
+  registerSupplierDashboardRoutes(app);
   app.get("/api/supplier-order-integration", async (req, res) => {
     try {
       const integrations = await storage.getSupplierOrderIntegrations();

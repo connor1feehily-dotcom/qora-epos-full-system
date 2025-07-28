@@ -722,7 +722,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Email Order Capture
-  async getEmailOrderCaptures(): Promise<EmailOrderCapture[]> {
+  async getEmailCaptures(): Promise<EmailOrderCapture[]> {
     return await db.select().from(emailOrderCapture).orderBy(desc(emailOrderCapture.receivedAt));
   }
 
@@ -757,6 +757,29 @@ export class DatabaseStorage implements IStorage {
   async createSupplierWebhook(webhook: InsertSupplierWebhook): Promise<SupplierWebhook> {
     const [newWebhook] = await db.insert(supplierWebhooks).values(webhook).returning();
     return newWebhook;
+  }
+
+  // Supplier Order Integration
+  async getSupplierOrders(): Promise<SupplierOrderIntegration[]> {
+    return await db.select().from(supplierOrderIntegration).orderBy(desc(supplierOrderIntegration.createdAt));
+  }
+
+  async getSupplierOrder(id: number): Promise<SupplierOrderIntegration | undefined> {
+    const [order] = await db.select().from(supplierOrderIntegration).where(eq(supplierOrderIntegration.id, id));
+    return order || undefined;
+  }
+
+  async createSupplierOrder(order: InsertSupplierOrderIntegration): Promise<SupplierOrderIntegration> {
+    const [newOrder] = await db.insert(supplierOrderIntegration).values(order).returning();
+    return newOrder;
+  }
+
+  async updateSupplierOrder(id: number, updates: Partial<InsertSupplierOrderIntegration>): Promise<SupplierOrderIntegration> {
+    const [updated] = await db.update(supplierOrderIntegration)
+      .set(updates)
+      .where(eq(supplierOrderIntegration.id, id))
+      .returning();
+    return updated;
   }
 
   async updateSupplierWebhook(id: number, updates: Partial<InsertSupplierWebhook>): Promise<SupplierWebhook> {
