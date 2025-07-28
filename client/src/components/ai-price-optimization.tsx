@@ -127,13 +127,13 @@ export function AIPriceOptimization() {
     return { change, percentage };
   };
 
-  const highConfidenceOptimizations = optimizations.filter(opt => opt.confidence >= 80);
-  const mediumConfidenceOptimizations = optimizations.filter(opt => opt.confidence >= 60 && opt.confidence < 80);
-  const lowConfidenceOptimizations = optimizations.filter(opt => opt.confidence < 60);
+  const highConfidenceOptimizations = optimizations.filter(opt => Number(opt.confidence) >= 80);
+  const mediumConfidenceOptimizations = optimizations.filter(opt => Number(opt.confidence) >= 60 && Number(opt.confidence) < 80);
+  const lowConfidenceOptimizations = optimizations.filter(opt => Number(opt.confidence) < 60);
 
   const potentialRevenue = optimizations.reduce((sum, opt) => {
-    const change = calculatePriceChange(parseFloat(opt.currentPrice), parseFloat(opt.suggestedPrice));
-    return sum + (change.change * (opt.salesVelocity || 0));
+    const change = calculatePriceChange(Number(opt.currentPrice), Number(opt.suggestedPrice));
+    return sum + (change.change * (Number(opt.salesVelocity) || 0));
   }, 0);
 
   return (

@@ -517,6 +517,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
         return <AdvancedStaffManagement />;
       case "smart-analytics":
         return <SmartAnalytics />;
+      case "pos-config":
+        return <PosButtonConfigurator tillId="till1" />;
+      case "inventory":
+        return <InventoryManagement />;
       default:
         return (
           <div className="space-y-6">

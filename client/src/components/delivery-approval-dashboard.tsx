@@ -171,7 +171,7 @@ export function DeliveryApprovalDashboard({ currentUser }: DeliveryApprovalDashb
                   <div>
                     <CardTitle className="text-lg">{docket.docketNumber}</CardTitle>
                     <div className="text-sm text-gray-600">
-                      {docket.supplierName} • {docket.totalItems} items • £{docket.totalValue?.toFixed(2)}
+                      {docket.supplierName} • {docket.totalItems} items • £{Number(docket.totalValue || 0).toFixed(2)}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -209,7 +209,7 @@ export function DeliveryApprovalDashboard({ currentUser }: DeliveryApprovalDashb
                   <div>
                     <CardTitle className="text-lg">{docket.docketNumber}</CardTitle>
                     <div className="text-sm text-gray-600">
-                      {docket.supplierName} • {docket.totalItems} items • £{docket.totalValue?.toFixed(2)}
+                      {docket.supplierName} • {docket.totalItems} items • £{Number(docket.totalValue || 0).toFixed(2)}
                     </div>
                   </div>
                   <Badge className={getStatusColor(docket.status)}>
@@ -254,7 +254,7 @@ export function DeliveryApprovalDashboard({ currentUser }: DeliveryApprovalDashb
                 </div>
                 <div>
                   <Label>Total Value</Label>
-                  <div className="font-medium">£{selectedDocket.totalValue?.toFixed(2)}</div>
+                  <div className="font-medium">£{Number(selectedDocket.totalValue || 0).toFixed(2)}</div>
                 </div>
               </div>
 
@@ -268,12 +268,12 @@ export function DeliveryApprovalDashboard({ currentUser }: DeliveryApprovalDashb
                         <div className="flex-1">
                           <div className="font-medium">{item.productName}</div>
                           <div className="text-sm text-gray-600">
-                            {item.barcode} • Qty: {item.quantity} • Cost: £{item.unitCost?.toFixed(2)}
+                            {item.barcode} • Qty: {item.quantity} • Cost: £{Number(item.unitCost || 0).toFixed(2)}
                           </div>
                           {item.suggestedPrice && (
                             <div className="text-sm">
-                              Suggested Price: £{item.suggestedPrice.toFixed(2)} • 
-                              Margin: {item.marginPercentage?.toFixed(1)}%
+                              Suggested Price: £{Number(item.suggestedPrice || 0).toFixed(2)} • 
+                              Margin: {Number(item.marginPercentage || 0).toFixed(1)}%
                             </div>
                           )}
                         </div>
@@ -289,9 +289,9 @@ export function DeliveryApprovalDashboard({ currentUser }: DeliveryApprovalDashb
                             onClick={() => {
                               setEditingItem(item);
                               setPriceAdjustment({
-                                suggestedPrice: calculateSuggestedPrice(item.unitCost || 0),
-                                approvedPrice: item.approvedPrice || item.suggestedPrice || 0,
-                                marginPercentage: item.marginPercentage || 30
+                                suggestedPrice: calculateSuggestedPrice(Number(item.unitCost || 0)),
+                                approvedPrice: Number(item.approvedPrice || item.suggestedPrice || 0),
+                                marginPercentage: Number(item.marginPercentage || 30)
                               });
                             }}
                           >
@@ -339,7 +339,7 @@ export function DeliveryApprovalDashboard({ currentUser }: DeliveryApprovalDashb
             <div className="space-y-4">
               <div>
                 <Label>Cost Price</Label>
-                <div className="font-medium">£{editingItem.unitCost?.toFixed(2)}</div>
+                <div className="font-medium">£{Number(Number(editingItem.unitCost || 0)).toFixed(2)}</div>
               </div>
               
               <div>
@@ -362,7 +362,7 @@ export function DeliveryApprovalDashboard({ currentUser }: DeliveryApprovalDashb
                   step="0.01"
                   value={priceAdjustment.approvedPrice}
                   onChange={(e) => handlePriceChange(
-                    editingItem.unitCost || 0,
+                    Number(editingItem.unitCost || 0),
                     parseFloat(e.target.value)
                   )}
                 />
