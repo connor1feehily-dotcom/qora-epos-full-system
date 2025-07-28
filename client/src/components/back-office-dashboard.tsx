@@ -784,9 +784,6 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <DollarSign className="w-4 h-4" />
               Orders
             </Button>
-              <AlertTriangle className="w-4 h-4" />
-              Alerts
-            </Button>
             <Button 
               variant={activeTab === "mobile-scanner" ? "default" : "outline"}
               onClick={() => setActiveTab("mobile-scanner")}
