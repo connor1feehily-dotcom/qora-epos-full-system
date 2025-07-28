@@ -4,6 +4,7 @@ import {
   deliveryDockets, deliveryItems, supplierPerformance, staffActivityLog, priceOptimizations, systemAlerts, offlineQueue,
   batchEditOperations, expiryTracking, stockForecasting, timeClock, staffIncentives, staffMessages,
   productPerformance, customAlerts, demandForecasting, qrSupplierReceiving, promotionTemplates, customerInsights, pushNotifications,
+  supplierOrderIntegration, emailOrderCapture, supplierWebhooks, notifications,
   type User, type Product, type Customer, type Supplier, type Transaction, type TransactionItem, type Promotion,
   type TillSession, type DailyReport, type PosButton, type PurchaseOrder, type PurchaseOrderItem,
   type PromotionRule, type PromotionProduct, type AuditLog, type StaffSchedule,
@@ -12,6 +13,7 @@ import {
   type BatchEditOperation, type ExpiryTracking, type StockForecasting, type TimeClock, type StaffIncentive,
   type StaffMessage, type ProductPerformance, type CustomAlert, type DemandForecasting,
   type QrSupplierReceiving, type PromotionTemplate, type CustomerInsight, type PushNotification,
+  type SupplierOrderIntegration, type EmailOrderCapture, type SupplierWebhook,
   type InsertUser, type InsertProduct, type InsertCustomer, type InsertSupplier, 
   type InsertTransaction, type InsertTransactionItem, type InsertPromotion,
   type InsertTillSession, type InsertDailyReport, type InsertPosButton, type InsertPurchaseOrder,
@@ -22,7 +24,8 @@ import {
   type InsertBatchEditOperation, type InsertExpiryTracking, type InsertStockForecasting, type InsertTimeClock,
   type InsertStaffIncentive, type InsertStaffMessage, type InsertProductPerformance, type InsertCustomAlert,
   type InsertDemandForecasting, type InsertQrSupplierReceiving, type InsertPromotionTemplate,
-  type InsertCustomerInsight, type InsertPushNotification
+  type InsertCustomerInsight, type InsertPushNotification,
+  type InsertSupplierOrderIntegration, type InsertEmailOrderCapture, type InsertSupplierWebhook
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte } from "drizzle-orm";
@@ -220,6 +223,27 @@ export interface IStorage {
   getPushNotifications(userId?: number, status?: string): Promise<PushNotification[]>;
   createPushNotification(notification: InsertPushNotification): Promise<PushNotification>;
   updatePushNotification(id: number, updates: Partial<InsertPushNotification>): Promise<PushNotification>;
+  
+  // Supplier Order Integration
+  getSupplierOrderIntegrations(): Promise<SupplierOrderIntegration[]>;
+  getSupplierOrderIntegration(id: number): Promise<SupplierOrderIntegration | undefined>;
+  createSupplierOrderIntegration(integration: InsertSupplierOrderIntegration): Promise<SupplierOrderIntegration>;
+  updateSupplierOrderIntegration(id: number, updates: Partial<InsertSupplierOrderIntegration>): Promise<SupplierOrderIntegration>;
+  
+  // Email Order Capture
+  getEmailOrderCaptures(): Promise<EmailOrderCapture[]>;
+  getEmailOrderCapture(id: number): Promise<EmailOrderCapture | undefined>;
+  createEmailOrderCapture(capture: InsertEmailOrderCapture): Promise<EmailOrderCapture>;
+  updateEmailOrderCapture(id: number, updates: Partial<InsertEmailOrderCapture>): Promise<EmailOrderCapture>;
+  
+  // Supplier Webhooks
+  getSupplierWebhooks(): Promise<SupplierWebhook[]>;
+  getSupplierWebhook(id: number): Promise<SupplierWebhook | undefined>;
+  createSupplierWebhook(webhook: InsertSupplierWebhook): Promise<SupplierWebhook>;
+  updateSupplierWebhook(id: number, updates: Partial<InsertSupplierWebhook>): Promise<SupplierWebhook>;
+  
+  // Notifications
+  createNotification(notification: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -673,9 +697,97 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db.update(staffSchedules).set(schedule).where(eq(staffSchedules.id, id)).returning();
     return updated || undefined;
   }
+
+  // Supplier Order Integration
+  async getSupplierOrderIntegrations(): Promise<SupplierOrderIntegration[]> {
+    return await db.select().from(supplierOrderIntegration).orderBy(desc(supplierOrderIntegration.createdAt));
+  }
+
+  async getSupplierOrderIntegration(id: number): Promise<SupplierOrderIntegration | undefined> {
+    const [integration] = await db.select().from(supplierOrderIntegration).where(eq(supplierOrderIntegration.id, id));
+    return integration || undefined;
+  }
+
+  async createSupplierOrderIntegration(integration: InsertSupplierOrderIntegration): Promise<SupplierOrderIntegration> {
+    const [newIntegration] = await db.insert(supplierOrderIntegration).values(integration).returning();
+    return newIntegration;
+  }
+
+  async updateSupplierOrderIntegration(id: number, updates: Partial<InsertSupplierOrderIntegration>): Promise<SupplierOrderIntegration> {
+    const [updated] = await db.update(supplierOrderIntegration)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(supplierOrderIntegration.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Email Order Capture
+  async getEmailOrderCaptures(): Promise<EmailOrderCapture[]> {
+    return await db.select().from(emailOrderCapture).orderBy(desc(emailOrderCapture.receivedAt));
+  }
+
+  async getEmailOrderCapture(id: number): Promise<EmailOrderCapture | undefined> {
+    const [capture] = await db.select().from(emailOrderCapture).where(eq(emailOrderCapture.id, id));
+    return capture || undefined;
+  }
+
+  async createEmailOrderCapture(capture: InsertEmailOrderCapture): Promise<EmailOrderCapture> {
+    const [newCapture] = await db.insert(emailOrderCapture).values(capture).returning();
+    return newCapture;
+  }
+
+  async updateEmailOrderCapture(id: number, updates: Partial<InsertEmailOrderCapture>): Promise<EmailOrderCapture> {
+    const [updated] = await db.update(emailOrderCapture)
+      .set(updates)
+      .where(eq(emailOrderCapture.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Supplier Webhooks
+  async getSupplierWebhooks(): Promise<SupplierWebhook[]> {
+    return await db.select().from(supplierWebhooks).orderBy(desc(supplierWebhooks.createdAt));
+  }
+
+  async getSupplierWebhook(id: number): Promise<SupplierWebhook | undefined> {
+    const [webhook] = await db.select().from(supplierWebhooks).where(eq(supplierWebhooks.id, id));
+    return webhook || undefined;
+  }
+
+  async createSupplierWebhook(webhook: InsertSupplierWebhook): Promise<SupplierWebhook> {
+    const [newWebhook] = await db.insert(supplierWebhooks).values(webhook).returning();
+    return newWebhook;
+  }
+
+  async updateSupplierWebhook(id: number, updates: Partial<InsertSupplierWebhook>): Promise<SupplierWebhook> {
+    const [updated] = await db.update(supplierWebhooks)
+      .set(updates)
+      .where(eq(supplierWebhooks.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Notifications - simple implementation
+  async createNotification(notification: any): Promise<any> {
+    try {
+      const [newNotification] = await db.insert(notifications).values({
+        userId: notification.userId,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        data: notification.data,
+        priority: notification.priority || 'normal',
+        isRead: false
+      }).returning();
+      return newNotification;
+    } catch (error) {
+      // Fallback if notifications table doesn't exist
+      return { id: Date.now(), ...notification };
+    }
+  }
 }
 
-// Legacy memory storage - replaced by DatabaseStorage
+// Legacy memory storage - replaced by DatabaseStorage  
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private products: Map<number, Product>;
@@ -954,6 +1066,78 @@ export class MemStorage implements IStorage {
     const updated = { ...promotion, isActive: false };
     this.promotions.set(id, updated);
     return true;
+  }
+
+  // Supplier Order Integration - placeholder methods for MemStorage
+  async getSupplierOrderIntegrations(): Promise<SupplierOrderIntegration[]> {
+    return [];
+  }
+
+  async getSupplierOrderIntegration(id: number): Promise<SupplierOrderIntegration | undefined> {
+    return undefined;
+  }
+
+  async createSupplierOrderIntegration(integration: InsertSupplierOrderIntegration): Promise<SupplierOrderIntegration> {
+    const id = this.currentId++;
+    return { 
+      id, 
+      ...integration,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    } as SupplierOrderIntegration;
+  }
+
+  async updateSupplierOrderIntegration(id: number, updates: Partial<InsertSupplierOrderIntegration>): Promise<SupplierOrderIntegration> {
+    return { 
+      id, 
+      ...updates,
+      updatedAt: new Date()
+    } as SupplierOrderIntegration;
+  }
+
+  // Email Order Capture - placeholder methods
+  async getEmailOrderCaptures(): Promise<EmailOrderCapture[]> {
+    return [];
+  }
+
+  async getEmailOrderCapture(id: number): Promise<EmailOrderCapture | undefined> {
+    return undefined;
+  }
+
+  async createEmailOrderCapture(capture: InsertEmailOrderCapture): Promise<EmailOrderCapture> {
+    const id = this.currentId++;
+    return { id, ...capture } as EmailOrderCapture;
+  }
+
+  async updateEmailOrderCapture(id: number, updates: Partial<InsertEmailOrderCapture>): Promise<EmailOrderCapture> {
+    return { id, ...updates } as EmailOrderCapture;
+  }
+
+  // Supplier Webhooks - placeholder methods
+  async getSupplierWebhooks(): Promise<SupplierWebhook[]> {
+    return [];
+  }
+
+  async getSupplierWebhook(id: number): Promise<SupplierWebhook | undefined> {
+    return undefined;
+  }
+
+  async createSupplierWebhook(webhook: InsertSupplierWebhook): Promise<SupplierWebhook> {
+    const id = this.currentId++;
+    return { 
+      id, 
+      ...webhook,
+      createdAt: new Date()
+    } as SupplierWebhook;
+  }
+
+  async updateSupplierWebhook(id: number, updates: Partial<InsertSupplierWebhook>): Promise<SupplierWebhook> {
+    return { id, ...updates } as SupplierWebhook;
+  }
+
+  // Notifications
+  async createNotification(notification: any): Promise<any> {
+    return { id: Date.now(), ...notification };
   }
 }
 

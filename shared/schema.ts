@@ -933,6 +933,84 @@ export const qrSupplierReceiving = pgTable('qr_supplier_receiving', {
   approvedAt: timestamp('approved_at')
 });
 
+// Supplier Order Integration - captures orders from supplier websites
+export const supplierOrderIntegration = pgTable('supplier_order_integration', {
+  id: serial('id').primaryKey(),
+  supplierId: integer('supplier_id').references(() => suppliers.id).notNull(),
+  supplierOrderId: varchar('supplier_order_id', { length: 100 }).notNull(), // Supplier's internal order ID
+  externalOrderNumber: varchar('external_order_number', { length: 100 }).notNull(),
+  orderSource: varchar('order_source', { length: 50 }).notNull(), // 'email', 'webhook', 'api', 'manual'
+  orderData: jsonb('order_data').notNull(), // Full order details from supplier
+  orderItems: jsonb('order_items').notNull(), // Array of items ordered
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).default('EUR').notNull(),
+  orderDate: timestamp('order_date').notNull(),
+  expectedDeliveryDate: timestamp('expected_delivery_date'),
+  status: varchar('status', { length: 20 }).default('pending_approval').notNull(), // 'pending_approval', 'approved', 'rejected', 'received', 'cancelled'
+  orderedBy: integer('ordered_by').references(() => users.id).notNull(), // Valerie's user ID
+  approvedBy: integer('approved_by').references(() => users.id),
+  approvedAt: timestamp('approved_at'),
+  rejectedBy: integer('rejected_by').references(() => users.id),
+  rejectedAt: timestamp('rejected_at'),
+  rejectionReason: text('rejection_reason'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Email Integration for capturing supplier order confirmations
+export const emailOrderCapture = pgTable('email_order_capture', {
+  id: serial('id').primaryKey(),
+  emailSubject: text('email_subject').notNull(),
+  emailFrom: text('email_from').notNull(),
+  emailTo: text('email_to').notNull(),
+  emailBody: text('email_body').notNull(),
+  extractedOrderData: jsonb('extracted_order_data'), // Parsed order details
+  parsedItems: jsonb('parsed_items'), // Extracted items
+  supplierOrderIntegrationId: integer('supplier_order_integration_id').references(() => supplierOrderIntegration.id),
+  processingStatus: varchar('processing_status', { length: 20 }).default('pending').notNull(), // 'pending', 'processed', 'failed'
+  confidence: decimal('confidence', { precision: 5, scale: 2 }), // AI confidence in parsing (0-100)
+  receivedAt: timestamp('received_at').defaultNow().notNull(),
+  processedAt: timestamp('processed_at')
+});
+
+// Webhook endpoints for supplier integration
+export const supplierWebhooks = pgTable('supplier_webhooks', {
+  id: serial('id').primaryKey(),
+  supplierId: integer('supplier_id').references(() => suppliers.id).notNull(),
+  webhookUrl: text('webhook_url').notNull(),
+  secretKey: text('secret_key').notNull(),
+  eventTypes: jsonb('event_types').notNull(), // ['order_placed', 'order_shipped', 'order_delivered']
+  isActive: boolean('is_active').default(true).notNull(),
+  lastTriggered: timestamp('last_triggered'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// Insert schemas for new tables
+export const insertSupplierOrderIntegration = createInsertSchema(supplierOrderIntegration).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertEmailOrderCapture = createInsertSchema(emailOrderCapture).omit({
+  id: true,
+  receivedAt: true
+});
+
+export const insertSupplierWebhook = createInsertSchema(supplierWebhooks).omit({
+  id: true,
+  createdAt: true
+});
+
+// Types
+export type SupplierOrderIntegration = typeof supplierOrderIntegration.$inferSelect;
+export type InsertSupplierOrderIntegration = z.infer<typeof insertSupplierOrderIntegration>;
+export type EmailOrderCapture = typeof emailOrderCapture.$inferSelect;
+export type InsertEmailOrderCapture = z.infer<typeof insertEmailOrderCapture>;
+export type SupplierWebhook = typeof supplierWebhooks.$inferSelect;
+export type InsertSupplierWebhook = z.infer<typeof insertSupplierWebhook>;
+
 // Promotion Templates
 export const promotionTemplates = pgTable('promotion_templates', {
   id: serial('id').primaryKey(),

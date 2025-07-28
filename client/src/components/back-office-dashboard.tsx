@@ -39,6 +39,7 @@ import { EnhancedMobileScanner } from "./enhanced-mobile-scanner";
 import AdvancedInventoryTweaks from "./advanced-inventory-tweaks";
 import AdvancedStaffManagement from "./advanced-staff-management";
 import SmartAnalytics from "./smart-analytics";
+import { SupplierOrderIntegration } from "./supplier-order-integration";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -517,6 +518,8 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
         return <AdvancedStaffManagement />;
       case "smart-analytics":
         return <SmartAnalytics />;
+      case "supplier-integration":
+        return <SupplierOrderIntegration />;
       case "pos-config":
         return <PosButtonConfigurator tillId="till1" />;
       case "inventory":
@@ -770,6 +773,17 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               onClick={() => setActiveTab("alerts")}
               className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
             >
+              <AlertTriangle className="w-4 h-4" />
+              Alerts
+            </Button>
+            <Button 
+              variant={activeTab === "supplier-integration" ? "default" : "outline"}
+              onClick={() => setActiveTab("supplier-integration")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <DollarSign className="w-4 h-4" />
+              Orders
+            </Button>
               <AlertTriangle className="w-4 h-4" />
               Alerts
             </Button>

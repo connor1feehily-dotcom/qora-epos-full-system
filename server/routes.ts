@@ -71,6 +71,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/delivery/import", importDelivery);
   app.get("/api/delivery/history", getDeliveryHistory);
   app.get("/api/delivery/product-suggestions", getProductSuggestions);
+
+  // Supplier Order Integration routes
+  app.get("/api/supplier-order-integration", async (req, res) => {
+    try {
+      const integrations = await storage.getSupplierOrderIntegrations();
+      res.json(integrations);
+    } catch (error) {
+      console.error('Error fetching supplier order integrations:', error);
+      res.status(500).json({ error: 'Failed to fetch supplier order integrations' });
+    }
+  });
+
+  app.get("/api/supplier-order-integration/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const integration = await storage.getSupplierOrderIntegration(id);
+      
+      if (!integration) {
+        return res.status(404).json({ error: 'Supplier order integration not found' });
+      }
+      
+      res.json(integration);
+    } catch (error) {
+      console.error('Error fetching supplier order integration:', error);
+      res.status(500).json({ error: 'Failed to fetch supplier order integration' });
+    }
+  });
+
+  app.post("/api/supplier-order-integration/manual", async (req, res) => {
+    try {
+      const integrationData = {
+        supplierId: req.body.supplierId,
+        supplierOrderId: req.body.supplierOrderId || `SUP-${Date.now()}`,
+        externalOrderNumber: req.body.externalOrderNumber,
+        orderSource: req.body.orderSource || 'manual',
+        orderData: req.body.orderData || {},
+        orderItems: req.body.orderItems || [],
+        totalAmount: req.body.totalAmount,
+        currency: req.body.currency || 'EUR',
+        orderDate: new Date(req.body.orderDate),
+        expectedDeliveryDate: req.body.expectedDeliveryDate ? new Date(req.body.expectedDeliveryDate) : null,
+        status: req.body.status || 'pending_approval',
+        orderedBy: req.body.orderedBy || 1,
+        notes: req.body.notes
+      };
+      
+      const integration = await storage.createSupplierOrderIntegration(integrationData);
+      
+      // Create notification for management
+      await storage.createNotification({
+        userId: null,
+        type: 'supplier_order_approval',
+        title: 'New Supplier Order Pending Approval',
+        message: `Order ${integration.externalOrderNumber} from supplier requires approval`,
+        data: { orderId: integration.id },
+        priority: 'high'
+      });
+      
+      res.json(integration);
+    } catch (error) {
+      console.error('Error creating supplier order integration:', error);
+      res.status(500).json({ error: 'Failed to create supplier order integration' });
+    }
+  });
+
+  app.post("/api/supplier-order-integration/:id/approve", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.body.userId || 1;
+      
+      const integration = await storage.getSupplierOrderIntegration(id);
+      if (!integration) {
+        return res.status(404).json({ error: 'Supplier order integration not found' });
+      }
+      
+      // Update integration status
+      await storage.updateSupplierOrderIntegration(id, {
+        status: 'approved',
+        approvedBy: userId,
+        approvedAt: new Date()
+      });
+      
+      // Create purchase order from the integration
+      const purchaseOrder = await storage.createPurchaseOrder({
+        supplierId: integration.supplierId,
+        poNumber: `PO-SI-${integration.id}-${Date.now()}`,
+        status: 'sent',
+        totalAmount: integration.totalAmount,
+        orderDate: integration.orderDate,
+        expectedDate: integration.expectedDeliveryDate || new Date(),
+        createdBy: userId,
+        notes: `Created from supplier order integration #${integration.id} - ${integration.externalOrderNumber}`
+      });
+      
+      res.json({ 
+        message: 'Supplier order approved and purchase order created',
+        integration: await storage.getSupplierOrderIntegration(id),
+        purchaseOrder 
+      });
+    } catch (error) {
+      console.error('Error approving supplier order:', error);
+      res.status(500).json({ error: 'Failed to approve supplier order' });
+    }
+  });
+
+  app.post("/api/supplier-order-integration/:id/reject", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.body.userId || 1;
+      const reason = req.body.reason || 'No reason provided';
+      
+      const integration = await storage.getSupplierOrderIntegration(id);
+      if (!integration) {
+        return res.status(404).json({ error: 'Supplier order integration not found' });
+      }
+      
+      // Update integration status
+      await storage.updateSupplierOrderIntegration(id, {
+        status: 'rejected',
+        rejectedBy: userId,
+        rejectedAt: new Date(),
+        rejectionReason: reason
+      });
+      
+      res.json({ 
+        message: 'Supplier order rejected',
+        integration: await storage.getSupplierOrderIntegration(id)
+      });
+    } catch (error) {
+      console.error('Error rejecting supplier order:', error);
+      res.status(500).json({ error: 'Failed to reject supplier order' });
+    }
+  });
+
+  app.get("/api/email-order-capture", async (req, res) => {
+    try {
+      const captures = await storage.getEmailOrderCaptures();
+      res.json(captures);
+    } catch (error) {
+      console.error('Error fetching email order captures:', error);
+      res.status(500).json({ error: 'Failed to fetch email order captures' });
+    }
+  });
+
+  app.get("/api/supplier-webhooks", async (req, res) => {
+    try {
+      const webhooks = await storage.getSupplierWebhooks();
+      res.json(webhooks);
+    } catch (error) {
+      console.error('Error fetching supplier webhooks:', error);
+      res.status(500).json({ error: 'Failed to fetch supplier webhooks' });
+    }
+  });
+
+  app.post("/api/supplier-webhooks", async (req, res) => {
+    try {
+      const webhook = await storage.createSupplierWebhook({
+        ...req.body,
+        secretKey: `sk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        eventTypes: req.body.eventTypes || ['order_placed']
+      });
+      res.json(webhook);
+    } catch (error) {
+      console.error('Error creating supplier webhook:', error);
+      res.status(500).json({ error: 'Failed to create supplier webhook' });
+    }
+  });
   // Z-Read and End of Day Reports
   app.post("/api/reports/z-read", async (req, res) => {
     try {
