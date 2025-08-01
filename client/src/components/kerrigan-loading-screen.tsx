@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import kerrigansLogo from "@assets/NEW_1749822871411.png";
+import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 
 export function KerrigansLoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState("Initializing system...");
 
   const loadingSteps = [
-    { text: "Initializing Kerrigan's XL POS System...", duration: 1200 },
+    { text: "Initializing Quantum POS System...", duration: 1200 },
     { text: "Connecting to database...", duration: 1000 },
     { text: "Loading product catalog...", duration: 1000 },
     { text: "Setting up payment systems...", duration: 1200 },
@@ -61,8 +61,8 @@ export function KerrigansLoadingScreen() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img 
-            src={kerrigansLogo} 
-            alt="Kerrigan's XL Logo"
+            src={quantumLogo} 
+            alt="Quantum POS Logo"
             className="h-24 w-auto object-contain animate-pulse"
           />
         </div>

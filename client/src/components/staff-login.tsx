@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { User as StaffUser } from "@shared/schema";
-import kerrigansLogo from "@assets/NEW_1749822871411.png";
+import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 
 interface StaffLoginProps {
   onLogin: (user: StaffUser) => void;
@@ -63,13 +63,13 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
             <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
                 <img 
-                  src={kerrigansLogo} 
-                  alt="Kerrigan's XL Logo"
+                  src={quantumLogo} 
+                  alt="Quantum POS Logo"
                   className="h-20 w-auto object-contain kxl-float"
                 />
               </div>
               <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
-                STAFF LOGIN
+                QUANTUM POS LOGIN
               </h2>
               <p className="text-lg text-muted-foreground kxl-slide-in">
                 Enter Your 4-Digit PIN

@@ -1,7 +1,7 @@
-# Kerrigans XL POS System
+# Quantum POS System
 
 ## Overview
-A comprehensive Point of Sale system for Kerrigans XL Manorhamilton featuring:
+A comprehensive Point of Sale system featuring advanced retail management capabilities:
 - Multi-till transaction processing
 - Advanced back office management
 - Real-time inventory tracking

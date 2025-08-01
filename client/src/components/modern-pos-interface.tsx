@@ -46,7 +46,7 @@ import {
   Download
 } from "lucide-react";
 import type { Product, InsertTransaction, InsertTransactionItem, User as UserType, PosButton } from "@shared/schema";
-import kerrigansLogo from "@assets/NEW_1749822871411.png";
+import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 
 interface CartItem {
   product: Product;
@@ -361,10 +361,10 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <img src={kerrigansLogo} alt="Kerrigans XL" className="h-10 w-auto" />
+            <img src={quantumLogo} alt="Quantum POS" className="h-10 w-auto" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Kerrigans XL</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Manorhamilton</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Quantum POS</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Advanced Retail System</p>
             </div>
           </div>
 
