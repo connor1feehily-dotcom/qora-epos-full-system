@@ -263,7 +263,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       
-      if (result.paymentMethod === 'cash' && result.change > 0) {
+      if (result.paymentMethod === 'cash' && result.change && result.change > 0) {
         toast({
           title: "Payment Successful",
           description: `Transaction #${result.transactionId} completed. Change due: €${result.change.toFixed(2)}`,
@@ -900,10 +900,7 @@ function ZReadModal({ tillId, currentUser, onClose }: { tillId: string; currentU
   const generateZRead = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/reports/z-read', {
-        method: 'POST',
-        body: { tillId }
-      });
+      const response = await apiRequest('POST', '/api/reports/z-read', { tillId });
       setZReadData(response);
       toast({
         title: "Z-Read Generated",
@@ -1005,10 +1002,7 @@ function BankSettlementModal({ tillId, onClose }: { tillId: string; onClose: () 
   const generateSettlement = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('/api/reports/settlement', {
-        method: 'POST',
-        body: { tillId }
-      });
+      const response = await apiRequest('POST', '/api/reports/settlement', { tillId });
       setSettlementData(response);
       toast({
         title: "Settlement Generated",

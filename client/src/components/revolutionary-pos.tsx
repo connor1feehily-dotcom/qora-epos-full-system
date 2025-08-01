@@ -14,10 +14,21 @@ import {
   Eye, 
   Minus,
   Plus,
-  Trash2
+  Trash2,
+  Brain,
+  Mic,
+  Fingerprint,
+  Wifi,
+  Battery,
+  Shield,
+  Scan,
+  Camera,
+  Sparkles,
+  Cpu,
+  Zap
 } from "lucide-react";
 import { AutoScanner } from "./auto-scanner";
-import kerrigansLogo from "@assets/NEW_1749822871411.png";
+import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 import type { Product, Customer } from "@shared/schema";
 import type { CartItem, TransactionSummary } from "@/lib/types";
 
@@ -30,11 +41,13 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [scannerActive, setScannerActive] = useState(true);
+  const [aiMode, setAiMode] = useState(true);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [biometricAuth, setBiometricAuth] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState<Product[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-
-  
   // Voice recognition simulation
   const [isListening, setIsListening] = useState(false);
   
@@ -189,7 +202,7 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
               ← Main Menu
             </Button>
             <img 
-              src={kerrigansLogo} 
+              src={quantumLogo} 
               alt="Kerrigan's XL"
               className="h-12 w-auto kxl-float"
             />

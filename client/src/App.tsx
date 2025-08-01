@@ -147,9 +147,7 @@ function AppContent() {
       {mode === 'back-office' && (
         <BackOfficeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser || undefined} />
       )}
-      {mode === 'inactive' ? (
-        <InactiveScreen onActivate={handleActivateFromInactive} lastActivity={lastActivity} />
-      ) : null}
+
 
       {/* Customer Display Route */}
       <Switch>
