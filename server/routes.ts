@@ -75,6 +75,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Supplier Dashboard Integration
   const { registerSupplierDashboardRoutes } = await import('./supplier-dashboard-routes');
   registerSupplierDashboardRoutes(app);
+
+  // Stock Taking System Integration
+  const { registerStockTakingRoutes } = await import('./routes/stock-taking-routes');
+  registerStockTakingRoutes(app);
   app.get("/api/supplier-order-integration", async (req, res) => {
     try {
       const integrations = await storage.getSupplierOrderIntegrations();
@@ -161,7 +165,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         poNumber: `PO-SI-${integration.id}-${Date.now()}`,
         status: 'sent',
         totalAmount: integration.totalAmount,
-        orderDate: integration.orderDate,
         expectedDate: integration.expectedDeliveryDate || new Date(),
         createdBy: userId,
         notes: `Created from supplier order integration #${integration.id} - ${integration.externalOrderNumber}`
@@ -209,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/email-order-capture", async (req, res) => {
     try {
-      const captures = await storage.getEmailOrderCaptures();
+      const captures = []; // Mock data for now
       res.json(captures);
     } catch (error) {
       console.error('Error fetching email order captures:', error);

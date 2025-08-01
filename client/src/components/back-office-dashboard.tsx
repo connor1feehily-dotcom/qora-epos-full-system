@@ -19,7 +19,8 @@ import {
   Edit,
   Calendar,
   Clock,
-  Target
+  Target,
+  CheckCircle
 } from "lucide-react";
 import { PosButtonConfigurator } from "./pos-button-configurator";
 import { InventoryManagement } from "./inventory-management";
@@ -41,6 +42,7 @@ import AdvancedStaffManagement from "./advanced-staff-management";
 import SmartAnalytics from "./smart-analytics";
 import { SupplierOrderIntegration } from "./supplier-order-integration";
 import { SupplierDashboard } from "./supplier-dashboard";
+import { StockTakingSystem } from "./stock-taking-system";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -523,6 +525,8 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
         return <SupplierOrderIntegration />;
       case "supplier-dashboard":
         return <SupplierDashboard onBackToMenu={() => setActiveTab("overview")} currentUser={currentUser} />;
+      case "stock-taking":
+        return <StockTakingSystem onBackToMenu={() => setActiveTab("overview")} currentUser={currentUser} />;
       case "pos-config":
         return <PosButtonConfigurator tillId="till1" />;
       case "inventory":
@@ -850,6 +854,14 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
             >
               <Package className="w-4 h-4" />
               AI Orders
+            </Button>
+            <Button 
+              variant={activeTab === "stock-taking" ? "default" : "outline"}
+              onClick={() => setActiveTab("stock-taking")}
+              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Stock Take
             </Button>
           </div>
 
