@@ -50,11 +50,19 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
     queryKey: ['/api/stock-take/sessions'],
   });
 
-  // Get scanned items for current session
-  const { data: scannedItems = [] } = useQuery<StockTakeItem[]>({
+  // Get scanned items for current session with better error handling
+  const { data: scannedItems = [], isLoading: itemsLoading, error: itemsError, refetch: refetchItems } = useQuery<StockTakeItem[]>({
     queryKey: ['/api/stock-take/items', activeSession?.id],
     enabled: !!activeSession?.id,
+    refetchInterval: 2000, // Refetch every 2 seconds to ensure fresh data
+    refetchIntervalInBackground: true,
   });
+
+  // Debug logging for items
+  console.log('Active session:', activeSession?.id);
+  console.log('Scanned items:', scannedItems);
+  console.log('Items loading:', itemsLoading);
+  console.log('Items error:', itemsError);
 
   // Start new stock take session
   const startSessionMutation = useMutation({
@@ -100,16 +108,31 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Item added successfully:', data);
+      // Force refresh of items
       queryClient.invalidateQueries({ queryKey: ['/api/stock-take/items', activeSession?.id] });
       queryClient.invalidateQueries({ queryKey: ['/api/stock-take/sessions'] });
+      refetchItems(); // Force immediate refetch
+      
+      // Reset form
       setScannedBarcode("");
       setProductName("");
       setQuantity(1);
       setUnitPrice(0);
+      setCurrentView('summary'); // Switch to summary to show the added item
+      
       toast({
-        title: "Item Added",
-        description: "Product added to stock take!"
+        title: "✅ Item Added Successfully!",
+        description: `${data.productName} added to stock take`,
+      });
+    },
+    onError: (error) => {
+      console.error('Failed to add item:', error);
+      toast({
+        title: "❌ Failed to Add Item",
+        description: "Please try again or check your connection",
+        variant: "destructive"
       });
     }
   });
@@ -354,11 +377,15 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
           </Button>
           <Button
             variant={currentView === 'summary' ? 'default' : 'outline'}
-            onClick={() => setCurrentView('summary')}
+            onClick={() => {
+              setCurrentView('summary');
+              refetchItems(); // Refresh items when viewing summary
+            }}
             className="flex-1"
           >
             <List className="w-4 h-4 mr-2" />
             Summary ({scannedItems.length})
+            {itemsLoading && <div className="ml-1 w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>}
           </Button>
         </div>
 
