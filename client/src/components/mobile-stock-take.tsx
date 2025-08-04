@@ -186,6 +186,14 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
     }
   };
 
+  // Enhanced barcode input handling for USB scanners like Honeywell
+  const handleBarcodeKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && scannedBarcode.trim()) {
+      e.preventDefault();
+      setCurrentView('adder');
+    }
+  };
+
   const handleAddItem = () => {
     if (!scannedBarcode || !productName.trim()) {
       toast({
@@ -322,9 +330,10 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
                     id="barcode"
                     value={scannedBarcode}
                     onChange={(e) => setScannedBarcode(e.target.value)}
-                    placeholder="Scan or enter barcode..."
+                    placeholder="Scan or enter barcode (Honeywell scanner ready)..."
                     className="flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && handleManualBarcodeScan()}
+                    onKeyPress={handleBarcodeKeyPress}
+                    autoFocus
                   />
                   <Button 
                     onClick={handleManualBarcodeScan}
