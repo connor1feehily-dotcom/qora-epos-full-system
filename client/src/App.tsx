@@ -17,6 +17,7 @@ import type { User } from "@shared/schema";
 // Lazy load heavy components
 const ModernPOSInterface = lazy(() => import("@/components/modern-pos-interface").then(m => ({ default: m.ModernPOSInterface })));
 const BackOfficeDashboard = lazy(() => import("@/components/back-office-dashboard").then(m => ({ default: m.BackOfficeDashboard })));
+const MobileStockTake = lazy(() => import("@/components/mobile-stock-take").then(m => ({ default: m.MobileStockTake })));
 const CustomerDisplayPage = lazy(() => import("@/components/customer-display").then(m => ({ default: m.CustomerDisplayPage })));
 const ValBotAssistant = lazy(() => import("@/components/valbot-assistant"));
 const MobileCompanion = lazy(() => import("@/components/mobile-companion"));
@@ -46,7 +47,15 @@ function BackOfficeRouter({ onBackToMenu, currentUser }: { onBackToMenu: () => v
   );
 }
 
-type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'inactive';
+function StockTakeRouter({ onBackToMenu, currentUser }: { onBackToMenu: () => void; currentUser: User }) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div></div>}>
+      <MobileStockTake onBackToMenu={onBackToMenu} currentUser={currentUser} />
+    </Suspense>
+  );
+}
+
+type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'stock-take' | 'inactive';
 
 function AppContent() {
   const [mode, setMode] = useState<AppMode>('main-menu');
@@ -80,12 +89,14 @@ function AppContent() {
     setLastActivity(new Date());
   };
 
-  const handleModeSelect = (selectedMode: 'pos' | 'back-office', tillId?: string) => {
+  const handleModeSelect = (selectedMode: 'pos' | 'back-office' | 'stock-take', tillId?: string) => {
     if (selectedMode === 'pos' && tillId) {
       setSelectedTill(tillId);
       setMode('pos');
     } else if (selectedMode === 'back-office') {
       setMode('back-office');
+    } else if (selectedMode === 'stock-take') {
+      setMode('stock-take');
     }
     setLastActivity(new Date());
   };
@@ -148,6 +159,9 @@ function AppContent() {
         <BackOfficeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser || undefined} />
       )}
 
+      {mode === 'stock-take' && currentUser && (
+        <StockTakeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser} />
+      )}
 
       {/* Customer Display Route */}
       <Switch>

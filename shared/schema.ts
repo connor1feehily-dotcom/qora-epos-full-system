@@ -535,6 +535,35 @@ export const offlineQueue = pgTable("offline_queue", {
   syncedAt: timestamp("synced_at"),
 });
 
+// Stock Take Sessions for first-time inventory setup
+export const stockTakeSessions = pgTable("stock_take_sessions", {
+  id: serial("id").primaryKey(),
+  sessionName: text("session_name").notNull(),
+  startedBy: integer("started_by").notNull().references(() => users.id),
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+  status: text("status").notNull().default("active"), // active, paused, completed, cancelled
+  totalItemsScanned: integer("total_items_scanned").notNull().default(0),
+  totalValue: decimal("total_value", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  notes: text("notes"),
+});
+
+// Stock Take Items - temporary holding for scanned items during stock take
+export const stockTakeItems = pgTable("stock_take_items", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull().references(() => stockTakeSessions.id),
+  barcode: text("barcode").notNull(),
+  productName: text("product_name"),
+  category: text("category").default("General"),
+  quantity: integer("quantity").notNull().default(1),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).default("0.00"),
+  totalValue: decimal("total_value", { precision: 10, scale: 2 }).default("0.00"),
+  scannedAt: timestamp("scanned_at").notNull().defaultNow(),
+  scannedBy: integer("scanned_by").notNull().references(() => users.id),
+  isProcessed: boolean("is_processed").notNull().default(false), // Whether converted to actual product
+  deviceInfo: text("device_info"), // Info about scanning device/phone
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -718,6 +747,16 @@ export const insertOfflineQueueSchema = createInsertSchema(offlineQueue).omit({
   syncedAt: true,
 });
 
+export const insertStockTakeSessionSchema = createInsertSchema(stockTakeSessions).omit({
+  id: true,
+  startedAt: true,
+});
+
+export const insertStockTakeItemSchema = createInsertSchema(stockTakeItems).omit({
+  id: true,
+  scannedAt: true,
+});
+
 
 
 
@@ -742,6 +781,10 @@ export type InsertTransactionItem = z.infer<typeof insertTransactionItemSchema>;
 export type InsertPromotion = z.infer<typeof insertPromotionSchema>;
 export type InsertTillSession = z.infer<typeof insertTillSessionSchema>;
 export type InsertDailyReport = z.infer<typeof insertDailyReportSchema>;
+export type StockTakeSession = typeof stockTakeSessions.$inferSelect;
+export type StockTakeItem = typeof stockTakeItems.$inferSelect;
+export type InsertStockTakeSession = z.infer<typeof insertStockTakeSessionSchema>;
+export type InsertStockTakeItem = z.infer<typeof insertStockTakeItemSchema>;
 
 // New types for extended functionality
 export type PosButton = typeof posButtons.$inferSelect;

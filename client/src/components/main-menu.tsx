@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag, Shield } from "lucide-react";
+import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag, Shield, Scan, Plus, AlertCircle, LogOut, Key } from "lucide-react";
 import { StatusPanels } from "./status-panels";
 import { LoginBanner } from "./login-banner";
 import type { User as StaffUser } from "@shared/schema";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 
 interface MainMenuProps {
-  onSelectMode: (mode: 'pos' | 'back-office', tillId?: string) => void;
+  onSelectMode: (mode: 'pos' | 'back-office' | 'stock-take', tillId?: string) => void;
   onStaffLogin: () => void;
   currentUser: StaffUser | null;
   onLogout: () => void;
@@ -97,7 +97,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
         </div>
 
         {currentUser ? (
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Compact POS Section */}
             <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl">
               <div className="text-center mb-4">
@@ -216,6 +216,62 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                   <Settings className="w-5 h-5" />
                   <span>{canAccessBackOffice ? "ACCESS BACK OFFICE" : "ACCESS RESTRICTED"}</span>
                   <BarChart3 className="w-5 h-5" />
+                </div>
+              </Button>
+            </Card>
+
+            {/* Mobile Stock Take Section */}
+            <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl kxl-hologram">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 kxl-glow">
+                  <Package className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent mb-2">
+                  STOCK TAKE
+                </h2>
+                <p className="text-sm text-muted-foreground kxl-slide-in">
+                  First-Time Inventory Setup • Mobile Scanning
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 text-yellow-600" />
+                    <p className="text-xs text-yellow-800 font-medium">
+                      First-Time Setup Required
+                    </p>
+                  </div>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    No products in inventory. Start stock take to add your products.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-green-200">
+                    <div className="flex items-center space-x-2">
+                      <Scan className="w-4 h-4 text-green-600" />
+                      <span className="text-xs font-bold text-foreground">Scan</span>
+                    </div>
+                  </div>
+                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-emerald-200">
+                    <div className="flex items-center space-x-2">
+                      <Plus className="w-4 h-4 text-emerald-600" />
+                      <span className="text-xs font-bold text-foreground">Add</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full h-12 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+                onClick={() => onSelectMode('stock-take')}
+              >
+                <div className="flex items-center space-x-2">
+                  <Package className="w-5 h-5" />
+                  <span>START STOCK TAKE</span>
+                  <Scan className="w-5 h-5" />
                 </div>
               </Button>
             </Card>

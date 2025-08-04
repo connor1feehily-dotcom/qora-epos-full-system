@@ -30,6 +30,7 @@ import {
   triggerAiAnalysis
 } from "./routes/ai-routes";
 import { scanDocket, importDelivery, getDeliveryHistory, getProductSuggestions } from "./routes/delivery-routes";
+import stockTakeRoutes from "./routes/stock-take-routes";
 import { securityHeaders } from "./security/pci-compliance";
 import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema } from "@shared/schema";
 import { z } from 'zod';
@@ -1419,6 +1420,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create promotion rule" });
     }
   });
+
+  // Stock Take Routes
+  app.use("/api/stock-take", stockTakeRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
