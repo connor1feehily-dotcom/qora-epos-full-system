@@ -36,7 +36,7 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
   });
 
   return (
-    <div className="h-screen kxl-neural-bg flex flex-col overflow-hidden">
+    <div className="min-h-screen kxl-neural-bg flex flex-col overflow-auto">
       <div className="w-full max-w-6xl mx-auto p-4 flex-1 flex flex-col">
         {/* Compact Header */}
         <div className="text-center mb-6">
@@ -97,7 +97,50 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
         </div>
 
         {currentUser ? (
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-8">
+            
+            {/* Mobile Stock Take Section - First on mobile */}
+            <div className="block md:hidden order-first">
+              <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl kxl-hologram border-2 border-green-400">
+                <div className="text-center mb-4">
+                  <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 kxl-glow">
+                    <Package className="w-10 h-10 text-white" />
+                  </div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent mb-2">
+                    STOCK TAKE
+                  </h2>
+                  <p className="text-base text-muted-foreground kxl-slide-in">
+                    📱 Mobile Scanning Ready • First-Time Setup
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 mb-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Scan className="w-5 h-5 text-green-600" />
+                      <p className="text-sm text-green-800 font-bold">
+                        📱 Mobile Optimized
+                      </p>
+                    </div>
+                    <p className="text-sm text-green-700">
+                      Use your phone camera or Honeywell scanner to add products to inventory
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  size="lg"
+                  className="w-full h-16 text-xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
+                  onClick={() => onSelectMode('stock-take')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Scan className="w-6 h-6" />
+                    <span>START MOBILE STOCK TAKE</span>
+                    <Package className="w-6 h-6" />
+                  </div>
+                </Button>
+              </Card>
+            </div>
             {/* Compact POS Section */}
             <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl">
               <div className="text-center mb-4">
@@ -220,8 +263,8 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
               </Button>
             </Card>
 
-            {/* Mobile Stock Take Section */}
-            <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl kxl-hologram">
+            {/* Mobile Stock Take Section - Prioritized for mobile */}
+            <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl kxl-hologram md:order-first xl:order-none">
               <div className="text-center mb-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3 kxl-glow">
                   <Package className="w-8 h-8 text-white" />
