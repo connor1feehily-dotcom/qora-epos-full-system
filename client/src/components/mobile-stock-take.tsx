@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
   Trash2,
   BarChart3
 } from "lucide-react";
+import { BrowserMultiFormatReader } from '@zxing/library';
 import type { StockTakeSession, StockTakeItem, User } from "@shared/schema";
 
 interface MobileStockTakeProps {
@@ -40,6 +41,7 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
   const [isScanning, setIsScanning] = useState(false);
   const [currentView, setCurrentView] = useState<'scanner' | 'adder' | 'summary'>('scanner');
   const videoRef = useRef<HTMLVideoElement>(null);
+  const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
   const { toast } = useToast();
   // Query client is imported globally
 
@@ -146,35 +148,62 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
     }
   }, [sessions]);
 
-  // Camera barcode scanning
+  // Initialize ZXing barcode reader
+  useEffect(() => {
+    codeReaderRef.current = new BrowserMultiFormatReader();
+    return () => {
+      if (codeReaderRef.current) {
+        codeReaderRef.current.reset();
+      }
+    };
+  }, []);
+
+  // Handle successful barcode detection
+  const handleBarcodeDetected = useCallback((result: string) => {
+    setScannedBarcode(result);
+    stopCameraScanning();
+    setCurrentView('adder');
+    toast({
+      title: "Barcode Scanned",
+      description: `Detected: ${result}`,
+    });
+  }, []);
+
+  // Camera barcode scanning with ZXing
   const startCameraScanning = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      });
+      setShowCamera(true);
+      setIsScanning(true);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setShowCamera(true);
-        setIsScanning(true);
+      if (codeReaderRef.current && videoRef.current) {
+        await codeReaderRef.current.decodeFromVideoDevice(
+          undefined, // Use default camera
+          videoRef.current,
+          (result, error) => {
+            if (result) {
+              handleBarcodeDetected(result.getText());
+            }
+            if (error && !(error.name === 'NotFoundException')) {
+              console.error('Scanner error:', error);
+            }
+          }
+        );
       }
     } catch (error) {
+      console.error('Scanner initialization failed:', error);
       toast({
         title: "Camera Error",
         description: "Could not access camera. Use manual barcode entry instead.",
         variant: "destructive"
       });
+      setShowCamera(false);
+      setIsScanning(false);
     }
   };
 
   const stopCameraScanning = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+    if (codeReaderRef.current) {
+      codeReaderRef.current.reset();
     }
     setShowCamera(false);
     setIsScanning(false);
