@@ -169,42 +169,96 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
     });
   }, []);
 
-  // Camera barcode scanning with ZXing
+  // Enhanced camera barcode scanning with mobile support
   const startCameraScanning = async () => {
     try {
+      // Check if camera is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported on this device');
+      }
+
       setShowCamera(true);
       setIsScanning(true);
-      
-      if (codeReaderRef.current && videoRef.current) {
-        await codeReaderRef.current.decodeFromVideoDevice(
-          null, // Use default camera
-          videoRef.current,
-          (result, error) => {
-            if (result) {
-              handleBarcodeDetected(result.getText());
-            }
-            if (error && !(error.name === 'NotFoundException')) {
-              console.error('Scanner error:', error);
-            }
+
+      // Request camera permission explicitly
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment', // Use back camera on mobile
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 }
+        }
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        
+        // Wait for video to be ready
+        await new Promise<void>((resolve) => {
+          if (videoRef.current) {
+            videoRef.current.onloadedmetadata = () => {
+              videoRef.current?.play();
+              resolve();
+            };
           }
-        );
+        });
+
+        // Start ZXing scanning
+        if (codeReaderRef.current) {
+          await codeReaderRef.current.decodeFromVideoDevice(
+            null, // Use default camera
+            videoRef.current,
+            (result, error) => {
+              if (result) {
+                handleBarcodeDetected(result.getText());
+              }
+              // Suppress common "not found" errors in console
+              if (error && !(error.name === 'NotFoundException')) {
+                console.error('Scanner error:', error);
+              }
+            }
+          );
+        }
       }
     } catch (error) {
-      console.error('Scanner initialization failed:', error);
+      console.error('Camera access failed:', error);
+      
+      let errorMessage = "Could not access camera. ";
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage += "Please allow camera permissions and try again.";
+        } else if (error.name === 'NotFoundError') {
+          errorMessage += "No camera found on this device.";
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage += "Camera not supported on this browser.";
+        } else {
+          errorMessage += "Use manual barcode entry instead.";
+        }
+      }
+      
       toast({
         title: "Camera Error",
-        description: "Could not access camera. Use manual barcode entry instead.",
+        description: errorMessage,
         variant: "destructive"
       });
+      
       setShowCamera(false);
       setIsScanning(false);
     }
   };
 
   const stopCameraScanning = () => {
+    // Stop camera stream
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
+    // Reset ZXing scanner
     if (codeReaderRef.current) {
       codeReaderRef.current.reset();
     }
+    
     setShowCamera(false);
     setIsScanning(false);
   };
@@ -320,33 +374,61 @@ export function MobileStockTake({ onBackToMenu, currentUser }: MobileStockTakePr
             <CardContent className="space-y-4">
               {/* Camera Scanner */}
               <div>
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Camera className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">Mobile Camera Scanner</span>
+                  </div>
+                  <p className="text-xs text-blue-700">
+                    📱 Point your phone camera at a barcode to scan automatically
+                  </p>
+                </div>
+
                 <Button
                   onClick={startCameraScanning}
                   disabled={showCamera}
-                  className="w-full mb-4"
+                  className="w-full mb-4 h-12 text-lg font-semibold"
+                  variant={showCamera ? "secondary" : "default"}
                 >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Start Camera Scanner
+                  <Camera className="w-5 h-5 mr-2" />
+                  {showCamera ? "Camera Active" : "📱 Start Camera Scanner"}
                 </Button>
 
                 {showCamera && (
-                  <div className="relative bg-black rounded-lg overflow-hidden">
+                  <div className="relative bg-black rounded-lg overflow-hidden mb-4">
                     <video
                       ref={videoRef}
                       autoPlay
-                      className="w-full h-64 object-cover"
+                      playsInline
+                      muted
+                      className="w-full h-64 md:h-80 object-cover"
                     />
+                    
+                    {/* Scanning overlay */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="border-2 border-white w-64 h-16 rounded-lg opacity-50"></div>
+                      <div className="border-2 border-green-400 w-64 h-20 rounded-lg opacity-75 animate-pulse">
+                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">
+                          Align barcode here
+                        </div>
+                      </div>
                     </div>
-                    <Button
-                      onClick={stopCameraScanning}
-                      className="absolute top-2 right-2"
-                      variant="secondary"
-                      size="sm"
-                    >
-                      Stop Camera
-                    </Button>
+                    
+                    {/* Camera controls */}
+                    <div className="absolute top-2 right-2 space-x-2">
+                      <Button
+                        onClick={stopCameraScanning}
+                        variant="secondary"
+                        size="sm"
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        ✕ Stop
+                      </Button>
+                    </div>
+                    
+                    {/* Status indicator */}
+                    <div className="absolute bottom-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-bold animate-pulse">
+                      🔍 Scanning...
+                    </div>
                   </div>
                 )}
               </div>
