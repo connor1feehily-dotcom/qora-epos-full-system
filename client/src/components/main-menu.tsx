@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag, Shield, Scan, Plus, AlertCircle, LogOut, Key } from "lucide-react";
+import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck, Tag, Shield, Scan, Plus, AlertCircle, LogOut, Key, Usb } from "lucide-react";
 import { StatusPanels } from "./status-panels";
 import { LoginBanner } from "./login-banner";
 import type { User as StaffUser } from "@shared/schema";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 
 interface MainMenuProps {
-  onSelectMode: (mode: 'pos' | 'back-office' | 'stock-take', tillId?: string) => void;
+  onSelectMode: (mode: 'pos' | 'back-office' | 'stock-take' | 'hardware-setup', tillId?: string) => void;
   onStaffLogin: () => void;
   currentUser: StaffUser | null;
   onLogout: () => void;
@@ -315,6 +315,56 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                   <Package className="w-5 h-5" />
                   <span>START STOCK TAKE</span>
                   <Scan className="w-5 h-5" />
+                </div>
+              </Button>
+            </Card>
+
+            {/* Hardware Setup Section */}
+            <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-3 kxl-glow">
+                  <Usb className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-600 bg-clip-text text-transparent mb-2">
+                  HARDWARE SETUP
+                </h2>
+                <p className="text-sm text-muted-foreground kxl-slide-in">
+                  Configure Receipt Printers • Barcode Scanners • Cash Drawers
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-1">
+                      <Usb className="w-3 h-3 text-blue-600" />
+                      <span className="text-xs font-bold text-foreground">USB</span>
+                    </div>
+                  </div>
+                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-cyan-200">
+                    <div className="flex items-center space-x-1">
+                      <Scan className="w-3 h-3 text-cyan-600" />
+                      <span className="text-xs font-bold text-foreground">Scanner</span>
+                    </div>
+                  </div>
+                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-1">
+                      <Settings className="w-3 h-3 text-blue-600" />
+                      <span className="text-xs font-bold text-foreground">Setup</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full h-12 text-lg font-bold bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white"
+                onClick={() => onSelectMode('hardware-setup')}
+              >
+                <div className="flex items-center space-x-2">
+                  <Usb className="w-5 h-5" />
+                  <span>SETUP HARDWARE</span>
+                  <Settings className="w-5 h-5" />
                 </div>
               </Button>
             </Card>

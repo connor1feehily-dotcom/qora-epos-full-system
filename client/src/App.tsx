@@ -18,6 +18,7 @@ import type { User } from "@shared/schema";
 const ModernPOSInterface = lazy(() => import("@/components/modern-pos-interface").then(m => ({ default: m.ModernPOSInterface })));
 const BackOfficeDashboard = lazy(() => import("@/components/back-office-dashboard").then(m => ({ default: m.BackOfficeDashboard })));
 const MobileStockTake = lazy(() => import("@/components/mobile-stock-take").then(m => ({ default: m.MobileStockTake })));
+const HardwareSetup = lazy(() => import("@/components/hardware-setup").then(m => ({ default: m.HardwareSetup })));
 const CustomerDisplayPage = lazy(() => import("@/components/customer-display").then(m => ({ default: m.CustomerDisplayPage })));
 const ValBotAssistant = lazy(() => import("@/components/valbot-assistant"));
 const MobileCompanion = lazy(() => import("@/components/mobile-companion"));
@@ -55,7 +56,23 @@ function StockTakeRouter({ onBackToMenu, currentUser }: { onBackToMenu: () => vo
   );
 }
 
-type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'stock-take' | 'inactive';
+function HardwareSetupRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div></div>}>
+      <HardwareSetup />
+      <div className="fixed top-4 left-4">
+        <button 
+          onClick={onBackToMenu}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+        >
+          <span>← Back to Menu</span>
+        </button>
+      </div>
+    </Suspense>
+  );
+}
+
+type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'stock-take' | 'hardware-setup' | 'inactive';
 
 function AppContent() {
   const [mode, setMode] = useState<AppMode>('main-menu');
@@ -89,7 +106,7 @@ function AppContent() {
     setLastActivity(new Date());
   };
 
-  const handleModeSelect = (selectedMode: 'pos' | 'back-office' | 'stock-take', tillId?: string) => {
+  const handleModeSelect = (selectedMode: 'pos' | 'back-office' | 'stock-take' | 'hardware-setup', tillId?: string) => {
     if (selectedMode === 'pos' && tillId) {
       setSelectedTill(tillId);
       setMode('pos');
@@ -97,6 +114,8 @@ function AppContent() {
       setMode('back-office');
     } else if (selectedMode === 'stock-take') {
       setMode('stock-take');
+    } else if (selectedMode === 'hardware-setup') {
+      setMode('hardware-setup');
     }
     setLastActivity(new Date());
   };
@@ -161,6 +180,10 @@ function AppContent() {
 
       {mode === 'stock-take' && currentUser && (
         <StockTakeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser} />
+      )}
+
+      {mode === 'hardware-setup' && (
+        <HardwareSetupRouter onBackToMenu={handleBackToMenu} />
       )}
 
       {/* Customer Display Route */}

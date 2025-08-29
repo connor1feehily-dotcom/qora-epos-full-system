@@ -36,7 +36,6 @@ import {
   RotateCcw,
   Pause,
   Play,
-  Receipt,
   Gift,
   Percent,
   AlertTriangle,
@@ -47,6 +46,7 @@ import {
 } from "lucide-react";
 import type { Product, InsertTransaction, InsertTransactionItem, User as UserType, PosButton } from "@shared/schema";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
+import { posHardware, type Receipt } from "@/utils/hardware-integration";
 
 interface CartItem {
   product: Product;
@@ -81,6 +81,12 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   const [showInventoryModal, setShowInventoryModal] = useState(false);
   const [showCustomersModal, setShowCustomersModal] = useState(false);
   const [showSettlementsModal, setShowSettlementsModal] = useState(false);
+  const [showHardwareSetup, setShowHardwareSetup] = useState(false);
+  const [hardwareStatus, setHardwareStatus] = useState<{
+    printerConnected: boolean;
+    scannerReady: boolean;
+    webUSBSupported: boolean;
+  }>({ printerConnected: false, scannerReady: false, webUSBSupported: false });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -104,6 +110,41 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Initialize hardware
+  useEffect(() => {
+    const initHardware = async () => {
+      const status = await posHardware.initialize();
+      setHardwareStatus(status);
+      
+      // Setup barcode scanner
+      posHardware.scanner.setupKeyboardWedge((barcode) => {
+        handleBarcodeScanned(barcode);
+      });
+    };
+    
+    initHardware();
+  }, []);
+
+  // Handle barcode scanned from hardware scanner
+  const handleBarcodeScanned = (barcode: string) => {
+    const product = products.find(p => p.barcode === barcode);
+    if (product) {
+      addToCart(product, 1);
+      toast({
+        title: "Product Scanned",
+        description: `${product.name} added to cart`,
+        duration: 2000
+      });
+    } else {
+      toast({
+        title: "Product Not Found",
+        description: `Barcode ${barcode} not recognized`,
+        variant: "destructive",
+        duration: 3000
+      });
+    }
+  };
 
   // Fetch products
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
@@ -216,6 +257,44 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
     setCart([]);
   };
 
+  // Print receipt using hardware integration
+  const printReceipt = async (transactionResult: any) => {
+    try {
+      const receipt: Receipt = {
+        transactionId: transactionResult.transactionId.toString(),
+        timestamp: new Date().toISOString(),
+        items: transactionResult.items.map((item: CartItem) => ({
+          name: item.product.name,
+          price: item.unitPrice,
+          quantity: item.quantity,
+          total: item.subtotal
+        })),
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        tax: parseFloat(taxAmount.toFixed(2)),
+        total: parseFloat(total.toFixed(2)),
+        paymentMethod: transactionResult.paymentMethod === 'cash' ? 'Cash' : 'Card',
+        change: transactionResult.change
+      };
+
+      const printed = await posHardware.printReceipt(receipt);
+      
+      if (!printed) {
+        toast({
+          title: "Print Failed",
+          description: "Receipt could not be printed. Check printer connection.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Receipt printing error:', error);
+      toast({
+        title: "Print Error",
+        description: "Error occurred while printing receipt",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Transaction mutation
   const createTransactionMutation = useMutation({
     mutationFn: async ({ paymentMethod, amountGiven, change }: { paymentMethod: 'cash' | 'card'; amountGiven?: number; change?: number }) => {
@@ -255,10 +334,14 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         total: total.toFixed(2),
         paymentMethod,
         amountGiven,
-        change
+        change,
+        items: cart
       };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
+      // Print receipt
+      await printReceipt(result);
+      
       setCart([]);
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
