@@ -339,8 +339,30 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       };
     },
     onSuccess: async (result) => {
-      // Print receipt
-      await printReceipt(result);
+      // Print receipt automatically
+      console.log('Transaction successful, attempting to print receipt...', result);
+      try {
+        const printed = await printReceipt(result);
+        if (printed) {
+          console.log('Receipt printed successfully after transaction');
+        } else {
+          console.error('Receipt printing failed after transaction');
+          toast({
+            title: "Transaction Complete",
+            description: "Transaction successful but receipt printing failed. Check printer connection.",
+            variant: "destructive",
+            duration: 10000
+          });
+        }
+      } catch (printError) {
+        console.error('Receipt printing error:', printError);
+        toast({
+          title: "Print Error", 
+          description: "Receipt could not be printed. Transaction was successful.",
+          variant: "destructive",
+          duration: 10000
+        });
+      }
       
       setCart([]);
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });

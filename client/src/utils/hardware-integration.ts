@@ -98,18 +98,49 @@ export class ThermalPrinter {
         ]
       });
 
+      console.log('Attempting to open device...', this.device);
       await this.device.open();
+      
+      console.log('Device configuration:', this.device.configuration);
       
       // Select first configuration
       if (this.device.configuration === null) {
-        await this.device.selectConfiguration(1);
+        try {
+          await this.device.selectConfiguration(1);
+          console.log('Selected configuration 1');
+        } catch (configError) {
+          console.log('Config 1 failed, trying config 0');
+          await this.device.selectConfiguration(0);
+        }
       }
 
-      // Claim the interface (usually interface 0 for printers)
-      await this.device.claimInterface(0);
+      // Find and claim the appropriate interface
+      const config = this.device.configuration;
+      console.log('Available interfaces:', config?.interfaces);
+      
+      let interfaceClaimed = false;
+      const interfaceCount = config?.interfaces?.length || 1;
+      for (let i = 0; i < interfaceCount; i++) {
+        try {
+          await this.device.claimInterface(i);
+          console.log(`Successfully claimed interface ${i}`);
+          interfaceClaimed = true;
+          break;
+        } catch (interfaceError) {
+          console.log(`Interface ${i} claim failed:`, interfaceError);
+        }
+      }
+
+      if (!interfaceClaimed) {
+        throw new Error('Could not claim any interface');
+      }
       
       this.isConnected = true;
-      console.log('Thermal printer connected successfully');
+      console.log('Thermal printer connected successfully:', {
+        vendorId: `0x${this.device.vendorId.toString(16)}`,
+        productId: `0x${this.device.productId.toString(16)}`,
+        serialNumber: this.device.serialNumber
+      });
       return true;
 
     } catch (error) {
@@ -212,19 +243,57 @@ export class ThermalPrinter {
   async printReceipt(receipt: Receipt): Promise<boolean> {
     try {
       if (!this.isConnected || !this.device) {
-        throw new Error('Printer not connected');
+        console.error('Printer not connected - attempting to reconnect...');
+        await this.connect();
+        if (!this.isConnected || !this.device) {
+          throw new Error('Printer connection failed');
+        }
       }
 
       const commands = this.generateReceiptCommands(receipt);
+      console.log('Sending print command to printer...', commands.length, 'bytes');
       
-      // Send to printer (endpoint 1 is typical for thermal printers)
-      await this.device.transferOut(1, commands);
+      // Try different endpoints that thermal printers commonly use
+      const endpoints = [1, 2, 3]; // Different endpoint addresses
+      let success = false;
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying endpoint ${endpoint}...`);
+          await this.device.transferOut(endpoint, commands);
+          console.log(`Receipt sent successfully via endpoint ${endpoint}`);
+          success = true;
+          break;
+        } catch (endpointError) {
+          console.log(`Endpoint ${endpoint} failed:`, endpointError);
+          continue;
+        }
+      }
+
+      if (!success) {
+        throw new Error('All printer endpoints failed');
+      }
       
       console.log('Receipt printed successfully');
       return true;
 
     } catch (error) {
       console.error('Failed to print receipt:', error);
+      
+      // Try to reconnect and retry once
+      try {
+        console.log('Attempting printer reconnection...');
+        await this.connect();
+        if (this.isConnected && this.device) {
+          const commands = this.generateReceiptCommands(receipt);
+          await this.device.transferOut(1, commands);
+          console.log('Receipt printed after reconnection');
+          return true;
+        }
+      } catch (retryError) {
+        console.error('Retry failed:', retryError);
+      }
+      
       return false;
     }
   }
