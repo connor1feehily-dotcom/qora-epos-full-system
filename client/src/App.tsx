@@ -18,7 +18,7 @@ import type { User } from "@shared/schema";
 const ModernPOSInterface = lazy(() => import("@/components/modern-pos-interface").then(m => ({ default: m.ModernPOSInterface })));
 const BackOfficeDashboard = lazy(() => import("@/components/back-office-dashboard").then(m => ({ default: m.BackOfficeDashboard })));
 const MobileStockTake = lazy(() => import("@/components/mobile-stock-take").then(m => ({ default: m.MobileStockTake })));
-const HardwareSetup = lazy(() => import("@/components/hardware-setup").then(m => ({ default: m.HardwareSetup })));
+const HardwareSetup = lazy(() => import("@/components/hardware-setup"));
 const CustomerDisplayPage = lazy(() => import("@/components/customer-display").then(m => ({ default: m.CustomerDisplayPage })));
 const ValBotAssistant = lazy(() => import("@/components/valbot-assistant"));
 const MobileCompanion = lazy(() => import("@/components/mobile-companion"));
