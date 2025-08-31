@@ -86,15 +86,37 @@ export class ThermalPrinter {
         throw new Error('WebUSB not supported in this browser. Please use Chrome or Edge.');
       }
 
-      // Request USB device - supports major thermal printer manufacturers
+      // Request USB device - ONLY thermal receipt printers (NOT regular A4 printers)
       this.device = await navigator.usb.requestDevice({
         filters: [
-          { vendorId: 0x04b8 }, // Epson
-          { vendorId: 0x154f }, // CUSTOM
-          { vendorId: 0x0fe6 }, // ICS Advent
-          { vendorId: 0x0519 }, // Star Micronics
-          { vendorId: 0x20d1 }, // RONGTA
-          { classCode: 7 }, // Printer class
+          // Epson thermal printers (TM series)
+          { vendorId: 0x04b8, productId: 0x0202 }, // TM-T88III
+          { vendorId: 0x04b8, productId: 0x0203 }, // TM-T88IV
+          { vendorId: 0x04b8, productId: 0x0205 }, // TM-T88V
+          { vendorId: 0x04b8, productId: 0x0212 }, // TM-T88VI
+          { vendorId: 0x04b8, productId: 0x0220 }, // TM-T82
+          { vendorId: 0x04b8, productId: 0x0222 }, // TM-T82II
+          { vendorId: 0x04b8, productId: 0x0223 }, // TM-T82III
+          { vendorId: 0x04b8, productId: 0x0209 }, // TM-T20
+          
+          // Star Micronics thermal printers
+          { vendorId: 0x0519, productId: 0x0001 }, // TSP100
+          { vendorId: 0x0519, productId: 0x0002 }, // TSP650
+          { vendorId: 0x0519, productId: 0x0003 }, // TSP700II
+          { vendorId: 0x0519, productId: 0x0011 }, // TSP143
+          
+          // Custom Engineering thermal printers  
+          { vendorId: 0x0fe6, productId: 0x811e }, // VKP80
+          { vendorId: 0x0fe6, productId: 0x811f }, // VKP80II
+          
+          // RONGTA thermal printers
+          { vendorId: 0x2019, productId: 0x5803 }, // RP58
+          { vendorId: 0x2019, productId: 0x8003 }, // RP80
+          
+          // Generic thermal printer IDs (common manufacturers)
+          { vendorId: 0x1fc9 }, // NXP (used in many thermal printers)
+          { vendorId: 0x0483 }, // STMicroelectronics (thermal printer chips)
+          { vendorId: 0x1a86 }, // QinHeng (CH340 - common in thermal printers)
         ]
       });
 
@@ -116,10 +138,14 @@ export class ThermalPrinter {
 
       // Find and claim the appropriate interface
       const config = this.device.configuration;
-      console.log('Available interfaces:', config?.interfaces);
+      console.log('Device info for thermal printer validation:', {
+        vendorId: `0x${this.device.vendorId.toString(16)}`,
+        productId: `0x${this.device.productId.toString(16)}`,
+        configuration: config
+      });
       
       let interfaceClaimed = false;
-      const interfaceCount = config?.interfaces?.length || 1;
+      const interfaceCount = (config as any)?.interfaces?.length || 1;
       for (let i = 0; i < interfaceCount; i++) {
         try {
           await this.device.claimInterface(i);
@@ -139,7 +165,7 @@ export class ThermalPrinter {
       console.log('Thermal printer connected successfully:', {
         vendorId: `0x${this.device.vendorId.toString(16)}`,
         productId: `0x${this.device.productId.toString(16)}`,
-        serialNumber: this.device.serialNumber
+        deviceType: 'USB Thermal Receipt Printer'
       });
       return true;
 

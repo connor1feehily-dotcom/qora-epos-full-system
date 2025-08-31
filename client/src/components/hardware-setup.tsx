@@ -1,354 +1,349 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { ThermalPrinter, BarcodeScanner, CashDrawer } from '@/utils/hardware-integration';
 import { 
   Printer, 
   Scan, 
-  Wifi, 
-  Usb, 
+  DollarSign, 
   CheckCircle, 
   XCircle, 
   AlertTriangle,
   Settings,
-  TestTube
+  Wifi,
+  Usb
 } from 'lucide-react';
-import { posHardware, ThermalPrinter } from '@/utils/hardware-integration';
 
-export function HardwareSetup() {
-  const [printerStatus, setPrinterStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-  const [scannerStatus, setScannerStatus] = useState<'disconnected' | 'connected'>('disconnected');
-  const [networkPrinterIP, setNetworkPrinterIP] = useState('192.168.1.100');
-  const [webUSBSupported, setWebUSBSupported] = useState(false);
-  const [lastScannedBarcode, setLastScannedBarcode] = useState<string>('');
-  const [testPrintResult, setTestPrintResult] = useState<string>('');
+export default function HardwareSetup() {
+  const { toast } = useToast();
+  const [printerStatus, setPrinterStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [scannerStatus, setScannerStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [drawerStatus, setDrawerStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [printer, setPrinter] = useState<ThermalPrinter | null>(null);
+  const [scanner, setScanner] = useState<BarcodeScanner | null>(null);
+  const [drawer, setDrawer] = useState<CashDrawer | null>(null);
+  const [networkPrinterIP, setNetworkPrinterIP] = useState('');
 
   useEffect(() => {
-    // Check WebUSB support
-    setWebUSBSupported(ThermalPrinter.isSupported());
-    
-    // Setup scanner
-    posHardware.scanner.setupKeyboardWedge((barcode) => {
-      setLastScannedBarcode(barcode);
-      setScannerStatus('connected');
-    });
-
-    // Initialize hardware
-    posHardware.initialize();
+    // Initialize hardware instances
+    setPrinter(new ThermalPrinter());
+    setScanner(new BarcodeScanner());
+    setDrawer(new CashDrawer());
   }, []);
 
-  const connectUSBPrinter = async () => {
+  const connectThermalPrinter = async () => {
+    if (!printer) return;
+    
     setPrinterStatus('connecting');
-    setTestPrintResult('');
+    console.log('Attempting to connect to THERMAL RECEIPT PRINTER (not A4 printer)...');
     
     try {
-      const success = await posHardware.printer.connect();
-      setPrinterStatus(success ? 'connected' : 'disconnected');
-      
-      if (success) {
-        setTestPrintResult('USB printer connected successfully!');
+      const connected = await printer.connect();
+      if (connected) {
+        setPrinterStatus('connected');
+        toast({
+          title: "Thermal Printer Connected",
+          description: "Receipt printer is ready for transactions",
+          duration: 5000
+        });
+      } else {
+        setPrinterStatus('error');
+        toast({
+          title: "Connection Failed",
+          description: "Could not connect to thermal printer. Check USB connection and power.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      setPrinterStatus('disconnected');
-      setTestPrintResult(`Connection failed: ${error}`);
+      console.error('Printer connection error:', error);
+      setPrinterStatus('error');
+      toast({
+        title: "Printer Error",
+        description: error instanceof Error ? error.message : "Unknown error connecting to printer",
+        variant: "destructive"
+      });
     }
-  };
-
-  const setupNetworkPrinter = () => {
-    posHardware.setupNetworkPrinter(networkPrinterIP);
-    setTestPrintResult(`Network printer configured for ${networkPrinterIP}`);
   };
 
   const testPrint = async () => {
-    setTestPrintResult('Printing test receipt...');
-    
-    try {
-      const testReceipt = {
-        transactionId: `TEST-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        items: [
-          { name: 'Test Item', price: 1.50, quantity: 1, total: 1.50 },
-          { name: 'Another Test', price: 2.99, quantity: 2, total: 5.98 }
-        ],
-        subtotal: 7.48,
-        tax: 1.35,
-        total: 8.83,
-        paymentMethod: 'Cash',
-        change: 1.17
-      };
+    if (!printer || printerStatus !== 'connected') {
+      toast({
+        title: "Printer Not Ready",
+        description: "Please connect the thermal printer first",
+        variant: "destructive"
+      });
+      return;
+    }
 
-      const success = await posHardware.printReceipt(testReceipt);
-      setTestPrintResult(success ? 'Test receipt printed successfully!' : 'Print test failed - check printer connection');
+    console.log('Testing thermal receipt printer...');
+    try {
+      const success = await printer.testPrint();
+      if (success) {
+        toast({
+          title: "Test Print Successful",
+          description: "Receipt printer is working correctly",
+          duration: 5000
+        });
+      } else {
+        toast({
+          title: "Test Print Failed", 
+          description: "Check printer power, paper, and USB connection",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
-      setTestPrintResult(`Print test failed: ${error}`);
+      console.error('Test print error:', error);
+      toast({
+        title: "Print Error",
+        description: "Could not send test print to thermal printer",
+        variant: "destructive"
+      });
     }
   };
 
-  const StatusBadge = ({ status, label }: { status: string, label: string }) => {
-    const variants = {
-      connected: { color: 'bg-green-500', icon: CheckCircle },
-      connecting: { color: 'bg-yellow-500', icon: AlertTriangle },
-      disconnected: { color: 'bg-red-500', icon: XCircle }
-    };
+  const connectScanner = async () => {
+    if (!scanner) return;
     
-    const variant = variants[status as keyof typeof variants] || variants.disconnected;
-    const Icon = variant.icon;
+    setScannerStatus('connecting');
+    try {
+      const connected = await scanner.connect();
+      if (connected) {
+        setScannerStatus('connected');
+        toast({
+          title: "Barcode Scanner Connected",
+          description: "Scanner is ready for product scanning",
+          duration: 5000
+        });
+      } else {
+        setScannerStatus('error');
+      }
+    } catch (error) {
+      setScannerStatus('error');
+      toast({
+        title: "Scanner Error",
+        description: "Could not connect to barcode scanner",
+        variant: "destructive"
+      });
+    }
+  };
 
+  const connectDrawer = async () => {
+    if (!drawer) return;
+    
+    setDrawerStatus('connecting');
+    try {
+      const connected = await drawer.connect();
+      if (connected) {
+        setDrawerStatus('connected');
+        toast({
+          title: "Cash Drawer Connected",
+          description: "Drawer will open automatically with transactions",
+          duration: 5000
+        });
+      } else {
+        setDrawerStatus('error');
+      }
+    } catch (error) {
+      setDrawerStatus('error');
+      toast({
+        title: "Drawer Error",
+        description: "Could not connect to cash drawer",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const StatusIcon = ({ status }: { status: string }) => {
+    switch (status) {
+      case 'connected':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'connecting':
+        return <Settings className="h-5 w-5 text-yellow-500 animate-spin" />;
+      case 'error':
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      default:
+        return <AlertTriangle className="h-5 w-5 text-gray-400" />;
+    }
+  };
+
+  const StatusBadge = ({ status }: { status: string }) => {
+    const variants = {
+      connected: 'default',
+      connecting: 'secondary', 
+      error: 'destructive',
+      disconnected: 'outline'
+    } as const;
+    
     return (
-      <Badge variant="secondary" className={`${variant.color} text-white`}>
-        <Icon className="w-3 h-3 mr-1" />
-        {label}
+      <Badge variant={variants[status as keyof typeof variants]}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center space-x-2 mb-6">
-        <Settings className="w-6 h-6" />
+        <Settings className="h-6 w-6" />
         <h1 className="text-2xl font-bold">Hardware Setup</h1>
       </div>
 
-      {/* Browser Compatibility */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Usb className="w-5 h-5" />
-            <span>Browser Compatibility</span>
-          </CardTitle>
-          <CardDescription>
-            Hardware integration requires modern browser features
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Browser Requirement:</strong> Hardware integration requires Chrome or Edge browser. 
+          Make sure to allow USB device permissions when prompted.
+        </AlertDescription>
+      </Alert>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Thermal Receipt Printer */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Printer className="h-5 w-5" />
+              <span>Receipt Printer</span>
+              <StatusIcon status={printerStatus} />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span>WebUSB API Support</span>
-              <StatusBadge 
-                status={webUSBSupported ? 'connected' : 'disconnected'} 
-                label={webUSBSupported ? 'Supported' : 'Not Supported'} 
-              />
+              <span className="text-sm text-gray-600">Status</span>
+              <StatusBadge status={printerStatus} />
             </div>
             
-            {!webUSBSupported && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  WebUSB is required for direct hardware integration. Please use <strong>Chrome</strong> or <strong>Edge</strong> browser.
-                  Firefox and Safari don't support WebUSB.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="text-sm text-gray-600">
-              <p><strong>Supported Browsers:</strong></p>
-              <ul className="list-disc list-inside ml-4">
-                <li>Google Chrome (Desktop & Android)</li>
-                <li>Microsoft Edge (Desktop)</li>
-                <li>Chromium-based browsers</li>
-              </ul>
+            <div className="space-y-2">
+              <Button 
+                onClick={connectThermalPrinter}
+                disabled={printerStatus === 'connecting'}
+                className="w-full"
+                variant={printerStatus === 'connected' ? 'outline' : 'default'}
+              >
+                <Usb className="h-4 w-4 mr-2" />
+                {printerStatus === 'connected' ? 'Reconnect' : 'Connect USB Thermal Printer'}
+              </Button>
+              
+              <Button 
+                onClick={testPrint}
+                disabled={printerStatus !== 'connected'}
+                variant="outline"
+                className="w-full"
+              >
+                Test Print Receipt
+              </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Receipt Printer Setup */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Printer className="w-5 h-5" />
-            <span>Receipt Printer</span>
-          </CardTitle>
-          <CardDescription>
-            Connect USB thermal printer or configure network printer
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* USB Printer */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">USB Thermal Printer</h3>
-            <div className="flex items-center justify-between mb-3">
-              <span>Connection Status</span>
-              <StatusBadge 
-                status={printerStatus} 
-                label={printerStatus === 'connected' ? 'Connected' : printerStatus === 'connecting' ? 'Connecting...' : 'Disconnected'} 
-              />
+            <div className="text-xs text-gray-500">
+              <p><strong>Supported:</strong> Epson TM-T88, Star TSP650, Custom VKP80, RONGTA RP58/80</p>
+              <p><strong>NOT:</strong> Regular A4/inkjet printers</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Barcode Scanner */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Scan className="h-5 w-5" />
+              <span>Barcode Scanner</span>
+              <StatusIcon status={scannerStatus} />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Status</span>
+              <StatusBadge status={scannerStatus} />
             </div>
             
             <Button 
-              onClick={connectUSBPrinter} 
-              disabled={!webUSBSupported || printerStatus === 'connecting'}
-              className="w-full mb-2"
+              onClick={connectScanner}
+              disabled={scannerStatus === 'connecting'}
+              className="w-full"
+              variant={scannerStatus === 'connected' ? 'outline' : 'default'}
             >
-              {printerStatus === 'connecting' ? 'Connecting...' : 'Connect USB Printer'}
+              <Usb className="h-4 w-4 mr-2" />
+              {scannerStatus === 'connected' ? 'Reconnect' : 'Connect USB Scanner'}
             </Button>
 
-            <div className="text-sm text-gray-600">
-              <p><strong>Supported Printers:</strong></p>
-              <ul className="list-disc list-inside ml-4">
-                <li>Epson TM series (TM-T20, TM-T88, TM-m30)</li>
-                <li>Star Micronics (TSP654, mC-Print3, mPOP)</li>
-                <li>Custom VKP80 series</li>
-                <li>RONGTA thermal printers</li>
-                <li>Most ESC/POS compatible thermal printers</li>
-              </ul>
+            <div className="text-xs text-gray-500">
+              <p><strong>Supported:</strong> Any USB HID barcode scanner</p>
+              <p><strong>Alternative:</strong> Keyboard wedge scanners work automatically</p>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <Separator />
-
-          {/* Network Printer */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Network Printer (Ethernet/WiFi)</h3>
-            <div className="flex space-x-2 mb-2">
-              <Input
-                value={networkPrinterIP}
-                onChange={(e) => setNetworkPrinterIP(e.target.value)}
-                placeholder="192.168.1.100"
-                className="flex-1"
-              />
-              <Button onClick={setupNetworkPrinter}>
-                <Wifi className="w-4 h-4 mr-2" />
-                Setup
-              </Button>
+        {/* Cash Drawer */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <DollarSign className="h-5 w-5" />
+              <span>Cash Drawer</span>
+              <StatusIcon status={drawerStatus} />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Status</span>
+              <StatusBadge status={drawerStatus} />
             </div>
-            <p className="text-sm text-gray-600">
-              Enter your network printer's IP address. Most modern thermal printers support Ethernet/WiFi connectivity.
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Test Printing */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Test Printing</h3>
-            <Button onClick={testPrint} className="w-full mb-2">
-              <TestTube className="w-4 h-4 mr-2" />
-              Print Test Receipt
-            </Button>
             
-            {testPrintResult && (
-              <Alert>
-                <AlertDescription>{testPrintResult}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            <Button 
+              onClick={connectDrawer}
+              disabled={drawerStatus === 'connecting'}
+              className="w-full"
+              variant={drawerStatus === 'connected' ? 'outline' : 'default'}
+            >
+              <Usb className="h-4 w-4 mr-2" />
+              {drawerStatus === 'connected' ? 'Reconnect' : 'Connect Cash Drawer'}
+            </Button>
 
-      {/* Barcode Scanner Setup */}
+            <div className="text-xs text-gray-500">
+              <p><strong>Connection:</strong> Usually connects via printer RJ12 port</p>
+              <p><strong>Opens:</strong> Automatically with cash transactions</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Network Printer Option */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Scan className="w-5 h-5" />
-            <span>Barcode Scanner</span>
+            <Wifi className="h-5 w-5" />
+            <span>Network Printer (Alternative)</span>
           </CardTitle>
-          <CardDescription>
-            USB barcode scanners and camera scanning support
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between mb-3">
-            <span>Scanner Status</span>
-            <StatusBadge 
-              status={scannerStatus} 
-              label={scannerStatus === 'connected' ? 'Ready' : 'Waiting for scan'} 
+          <p className="text-sm text-gray-600">
+            If USB connection fails, you can use a network-enabled thermal printer:
+          </p>
+          
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              placeholder="192.168.1.100"
+              value={networkPrinterIP}
+              onChange={(e) => setNetworkPrinterIP(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
             />
-          </div>
-
-          {lastScannedBarcode && (
-            <Alert>
-              <AlertDescription>
-                <strong>Last Scanned:</strong> {lastScannedBarcode}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="text-sm text-gray-600">
-            <p><strong>Supported Scanner Types:</strong></p>
-            <ul className="list-disc list-inside ml-4 space-y-1">
-              <li><strong>USB HID Scanners (Recommended):</strong> Honeywell Voyager, Zebra DS2208, Datalogic QuickScan</li>
-              <li><strong>Camera Scanning:</strong> Built-in mobile device cameras</li>
-              <li><strong>Bluetooth Scanners:</strong> Socket Mobile, wireless Honeywell scanners</li>
-            </ul>
-            
-            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-              <p className="font-semibold">Setup Instructions:</p>
-              <ol className="list-decimal list-inside ml-2 space-y-1">
-                <li>Connect USB scanner to computer</li>
-                <li>Scanner will work immediately (keyboard emulation mode)</li>
-                <li>Scan any barcode to test - it will appear above</li>
-                <li>Scanner automatically integrates with POS transactions</li>
-              </ol>
-            </div>
+            <Button variant="outline">
+              Connect Network Printer
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Cash Drawer Setup */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <div className="w-5 h-5 bg-gray-400 rounded" />
-            <span>Cash Drawer</span>
-          </CardTitle>
-          <CardDescription>
-            Cash drawer integration via receipt printer
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-gray-600 space-y-2">
-            <p><strong>Connection Method:</strong></p>
-            <ol className="list-decimal list-inside ml-4 space-y-1">
-              <li>Connect cash drawer to receipt printer via RJ11/RJ12 cable</li>
-              <li>Drawer will open automatically when receipts print</li>
-              <li>Compatible with most POS cash drawers (APG, Star, POS-X)</li>
-              <li>No additional software configuration required</li>
-            </ol>
-            
-            <div className="mt-3 p-3 bg-green-50 rounded-lg">
-              <p className="font-semibold text-green-800">✅ Automatic Operation</p>
-              <p className="text-green-700">Cash drawer opens automatically during cash/check transactions when receipt prints.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Hardware Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recommended Hardware Bundle</CardTitle>
-          <CardDescription>
-            Complete POS hardware setup for Kerrigans XL
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <h4 className="font-semibold mb-2">Budget Setup (€300-500)</h4>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Epson TM-T20II thermal printer</li>
-                <li>Honeywell Voyager 1400g scanner</li>
-                <li>APG Vasario cash drawer</li>
-                <li>Tablet/laptop for POS interface</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-2">Professional Setup (€800-1200)</h4>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Star mC-Print3 network printer</li>
-                <li>Zebra DS2208 2D scanner</li>
-                <li>Star mPOP integrated printer/drawer</li>
-                <li>Dedicated POS terminal</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* GERA Compatibility Info */}
+      <Alert>
+        <CheckCircle className="h-4 w-4" />
+        <AlertDescription>
+          <strong>GERA System Compatibility:</strong> Quantum POS works alongside your existing GERA system. 
+          Connect GERA to serial/COM port and Quantum POS to USB for best results. No conflicts.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
