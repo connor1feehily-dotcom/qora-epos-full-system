@@ -839,7 +839,35 @@ export class MemStorage implements IStorage {
     this.createUser({
       username: 'admin',
       password: 'admin123',
+      pin: '0000',
+      role: 'admin',
+      firstName: 'System',
+      lastName: 'Administrator',
+      employeeId: 'ADMIN001',
+      isActive: true
+    });
+
+    // Create staff user
+    this.createUser({
+      username: 'staff',
+      password: 'staff123',
+      pin: '1234',
+      role: 'staff',
+      firstName: 'Store',
+      lastName: 'Staff',
+      employeeId: 'STAFF001',
+      isActive: true
+    });
+
+    // Create manager user
+    this.createUser({
+      username: 'manager',
+      password: 'manager123',
+      pin: '9999',
       role: 'manager',
+      firstName: 'Store',
+      lastName: 'Manager',
+      employeeId: 'MGR001',
       isActive: true
     });
 
@@ -873,6 +901,22 @@ export class MemStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(user => user.username === username);
+  }
+
+  async getUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getUserByPin(pin: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.pin === pin);
+  }
+
+  async updateUserLastLogin(id: number): Promise<void> {
+    const user = this.users.get(id);
+    if (user) {
+      const updated = { ...user, lastLogin: new Date() };
+      this.users.set(id, updated);
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -1050,6 +1094,15 @@ export class MemStorage implements IStorage {
     const item: TransactionItem = { ...insertItem, id };
     this.transactionItems.set(id, item);
     return item;
+  }
+
+  async getTransactionsByDateRange(startDate: Date, endDate: Date, tillId?: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values()).filter(t => {
+      const transactionDate = new Date(t.createdAt);
+      const inDateRange = transactionDate >= startDate && transactionDate <= endDate;
+      const matchesTill = !tillId || t.tillId === tillId;
+      return inDateRange && matchesTill;
+    });
   }
 
   // Promotions
