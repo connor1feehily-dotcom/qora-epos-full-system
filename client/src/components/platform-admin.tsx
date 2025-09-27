@@ -52,9 +52,6 @@ export default function PlatformAdmin() {
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [showOrgDetails, setShowOrgDetails] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [businessTypeFilter, setBusines
-
-  const [searchTerm, setSearchTerm] = useState('');
   const [businessTypeFilter, setBusinessTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
