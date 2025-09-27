@@ -166,15 +166,15 @@ function AppContent() {
     console.log('Till logged in:', session.tillCode, session.shopName);
   };
 
-  // Create simple mock user from till session - NO LOGOUT FUNCTION!
+  // Create user from till session - ADMIN gets SUPER ACCESS!
   const mockUser = tillSession ? {
     id: parseInt(tillSession.tillCode),
     username: tillSession.tillCode,
     firstName: tillSession.shopName,
     lastName: tillSession.businessType,
-    role: 'manager',
+    role: tillSession.tillCode === '9999' ? 'super_admin' : 'manager', // SUPER ADMIN ROLE!
     isActive: true,
-    organizationId: parseInt(tillSession.tillCode),
+    organizationId: tillSession.tillCode === '9999' ? 0 : parseInt(tillSession.tillCode), // Admin = org 0
     password: '',
     pin: '',
     employeeId: tillSession.tillCode,

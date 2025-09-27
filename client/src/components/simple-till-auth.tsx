@@ -44,8 +44,8 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
     '2004': { shopName: "New Shop 4", businessType: 'retail' },
     '2005': { shopName: "New Shop 5", businessType: 'retail' },
     
-    // Master admin code
-    '9999': { shopName: "Platform Admin", businessType: 'admin' }
+    // SUPER ADMIN - Full platform access to everything!
+    '9999': { shopName: "PLATFORM ADMIN", businessType: 'admin' }
   };
 
   // Check for existing session on load
