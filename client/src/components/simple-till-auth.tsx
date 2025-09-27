@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Store, Key } from 'lucide-react';
+import { CheckCircle, Store, Key, Plus } from 'lucide-react';
+import EasyShopSetup from './easy-shop-setup';
 
 interface TillSession {
   tillCode: string;
@@ -21,6 +22,7 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
   const [tillCode, setTillCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSetup, setShowSetup] = useState(false);
 
   // Pre-configured till codes - super easy setup!
   const TILL_CODES = {
@@ -109,6 +111,32 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
       handleLogin();
     }
   };
+
+  const handleSetupComplete = (shopData: any) => {
+    // Auto-login with the new shop setup
+    const session: TillSession = {
+      tillCode: shopData.tillCode,
+      shopName: shopData.shopName,
+      businessType: shopData.businessType,
+      setupDate: new Date().toISOString(),
+      isActive: true
+    };
+
+    // Save permanently 
+    localStorage.setItem('quantum_till_session', JSON.stringify(session));
+    localStorage.setItem('quantum_auto_login', 'true');
+    localStorage.setItem('quantum_backup_session', JSON.stringify(session));
+    localStorage.setItem(`quantum_till_${shopData.tillCode}`, JSON.stringify(session));
+    sessionStorage.setItem('quantum_till_session', JSON.stringify(session));
+
+    console.log('🎉 NEW SHOP SETUP COMPLETE:', shopData.tillCode, shopData.shopName);
+    onLogin(session);
+  };
+
+  // Show setup flow if user chose to set up new shop
+  if (showSetup) {
+    return <EasyShopSetup onComplete={handleSetupComplete} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -210,10 +238,23 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
             </div>
           </div>
 
-          <div className="text-center">
+          <div className="text-center space-y-4">
             <div className="flex items-center justify-center text-green-600 text-sm">
               <CheckCircle className="w-4 h-4 mr-1" />
               Stays logged in forever - never expires!
+            </div>
+
+            <div className="border-t pt-4">
+              <p className="text-sm text-gray-600 mb-3">Don't have a shop yet?</p>
+              <Button
+                variant="outline"
+                onClick={() => setShowSetup(true)}
+                className="w-full"
+                data-testid="setup-new-shop-button"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Set Up New Shop (3 minutes)
+              </Button>
             </div>
           </div>
         </CardContent>
