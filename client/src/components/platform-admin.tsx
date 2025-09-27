@@ -113,6 +113,39 @@ export default function PlatformAdmin() {
     });
   };
 
+  // Add missing button handlers
+  const handleAddOrganization = () => {
+    alert('Add Organization feature coming soon! This will open a form to create new shops.');
+  };
+
+  const handleRefreshData = async () => {
+    await fetchOrganizations();
+    await fetchStats();
+    alert('Data refreshed successfully!');
+  };
+
+  const handleConfigurePorts = () => {
+    alert('Port configuration interface coming soon!');
+  };
+
+  const handleAccessShop = () => {
+    if (selectedOrg) {
+      window.open(`http://localhost:500${selectedOrg.id}`, '_blank');
+    }
+  };
+
+  const handleViewAnalytics = () => {
+    if (selectedOrg) {
+      alert(`Analytics for ${selectedOrg.name} coming soon!`);
+    }
+  };
+
+  const handleManageUsers = () => {
+    if (selectedOrg) {
+      alert(`User management for ${selectedOrg.name} coming soon!`);
+    }
+  };
+
   const toggleOrganizationStatus = async (orgId: number) => {
     // Mock API call - would implement actual status toggle
     setOrganizations(orgs => 
@@ -147,7 +180,9 @@ export default function PlatformAdmin() {
     return colors[type] || 'bg-gray-100 text-gray-800';
   };
 
-  const uniqueBusinessTypes = [...new Set(organizations.map(org => org.businessType))];
+  const uniqueBusinessTypes = organizations
+    .map(org => org.businessType)
+    .filter((type, index, array) => array.indexOf(type) === index);
 
   return (
     <div className="space-y-6">
@@ -161,11 +196,11 @@ export default function PlatformAdmin() {
           <p className="text-gray-600 mt-2">Manage all shops and organizations across the platform</p>
         </div>
         <div className="flex gap-2">
-          <Button data-testid="button-add-org">
+          <Button onClick={handleAddOrganization} data-testid="button-add-org">
             <Plus className="h-4 w-4 mr-2" />
             Add Organization
           </Button>
-          <Button variant="outline" data-testid="button-refresh">
+          <Button variant="outline" onClick={handleRefreshData} data-testid="button-refresh">
             <Activity className="h-4 w-4 mr-2" />
             Refresh Data
           </Button>
@@ -420,10 +455,20 @@ export default function PlatformAdmin() {
                         <span className="text-xs text-gray-500">{count} shops</span>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" data-testid={`configure-${type}`}>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => alert(`Configuration for ${type} businesses coming soon!`)}
+                          data-testid={`configure-${type}`}
+                        >
                           Configure
                         </Button>
-                        <Button size="sm" variant="outline" data-testid={`view-template-${type}`}>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => alert(`Template preview for ${type} businesses coming soon!`)}
+                          data-testid={`view-template-${type}`}
+                        >
                           View Template
                         </Button>
                       </div>
@@ -457,7 +502,11 @@ export default function PlatformAdmin() {
                       <li><code>Port 5004</code> - Available</li>
                     </ul>
                   </div>
-                  <Button className="mt-4" data-testid="configure-ports">
+                  <Button 
+                    className="mt-4" 
+                    onClick={handleConfigurePorts}
+                    data-testid="configure-ports"
+                  >
                     Configure Ports
                   </Button>
                 </div>
@@ -524,9 +573,9 @@ export default function PlatformAdmin() {
               )}
               
               <div className="flex gap-2">
-                <Button data-testid="access-shop">Access Shop</Button>
-                <Button variant="outline" data-testid="view-analytics">View Analytics</Button>
-                <Button variant="outline" data-testid="manage-users">Manage Users</Button>
+                <Button onClick={handleAccessShop} data-testid="access-shop">Access Shop</Button>
+                <Button variant="outline" onClick={handleViewAnalytics} data-testid="view-analytics">View Analytics</Button>
+                <Button variant="outline" onClick={handleManageUsers} data-testid="manage-users">Manage Users</Button>
               </div>
             </div>
           )}
