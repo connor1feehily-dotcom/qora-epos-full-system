@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TillSelector } from "@/components/till-selector";
 import { MainMenu } from "@/components/main-menu";
 import SimpleTillAuth from "@/components/simple-till-auth";
+import TenantAwareApp from "@/components/tenant-aware-app";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
@@ -242,7 +243,10 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <TenantAwareApp>
+        <AppContent />
+        <Toaster />
+      </TenantAwareApp>
     </QueryClientProvider>
   );
 }

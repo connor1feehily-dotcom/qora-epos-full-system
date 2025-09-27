@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { tenantService } from "@/services/tenant-service";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -7,12 +8,37 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+/**
+ * Helper function to add tenant context to API URLs
+ */
+function addTenantParams(url: string): string {
+  // Get current tenant slug from tenant service
+  const shop = tenantService.getCurrentTenantSlug();
+  
+  console.log(`[addTenantParams] URL: ${url}, tenant service shop: ${shop}`);
+  
+  if (!shop || shop === 'demo') {
+    // For demo tenant or no tenant, don't add parameters (will default to demo)
+    return url;
+  }
+  
+  // Add shop parameter to API URL
+  const separator = url.includes('?') ? '&' : '?';
+  const finalUrl = `${url}${separator}shop=${shop}`;
+  
+  console.log(`[addTenantParams] Original: ${url} → Final: ${finalUrl}`);
+  return finalUrl;
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  // Add tenant context to URL
+  const tenantAwareUrl = addTenantParams(url);
+  
+  const res = await fetch(tenantAwareUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -29,7 +55,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Add tenant context to query URL
+    const tenantAwareUrl = addTenantParams(queryKey[0] as string);
+    
+    const res = await fetch(tenantAwareUrl, {
       credentials: "include",
     });
 
@@ -48,7 +77,7 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
       retry: 1, // Single retry for faster failure
       retryDelay: 500, // Quick retry
       networkMode: 'online',

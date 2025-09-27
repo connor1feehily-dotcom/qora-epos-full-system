@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import tenantRoutes from "./tenant-routes";
+import { resolveTenant } from "./tenant-middleware";
 import { 
   processPayment, 
   processRefund, 
@@ -38,6 +40,12 @@ import { z } from 'zod';
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply security headers to all routes
   app.use(securityHeaders);
+  
+  // Apply tenant resolution middleware
+  app.use(resolveTenant);
+  
+  // Multi-tenant management routes
+  app.use('/api', tenantRoutes);
   
   // Multi-Tenant Organization Onboarding Routes
   
@@ -461,9 +469,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db } = await import("./db");
       const { users, products, customers } = await import("@shared/schema");
 
+      // Get organizationId from tenant context or default to 1 (Kerrigan's XL)
+      let organizationId = 1; // Default to Kerrigan's XL
+      if (req.tenant?.tenantId) {
+        // Extract numeric ID from tenant string like "tenant_001" -> 1
+        const match = req.tenant.tenantId.match(/tenant_(\d+|demo)/);
+        if (match) {
+          organizationId = match[1] === 'demo' ? 4 : parseInt(match[1]) || 1;
+        }
+      }
+      console.log(`Seeding data for organizationId: ${organizationId}, tenant: ${req.tenant?.tenantId || 'none'}`);
+
       // Seed staff users
       await db.insert(users).values([
         {
+          organizationId: organizationId,
           username: 'admin',
           password: 'admin123',
           pin: '0000',
@@ -474,6 +494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
+          organizationId: organizationId,
           username: 'manager',
           password: 'manager123',
           pin: '9999',
@@ -484,6 +505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
+          organizationId: organizationId,
           username: 'staff1',
           password: 'staff123',
           pin: '1234',
@@ -494,6 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
+          organizationId: organizationId,
           username: 'staff2',
           password: 'staff456',
           pin: '5678',
@@ -505,24 +528,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ]).onConflictDoNothing();
 
-      // Seed ONE test product only
-      await db.insert(products).values([
-        {
-          name: 'Test Item',
-          barcode: '1234567890123',
-          price: '1.50',
-          cost: '0.80',
-          category: 'Test',
-          stock: 100,
-          minStock: 5,
+      // Seed tenant-specific products based on organizationId/business type
+      let productsToSeed = [];
+      
+      if (organizationId === 1) {
+        // Kerrigan's XL Off License - Irish spirits, beers, wines
+        productsToSeed = [
+          { name: 'Heineken 500ml', barcode: '8712000010218', price: '2.50', cost: '1.80', category: 'Beer', stock: 48, minStock: 12 },
+          { name: 'Jameson Irish Whiskey 70cl', barcode: '5011007003227', price: '32.99', cost: '24.00', category: 'Spirits', stock: 12, minStock: 3 },
+          { name: 'Guinness 440ml Can', barcode: '5000169014387', price: '2.20', cost: '1.50', category: 'Beer', stock: 36, minStock: 12 },
+          { name: 'Sauvignon Blanc 75cl', barcode: '5060176362169', price: '8.99', cost: '6.50', category: 'Wine', stock: 18, minStock: 6 }
+        ];
+      } else if (organizationId === 2) {
+        // The Crown Pub - Pub essentials, crisps, mixers
+        productsToSeed = [
+          { name: 'Carlsberg 500ml Draught', barcode: '5000168020432', price: '4.50', cost: '2.80', category: 'Draught Beer', stock: 24, minStock: 6 },
+          { name: 'Tayto Crisps Cheese & Onion', barcode: '5391518920001', price: '1.50', cost: '0.90', category: 'Snacks', stock: 50, minStock: 15 },
+          { name: 'Coca Cola 330ml Bottle', barcode: '5449000000439', price: '2.20', cost: '1.30', category: 'Soft Drinks', stock: 30, minStock: 10 },
+          { name: 'Smirnoff Vodka 35cl', barcode: '5410316301309', price: '15.99', cost: '11.50', category: 'Spirits', stock: 8, minStock: 3 }
+        ];
+      } else if (organizationId === 3) {
+        // City Coffee Co - Coffee, pastries, sandwiches
+        productsToSeed = [
+          { name: 'Americano Large', barcode: 'COFFEE001', price: '3.20', cost: '1.10', category: 'Hot Drinks', stock: 999, minStock: 1 },
+          { name: 'Cappuccino Regular', barcode: 'COFFEE002', price: '2.80', cost: '1.00', category: 'Hot Drinks', stock: 999, minStock: 1 },
+          { name: 'Blueberry Muffin', barcode: 'BAKERY001', price: '2.50', cost: '1.20', category: 'Bakery', stock: 24, minStock: 6 },
+          { name: 'Ham & Cheese Sandwich', barcode: 'DELI001', price: '4.95', cost: '2.80', category: 'Deli', stock: 12, minStock: 3 }
+        ];
+      } else {
+        // Demo Shop (organizationId === 4) - Generic test item
+        productsToSeed = [
+          { name: 'Test Item', barcode: '1234567890123', price: '1.50', cost: '0.80', category: 'Test', stock: 100, minStock: 5 }
+        ];
+      }
+      
+      // Insert the tenant-specific products
+      await db.insert(products).values(
+        productsToSeed.map(product => ({
+          organizationId: organizationId,
+          name: product.name,
+          barcode: product.barcode,
+          price: product.price,
+          cost: product.cost,
+          category: product.category,
+          stock: product.stock,
+          minStock: product.minStock,
           vatRate: '23.00',
           isActive: true
-        }
-      ]).onConflictDoNothing();
+        }))
+      ).onConflictDoNothing();
 
       // Seed default customer
       await db.insert(customers).values([
         {
+          organizationId: organizationId,
           name: 'Walk-in Customer',
           loyaltyPoints: 0,
           isActive: true
@@ -583,12 +642,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Products
+  // Products (Tenant-Aware)
   app.get("/api/products", async (req, res) => {
     try {
-      const products = await storage.getProducts();
-      res.json(products);
+      const allProducts = await storage.getProducts();
+      
+      // Filter products by tenant/organization
+      let filteredProducts = allProducts;
+      
+      if (req.tenant?.tenantId) {
+        // Extract organizationId from tenant
+        const match = req.tenant.tenantId.match(/tenant_(\d+|demo)/);
+        const organizationId = match ? (match[1] === 'demo' ? 4 : parseInt(match[1]) || 1) : 1;
+        
+        // Filter products for this specific organization
+        filteredProducts = allProducts.filter(product => product.organizationId === organizationId);
+        
+        console.log(`Filtered ${allProducts.length} products to ${filteredProducts.length} for organizationId: ${organizationId}`);
+      } else {
+        // No tenant context - return all products (for super admin / platform access)
+        console.log(`No tenant context - returning all ${allProducts.length} products`);
+      }
+      
+      res.json(filteredProducts);
     } catch (error) {
+      console.error('Failed to fetch products:', error);
       res.status(500).json({ message: "Failed to fetch products" });
     }
   });
