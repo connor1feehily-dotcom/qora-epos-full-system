@@ -89,9 +89,16 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
       isActive: true
     };
 
-    // Save forever in localStorage - NEVER expires!
+    // Save forever in localStorage - MULTIPLE backup locations!
     localStorage.setItem('quantum_till_session', JSON.stringify(session));
     localStorage.setItem('quantum_auto_login', 'true');
+    localStorage.setItem('quantum_backup_session', JSON.stringify(session));
+    localStorage.setItem(`quantum_till_${tillCode}`, JSON.stringify(session));
+    
+    // Also save in sessionStorage as backup
+    sessionStorage.setItem('quantum_till_session', JSON.stringify(session));
+    
+    console.log('🔐 PERMANENT LOGIN - Session saved to 5 locations, NEVER expires!');
     
     setIsLoading(false);
     onLogin(session);

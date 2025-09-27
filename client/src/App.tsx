@@ -88,17 +88,34 @@ function AppContent() {
   const [tillSession, setTillSession] = useState<TillSession | null>(null);
   const [lastActivity, setLastActivity] = useState<Date>(new Date());
 
-  // Check for saved session on app load - NEVER expires!
+  // Check for saved session on app load - MULTIPLE backup locations!
   useEffect(() => {
-    const savedSession = localStorage.getItem('quantum_till_session');
+    let savedSession = localStorage.getItem('quantum_till_session') ||
+                      localStorage.getItem('quantum_backup_session') ||
+                      sessionStorage.getItem('quantum_till_session');
+    
+    // Try backup locations if primary fails
+    if (!savedSession) {
+      const tillCodes = ['1001', '1002', '1003', '1004', '1005', '9999'];
+      for (const code of tillCodes) {
+        const backup = localStorage.getItem(`quantum_till_${code}`);
+        if (backup) {
+          savedSession = backup;
+          break;
+        }
+      }
+    }
+    
     if (savedSession) {
       try {
         const session = JSON.parse(savedSession);
         setTillSession(session);
         setMode('main-menu');
-        console.log('Auto-logged in with saved session:', session.tillCode, session.shopName);
+        console.log('✅ AUTO-LOGIN SUCCESS:', session.tillCode, session.shopName);
+        console.log('🔒 Session NEVER expires - logged in permanently!');
       } catch (error) {
         console.error('Error loading saved session:', error);
+        setMode('till-auth');
       }
     }
   }, []);
