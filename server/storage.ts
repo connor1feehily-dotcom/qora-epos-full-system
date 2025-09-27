@@ -4,7 +4,7 @@ import {
   deliveryDockets, deliveryItems, supplierPerformance, staffActivityLog, priceOptimizations, systemAlerts, offlineQueue,
   batchEditOperations, expiryTracking, stockForecasting, timeClock, staffIncentives, staffMessages,
   productPerformance, customAlerts, demandForecasting, qrSupplierReceiving, promotionTemplates, customerInsights, pushNotifications,
-  supplierOrderIntegration, emailOrderCapture, supplierWebhooks, notifications,
+  supplierOrderIntegration, emailOrderCapture, supplierWebhooks, notifications, organizations, businessTemplates,
   type User, type Product, type Customer, type Supplier, type Transaction, type TransactionItem, type Promotion,
   type TillSession, type DailyReport, type PosButton, type PurchaseOrder, type PurchaseOrderItem,
   type PromotionRule, type PromotionProduct, type AuditLog, type StaffSchedule,
@@ -14,6 +14,7 @@ import {
   type StaffMessage, type ProductPerformance, type CustomAlert, type DemandForecasting,
   type QrSupplierReceiving, type PromotionTemplate, type CustomerInsight, type PushNotification,
   type SupplierOrderIntegration, type EmailOrderCapture, type SupplierWebhook,
+  type Organization, type BusinessTemplate,
   type InsertUser, type InsertProduct, type InsertCustomer, type InsertSupplier, 
   type InsertTransaction, type InsertTransactionItem, type InsertPromotion,
   type InsertTillSession, type InsertDailyReport, type InsertPosButton, type InsertPurchaseOrder,
@@ -25,7 +26,8 @@ import {
   type InsertStaffIncentive, type InsertStaffMessage, type InsertProductPerformance, type InsertCustomAlert,
   type InsertDemandForecasting, type InsertQrSupplierReceiving, type InsertPromotionTemplate,
   type InsertCustomerInsight, type InsertPushNotification,
-  type InsertSupplierOrderIntegration, type InsertEmailOrderCapture, type InsertSupplierWebhook
+  type InsertSupplierOrderIntegration, type InsertEmailOrderCapture, type InsertSupplierWebhook,
+  type InsertOrganization, type InsertBusinessTemplate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte } from "drizzle-orm";
@@ -810,8 +812,10 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Legacy memory storage - replaced by DatabaseStorage  
+// Multi-tenant memory storage - supports organizations and business templates
 export class MemStorage implements IStorage {
+  private organizations: Map<number, Organization>;
+  private businessTemplates: Map<number, BusinessTemplate>;
   private users: Map<number, User>;
   private products: Map<number, Product>;
   private customers: Map<number, Customer>;
@@ -820,8 +824,11 @@ export class MemStorage implements IStorage {
   private transactionItems: Map<number, TransactionItem>;
   private promotions: Map<number, Promotion>;
   private currentId: number;
+  private defaultOrgId: number = 1; // Default organization for backward compatibility
 
   constructor() {
+    this.organizations = new Map();
+    this.businessTemplates = new Map();
     this.users = new Map();
     this.products = new Map();
     this.customers = new Map();
@@ -835,8 +842,34 @@ export class MemStorage implements IStorage {
   }
 
   private seedData() {
-    // Create default admin user
+    // Create default organization (Kerrigans XL)
+    this.createOrganization({
+      name: "Kerrigan's XL",
+      slug: "kerrigans-xl",
+      businessType: "retail",
+      address: "Manorhamilton, Co. Leitrim",
+      phone: "+353-71-985-5000",
+      email: "info@kerrigans.ie",
+      timezone: "Europe/Dublin",
+      currency: "EUR",
+      vatEnabled: true,
+      defaultVatRate: "23.00",
+      settings: {
+        allowCashDrawer: true,
+        requireReceiptPrint: true,
+        enableLoyaltyProgram: false,
+        autoBackup: true
+      },
+      plan: "pro",
+      isActive: true
+    });
+
+    // Create business templates
+    this.seedBusinessTemplates();
+
+    // Create default users for the default organization
     this.createUser({
+      organizationId: this.defaultOrgId,
       username: 'admin',
       password: 'admin123',
       pin: '0000',
@@ -847,8 +880,8 @@ export class MemStorage implements IStorage {
       isActive: true
     });
 
-    // Create staff user
     this.createUser({
+      organizationId: this.defaultOrgId,
       username: 'staff',
       password: 'staff123',
       pin: '1234',
@@ -859,8 +892,8 @@ export class MemStorage implements IStorage {
       isActive: true
     });
 
-    // Create manager user
     this.createUser({
+      organizationId: this.defaultOrgId,
       username: 'manager',
       password: 'manager123',
       pin: '9999',
@@ -871,9 +904,9 @@ export class MemStorage implements IStorage {
       isActive: true
     });
 
-    // Create sample products
+    // Create sample products for the default organization
     const sampleProducts = [
-      { name: 'Coca Cola 500ml', barcode: '5449000214911', price: '1.50', cost: '0.80', category: 'Drinks', stock: 24, minStock: 5, vatRate: '23.00', isActive: true },
+      { organizationId: this.defaultOrgId, name: 'Coca Cola 500ml', barcode: '5449000214911', price: '1.50', cost: '0.80', category: 'Drinks', stock: 24, minStock: 5, vatRate: '23.00', isActive: true },
       { name: 'Diesel', barcode: '', price: '1.42', cost: '1.20', category: 'Fuel', stock: 1000, minStock: 100, vatRate: '23.00', isActive: true },
       { name: 'White Bread', barcode: '5099821001236', price: '2.20', cost: '1.50', category: 'Food', stock: 12, minStock: 3, vatRate: '0.00', isActive: true },
       { name: 'Coffee Large', barcode: '', price: '2.80', cost: '1.00', category: 'Hot Drinks', stock: 50, minStock: 10, vatRate: '13.50', isActive: true },
@@ -883,8 +916,9 @@ export class MemStorage implements IStorage {
 
     sampleProducts.forEach(product => this.createProduct(product));
 
-    // Create sample customer
+    // Create sample customer for the default organization
     this.createCustomer({
+      organizationId: this.defaultOrgId,
       name: 'Walk-in Customer',
       email: '',
       phone: '',
@@ -892,6 +926,114 @@ export class MemStorage implements IStorage {
       loyaltyPoints: 0,
       isActive: true
     });
+  }
+
+  // Organization Management
+  createOrganization(insertOrg: InsertOrganization): Organization {
+    const id = this.currentId++;
+    const org: Organization = { 
+      ...insertOrg, 
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.organizations.set(id, org);
+    return org;
+  }
+
+  getOrganizations(): Organization[] {
+    return Array.from(this.organizations.values());
+  }
+
+  getOrganization(id: number): Organization | undefined {
+    return this.organizations.get(id);
+  }
+
+  getOrganizationBySlug(slug: string): Organization | undefined {
+    return Array.from(this.organizations.values()).find(org => org.slug === slug);
+  }
+
+  // Business Templates
+  private seedBusinessTemplates() {
+    const templates = [
+      {
+        name: "Café & Coffee Shop",
+        businessType: "cafe",
+        description: "Perfect for cafés, coffee shops, and bistros",
+        defaultProducts: [
+          { name: "Espresso", category: "Hot Drinks", price: "2.50", cost: "0.40", vatRate: "13.50" },
+          { name: "Cappuccino", category: "Hot Drinks", price: "3.20", cost: "0.60", vatRate: "13.50" },
+          { name: "Croissant", category: "Pastries", price: "2.80", cost: "1.20", vatRate: "13.50" },
+          { name: "Sandwich", category: "Food", price: "5.50", cost: "2.20", vatRate: "13.50" }
+        ],
+        defaultCategories: ["Hot Drinks", "Cold Drinks", "Pastries", "Food", "Snacks"],
+        defaultSettings: { requireReceiptPrint: true, enableLoyaltyProgram: true, allowTips: true },
+        isActive: true
+      },
+      {
+        name: "Butcher Shop",
+        businessType: "butcher",
+        description: "Specialized for butchers and meat retailers",
+        defaultProducts: [
+          { name: "Beef Mince (500g)", category: "Beef", price: "6.50", cost: "4.20", vatRate: "0.00" },
+          { name: "Chicken Breast (1kg)", category: "Poultry", price: "8.99", cost: "6.50", vatRate: "0.00" },
+          { name: "Pork Chops (500g)", category: "Pork", price: "7.20", cost: "5.10", vatRate: "0.00" },
+          { name: "Fresh Sausages", category: "Processed", price: "4.99", cost: "3.20", vatRate: "0.00" }
+        ],
+        defaultCategories: ["Beef", "Pork", "Poultry", "Lamb", "Processed", "Specials"],
+        defaultSettings: { requireReceiptPrint: true, enableWeightedItems: true, showOriginInfo: true },
+        isActive: true
+      },
+      {
+        name: "Retail Store",
+        businessType: "retail",
+        description: "General retail stores and convenience shops",
+        defaultProducts: [
+          { name: "Coca Cola 500ml", category: "Drinks", price: "1.50", cost: "0.80", vatRate: "23.00" },
+          { name: "White Bread", category: "Food", price: "2.20", cost: "1.50", vatRate: "0.00" },
+          { name: "Milk 1L", category: "Dairy", price: "1.35", cost: "0.95", vatRate: "0.00" },
+          { name: "Newspapers", category: "News", price: "2.50", cost: "1.80", vatRate: "0.00" }
+        ],
+        defaultCategories: ["Drinks", "Food", "Dairy", "Snacks", "Household", "News"],
+        defaultSettings: { requireReceiptPrint: true, enableLoyaltyProgram: false, fastCheckout: true },
+        isActive: true
+      },
+      {
+        name: "Pop-up Stall",
+        businessType: "popup",
+        description: "Mobile vendors, market stalls, and temporary setups",
+        defaultProducts: [
+          { name: "Hot Dog", category: "Food", price: "4.50", cost: "1.80", vatRate: "13.50" },
+          { name: "Soft Drink", category: "Drinks", price: "2.00", cost: "0.70", vatRate: "23.00" },
+          { name: "Candy", category: "Snacks", price: "1.50", cost: "0.60", vatRate: "23.00" }
+        ],
+        defaultCategories: ["Food", "Drinks", "Snacks"],
+        defaultSettings: { requireReceiptPrint: false, mobileOptimized: true, offlineMode: true },
+        isActive: true
+      }
+    ];
+
+    templates.forEach(template => {
+      const id = this.currentId++;
+      const businessTemplate: BusinessTemplate = { 
+        ...template, 
+        id,
+        createdAt: new Date()
+      };
+      this.businessTemplates.set(id, businessTemplate);
+    });
+  }
+
+  getBusinessTemplates(): BusinessTemplate[] {
+    return Array.from(this.businessTemplates.values()).filter(t => t.isActive);
+  }
+
+  getBusinessTemplate(id: number): BusinessTemplate | undefined {
+    return this.businessTemplates.get(id);
+  }
+
+  getBusinessTemplatesByType(businessType: string): BusinessTemplate[] {
+    return Array.from(this.businessTemplates.values()).filter(t => t.businessType === businessType && t.isActive);
   }
 
   // Users

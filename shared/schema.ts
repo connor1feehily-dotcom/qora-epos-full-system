@@ -2,15 +2,39 @@ import { pgTable, text, serial, integer, boolean, decimal, timestamp, json, varc
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Multi-Tenant Organizations Table
+export const organizations = pgTable("organizations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(), // URL-friendly identifier
+  businessType: text("business_type").notNull(), // cafe, butcher, retail, popup, etc.
+  domain: text("domain"), // custom domain for white-label
+  logo: text("logo_url"), // organization logo
+  address: text("address"),
+  phone: text("phone"),
+  email: text("email"),
+  timezone: text("timezone").notNull().default("UTC"),
+  currency: text("currency").notNull().default("EUR"),
+  vatEnabled: boolean("vat_enabled").notNull().default(true),
+  defaultVatRate: decimal("default_vat_rate", { precision: 5, scale: 2 }).notNull().default("20.00"),
+  settings: jsonb("settings"), // flexible settings per organization
+  plan: text("plan").notNull().default("free"), // free, basic, pro, enterprise
+  isActive: boolean("is_active").notNull().default(true),
+  trialEndsAt: timestamp("trial_ends_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  username: text("username").notNull(),
   password: text("password").notNull(),
   pin: text("pin"),
   role: text("role").notNull().default("staff"), // staff, manager, admin
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  employeeId: text("employee_id").unique(),
+  employeeId: text("employee_id"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
   lastLogin: timestamp("last_login"),
@@ -18,8 +42,9 @@ export const users = pgTable("users", {
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   name: text("name").notNull(),
-  barcode: text("barcode").unique(),
+  barcode: text("barcode"),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   cost: decimal("cost", { precision: 10, scale: 2 }),
   category: text("category").notNull(),
@@ -31,6 +56,7 @@ export const products = pgTable("products", {
 
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),
@@ -41,6 +67,7 @@ export const customers = pgTable("customers", {
 
 export const suppliers = pgTable("suppliers", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),
@@ -51,6 +78,7 @@ export const suppliers = pgTable("suppliers", {
 
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   customerId: integer("customer_id"),
   userId: integer("user_id").notNull(),
   tillId: text("till_id").notNull().default("till1"),
@@ -63,8 +91,23 @@ export const transactions = pgTable("transactions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Business Templates for different shop types
+export const businessTemplates = pgTable("business_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // "Café", "Butcher Shop", "Retail Store", etc.
+  businessType: text("business_type").notNull(), // cafe, butcher, retail, popup, etc.
+  description: text("description"),
+  defaultProducts: jsonb("default_products"), // Array of sample products
+  defaultCategories: jsonb("default_categories"), // Array of product categories
+  defaultSettings: jsonb("default_settings"), // POS configuration for this business type
+  requiredIntegrations: jsonb("required_integrations"), // Payment methods, scales, etc.
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const transactionItems = pgTable("transaction_items", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   transactionId: integer("transaction_id").notNull(),
   productId: integer("product_id").notNull(),
   quantity: integer("quantity").notNull(),
@@ -74,6 +117,7 @@ export const transactionItems = pgTable("transaction_items", {
 
 export const promotions = pgTable("promotions", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   name: text("name").notNull(),
   description: text("description"),
   discountType: text("discount_type").notNull(), // 'percentage' or 'fixed'
@@ -86,6 +130,7 @@ export const promotions = pgTable("promotions", {
 // Till Sessions table for tracking till openings/closings
 export const tillSessions = pgTable("till_sessions", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   tillId: text("till_id").notNull(),
   userId: integer("user_id").notNull().references(() => users.id),
   openingFloat: decimal("opening_float", { precision: 10, scale: 2 }).notNull(),
@@ -101,6 +146,7 @@ export const tillSessions = pgTable("till_sessions", {
 // Daily Reports table for Z and X reports
 export const dailyReports = pgTable("daily_reports", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   tillId: text("till_id").notNull(),
   reportType: text("report_type").notNull(), // 'X' or 'Z'
   reportDate: timestamp("report_date").notNull().defaultNow(),
@@ -117,6 +163,7 @@ export const dailyReports = pgTable("daily_reports", {
 // POS Button Configuration
 export const posButtons = pgTable("pos_buttons", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   tillId: text("till_id").notNull(),
   buttonType: text("button_type").notNull(), // "product", "category", "action", "payment"
   label: text("label").notNull(),
@@ -133,6 +180,7 @@ export const posButtons = pgTable("pos_buttons", {
 // Purchase Orders
 export const purchaseOrders = pgTable("purchase_orders", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   poNumber: text("po_number").notNull().unique(),
   supplierId: integer("supplier_id").references(() => suppliers.id),
   status: text("status").notNull().default("pending"), // pending, sent, received, cancelled
@@ -146,6 +194,7 @@ export const purchaseOrders = pgTable("purchase_orders", {
 
 export const purchaseOrderItems = pgTable("purchase_order_items", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   purchaseOrderId: integer("purchase_order_id").references(() => purchaseOrders.id),
   productId: integer("product_id").references(() => products.id),
   quantity: integer("quantity").notNull(),
@@ -157,6 +206,7 @@ export const purchaseOrderItems = pgTable("purchase_order_items", {
 // Promotions Engine
 export const promotionRules = pgTable("promotion_rules", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   name: text("name").notNull(),
   type: text("type").notNull(), // "percentage", "fixed", "bogof", "mix_match"
   value: decimal("value", { precision: 10, scale: 2 }),
@@ -171,6 +221,7 @@ export const promotionRules = pgTable("promotion_rules", {
 
 export const promotionProducts = pgTable("promotion_products", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   promotionId: integer("promotion_id").references(() => promotionRules.id),
   productId: integer("product_id").references(() => products.id),
   categoryName: text("category_name"),
@@ -179,6 +230,7 @@ export const promotionProducts = pgTable("promotion_products", {
 // Audit Logs
 export const auditLogs = pgTable("audit_logs", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   userId: integer("user_id").references(() => users.id),
   action: text("action").notNull(), // "create", "update", "delete", "login", "sale"
   tableName: text("table_name"),
@@ -193,6 +245,7 @@ export const auditLogs = pgTable("audit_logs", {
 // Staff Schedules
 export const staffSchedules = pgTable("staff_schedules", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   userId: integer("user_id").references(() => users.id),
   tillId: text("till_id"),
   shiftStart: timestamp("shift_start").notNull(),
@@ -254,6 +307,7 @@ export const themes = pgTable("themes", {
 // Mobile App Notifications
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   userId: integer("user_id").references(() => users.id),
   type: text("type").notNull(), // 'sale_alert', 'inventory_low', 'approval_request', 'shift_alert'
   title: text("title").notNull(),
@@ -337,6 +391,7 @@ export const storeMetrics = pgTable("store_metrics", {
 // Staff Performance & Gamification
 export const staffPerformance = pgTable("staff_performance", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   userId: integer("user_id").references(() => users.id),
   tillId: text("till_id"),
   shiftDate: timestamp("shift_date").notNull(),
@@ -420,6 +475,7 @@ export const syncQueue = pgTable("sync_queue", {
 // Delivery Dockets for Valerie's mobile scanning
 export const deliveryDockets = pgTable("delivery_dockets", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   docketNumber: text("docket_number").notNull(),
   supplierName: text("supplier_name").notNull(),
   supplierId: integer("supplier_id").references(() => suppliers.id),
@@ -440,6 +496,7 @@ export const deliveryDockets = pgTable("delivery_dockets", {
 // Delivery Items from scanned dockets
 export const deliveryItems = pgTable("delivery_items", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   docketId: integer("docket_id").references(() => deliveryDockets.id),
   productId: integer("product_id").references(() => products.id),
   barcode: text("barcode"),
@@ -508,6 +565,7 @@ export const priceOptimizations = pgTable("price_optimizations", {
 // System Alerts & Exceptions
 export const systemAlerts = pgTable("system_alerts", {
   id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
   alertType: text("alert_type").notNull(), // low_stock, margin_threshold, delivery_fail, etc.
   severity: text("severity").notNull().default("medium"), // low, medium, high, critical
   title: text("title").notNull(),
@@ -1128,6 +1186,18 @@ export const insertPromotionTemplateSchema = createInsertSchema(promotionTemplat
 export const insertCustomerInsightSchema = createInsertSchema(customerInsights).omit({ id: true });
 export const insertPushNotificationSchema = createInsertSchema(pushNotifications).omit({ id: true });
 
+// Multi-tenant insert schemas
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertBusinessTemplateSchema = createInsertSchema(businessTemplates).omit({ 
+  id: true, 
+  createdAt: true 
+});
+
 // Types for new tables
 export type BatchEditOperation = typeof batchEditOperations.$inferSelect;
 export type ExpiryTracking = typeof expiryTracking.$inferSelect;
@@ -1156,3 +1226,9 @@ export type InsertQrSupplierReceiving = z.infer<typeof insertQrSupplierReceiving
 export type InsertPromotionTemplate = z.infer<typeof insertPromotionTemplateSchema>;
 export type InsertCustomerInsight = z.infer<typeof insertCustomerInsightSchema>;
 export type InsertPushNotification = z.infer<typeof insertPushNotificationSchema>;
+
+// Multi-tenant types
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type BusinessTemplate = typeof businessTemplates.$inferSelect;
+export type InsertBusinessTemplate = z.infer<typeof insertBusinessTemplateSchema>;

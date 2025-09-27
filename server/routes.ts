@@ -32,12 +32,125 @@ import {
 import { scanDocket, importDelivery, getDeliveryHistory, getProductSuggestions } from "./routes/delivery-routes";
 import stockTakeRoutes from "./routes/stock-take-routes";
 import { securityHeaders } from "./security/pci-compliance";
-import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema } from "@shared/schema";
+import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema, insertOrganizationSchema } from "@shared/schema";
 import { z } from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply security headers to all routes
   app.use(securityHeaders);
+  
+  // Multi-Tenant Organization Onboarding Routes
+  
+  // Get all business templates for onboarding
+  app.get("/api/onboarding/business-templates", async (req, res) => {
+    try {
+      const templates = storage.getBusinessTemplates();
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch business templates" });
+    }
+  });
+
+  // Get business templates by type
+  app.get("/api/onboarding/business-templates/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      const templates = storage.getBusinessTemplatesByType(type);
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch business templates" });
+    }
+  });
+
+  // Create new organization (shop onboarding)
+  app.post("/api/onboarding/organizations", async (req, res) => {
+    try {
+      const orgData = insertOrganizationSchema.parse(req.body);
+      const newOrg = storage.createOrganization(orgData);
+      res.status(201).json(newOrg);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid organization data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create organization" });
+      }
+    }
+  });
+
+  // Get organization by slug (for subdomain routing)
+  app.get("/api/organizations/by-slug/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const org = storage.getOrganizationBySlug(slug);
+      if (!org) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      res.json(org);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch organization" });
+    }
+  });
+
+  // Get all organizations (platform admin)
+  app.get("/api/organizations", async (req, res) => {
+    try {
+      const organizations = storage.getOrganizations();
+      res.json(organizations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch organizations" });
+    }
+  });
+
+  // Create organization with business template
+  app.post("/api/onboarding/create-shop", async (req, res) => {
+    try {
+      const { organization, templateId, adminUser } = req.body;
+      
+      // Validate organization data
+      const orgData = insertOrganizationSchema.parse(organization);
+      
+      // Create the organization
+      const newOrg = storage.createOrganization(orgData);
+      
+      // Get business template for initial setup
+      let template = null;
+      if (templateId) {
+        template = storage.getBusinessTemplate(parseInt(templateId));
+      }
+      
+      // Create admin user for the organization
+      if (adminUser) {
+        await storage.createUser({
+          ...adminUser,
+          organizationId: newOrg.id,
+          role: 'admin'
+        });
+      }
+      
+      // If template is provided, create sample products
+      if (template && template.defaultProducts && Array.isArray(template.defaultProducts)) {
+        for (const product of template.defaultProducts as any[]) {
+          await storage.createProduct({
+            ...product,
+            organizationId: newOrg.id
+          });
+        }
+      }
+      
+      res.status(201).json({
+        organization: newOrg,
+        template,
+        message: "Shop created successfully! You can now start selling."
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid shop data", errors: error.errors });
+      } else {
+        console.error("Shop creation error:", error);
+        res.status(500).json({ message: "Failed to create shop" });
+      }
+    }
+  });
   
   // PCI DSS compliant payment routes
   app.post("/api/payment/process", ...processPayment);
