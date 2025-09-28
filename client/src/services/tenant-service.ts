@@ -63,7 +63,7 @@ class TenantService {
   
   /**
    * Initialize tenant from URL/subdomain
-   * Examples: kerrigan.kerriganspos.com, shop1.kerriganspos.com
+   * Examples: dublin-retail.quantumpos.ie, cork-hospitality.quantumpos.ie
    */
   async initializeTenant(): Promise<Tenant | null> {
     try {
@@ -71,7 +71,7 @@ class TenantService {
       let tenantSlug: string | null = null;
       
       // Extract tenant from subdomain
-      if (hostname.includes('.kerriganspos.com')) {
+      if (hostname.includes('.quantumpos.ie')) {
         tenantSlug = hostname.split('.')[0];
       } 
       // Local development - use query param
@@ -82,7 +82,7 @@ class TenantService {
       
       if (!tenantSlug) {
         // No tenant specified - redirect to main site
-        window.location.href = 'https://kerriganspos.com';
+        window.location.href = 'https://quantumpos.ie';
         return null;
       }
       

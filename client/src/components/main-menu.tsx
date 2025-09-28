@@ -492,10 +492,10 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
             </div>
           </div>
           <p className="text-sm font-bold text-foreground mb-1">
-            Kerrigan's XL Manorhamilton • Point of Sale System
+            QUANTUM POS • Ireland's Premier Retail Platform
           </p>
           <p className="text-xs text-muted-foreground">
-            Licensed to Kerrigan's XL from The Feehily Boyle Group
+            Enterprise Multi-Tenant Architecture • Powered by Quantum Commerce
           </p>
         </div>
       </div>

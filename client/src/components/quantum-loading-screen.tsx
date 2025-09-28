@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 
-export function KerrigansLoadingScreen() {
+export function ProfessionalLoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState("Initializing system...");
 
   const loadingSteps = [
-    { text: "Initializing Quantum POS System...", duration: 1200 },
-    { text: "Connecting to database...", duration: 1000 },
-    { text: "Loading product catalog...", duration: 1000 },
-    { text: "Setting up payment systems...", duration: 1200 },
-    { text: "Configuring staff authentication...", duration: 1000 },
-    { text: "Preparing till stations...", duration: 1200 },
-    { text: "Loading inventory data...", duration: 1000 },
-    { text: "Finalizing setup...", duration: 1400 }
+    { text: "Initializing Multi-Tenant Platform...", duration: 1200 },
+    { text: "Connecting to tenant network...", duration: 1000 },
+    { text: "Loading business configuration...", duration: 1000 },
+    { text: "Setting up enterprise security...", duration: 1200 },
+    { text: "Configuring business isolation...", duration: 1000 },
+    { text: "Preparing multi-till infrastructure...", duration: 1200 },
+    { text: "Loading tenant-specific data...", duration: 1000 },
+    { text: "Finalizing enterprise setup...", duration: 1400 }
   ];
 
   useEffect(() => {
@@ -134,13 +134,13 @@ export function KerrigansLoadingScreen() {
         {/* Welcome Message */}
         <div className="text-center">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-            Welcome to Kerrigan's XL
+            QUANTUM POS
           </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-            Manorhamilton's Premier Point of Sale System
+            Ireland's Premier Multi-Tenant Retail Platform
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-500">
-            Licensed to Kerrigan's XL from The Feehily Boyle Group
+            Enterprise • Multi-Till • Cloud-First Architecture
           </p>
         </div>
       </div>

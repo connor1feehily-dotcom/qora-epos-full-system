@@ -22,35 +22,35 @@ declare global {
 }
 
 /**
- * Mock tenant database - In real app this would be in database
+ * Professional tenant database - Enterprise multi-business support
  */
 const TENANTS = {
-  'kerrigan': {
+  'dublin-retail': {
     id: 'tenant_001',
-    slug: 'kerrigan',
-    name: "Kerrigan's XL",
-    businessType: 'offlicense',
+    slug: 'dublin-retail',
+    name: "Dublin Retail Solutions",
+    businessType: 'retail',
     isActive: true
   },
-  'crown-pub': {
+  'cork-hospitality': {
     id: 'tenant_002', 
-    slug: 'crown-pub',
-    name: 'The Crown Pub',
-    businessType: 'pub',
+    slug: 'cork-hospitality',
+    name: 'Cork Hospitality Group',
+    businessType: 'hospitality',
     isActive: true
   },
-  'city-coffee': {
+  'galway-coffee': {
     id: 'tenant_003',
-    slug: 'city-coffee', 
-    name: 'City Coffee Co',
+    slug: 'galway-coffee', 
+    name: 'Galway Coffee Enterprises',
     businessType: 'cafe',
     isActive: true
   },
   'demo': {
     id: 'tenant_demo',
     slug: 'demo',
-    name: 'Demo Shop',
-    businessType: 'retail',
+    name: 'Demo Environment',
+    businessType: 'demo',
     isActive: true
   }
 };
@@ -61,8 +61,8 @@ const TENANTS = {
 function extractTenantSlug(req: Request): string | null {
   const hostname = req.hostname;
   
-  // Check for subdomain: tenant.kerriganspos.com
-  if (hostname.includes('.kerriganspos.com')) {
+  // Check for subdomain: tenant.quantumpos.ie
+  if (hostname.includes('.quantumpos.ie')) {
     return hostname.split('.')[0];
   }
   

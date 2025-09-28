@@ -469,8 +469,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db } = await import("./db");
       const { users, products, customers } = await import("@shared/schema");
 
-      // Get organizationId from tenant context or default to 1 (Kerrigan's XL)
-      let organizationId = 1; // Default to Kerrigan's XL
+      // Get organizationId from tenant context or default to 1 (Demo environment)
+      let organizationId = 1; // Default to Demo environment
       if (req.tenant?.tenantId) {
         // Extract numeric ID from tenant string like "tenant_001" -> 1
         const match = req.tenant.tenantId.match(/tenant_(\d+|demo)/);
@@ -532,33 +532,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let productsToSeed = [];
       
       if (organizationId === 1) {
-        // Kerrigan's XL Off License - Irish spirits, beers, wines
+        // Dublin Retail Solutions - Premium retail products
         productsToSeed = [
-          { name: 'Heineken 500ml', barcode: '8712000010218', price: '2.50', cost: '1.80', category: 'Beer', stock: 48, minStock: 12 },
-          { name: 'Jameson Irish Whiskey 70cl', barcode: '5011007003227', price: '32.99', cost: '24.00', category: 'Spirits', stock: 12, minStock: 3 },
-          { name: 'Guinness 440ml Can', barcode: '5000169014387', price: '2.20', cost: '1.50', category: 'Beer', stock: 36, minStock: 12 },
-          { name: 'Sauvignon Blanc 75cl', barcode: '5060176362169', price: '8.99', cost: '6.50', category: 'Wine', stock: 18, minStock: 6 }
+          { name: 'Premium Wireless Headphones', barcode: '8712000010218', price: '89.99', cost: '45.00', category: 'Electronics', stock: 25, minStock: 5 },
+          { name: 'Organic Fair Trade Coffee Beans 1kg', barcode: '5011007003227', price: '24.99', cost: '12.50', category: 'Food & Beverage', stock: 40, minStock: 10 },
+          { name: 'Eco-Friendly Water Bottle', barcode: '5000169014387', price: '19.99', cost: '8.00', category: 'Lifestyle', stock: 60, minStock: 15 },
+          { name: 'Artisan Chocolate Gift Box', barcode: '5060176362169', price: '34.99', cost: '18.00', category: 'Gifts', stock: 30, minStock: 8 }
         ];
       } else if (organizationId === 2) {
-        // The Crown Pub - Pub essentials, crisps, mixers
+        // Cork Hospitality Group - Restaurant & bar essentials
         productsToSeed = [
-          { name: 'Carlsberg 500ml Draught', barcode: '5000168020432', price: '4.50', cost: '2.80', category: 'Draught Beer', stock: 24, minStock: 6 },
-          { name: 'Tayto Crisps Cheese & Onion', barcode: '5391518920001', price: '1.50', cost: '0.90', category: 'Snacks', stock: 50, minStock: 15 },
-          { name: 'Coca Cola 330ml Bottle', barcode: '5449000000439', price: '2.20', cost: '1.30', category: 'Soft Drinks', stock: 30, minStock: 10 },
-          { name: 'Smirnoff Vodka 35cl', barcode: '5410316301309', price: '15.99', cost: '11.50', category: 'Spirits', stock: 8, minStock: 3 }
+          { name: 'Premium Craft Beer 500ml', barcode: '5000168020432', price: '6.50', cost: '3.20', category: 'Beverages', stock: 120, minStock: 24 },
+          { name: 'Gourmet Burger Meal', barcode: '5391518920001', price: '18.95', cost: '8.50', category: 'Main Course', stock: 50, minStock: 10 },
+          { name: 'Artisan Pizza Margherita', barcode: '5449000000439', price: '16.50', cost: '7.20', category: 'Main Course', stock: 40, minStock: 8 },
+          { name: 'Irish Whiskey Premium', barcode: '5410316301309', price: '8.50', cost: '4.20', category: 'Spirits', stock: 60, minStock: 12 }
         ];
       } else if (organizationId === 3) {
-        // City Coffee Co - Coffee, pastries, sandwiches
+        // Galway Coffee Enterprises - Specialty coffee & pastries
         productsToSeed = [
-          { name: 'Americano Large', barcode: 'COFFEE001', price: '3.20', cost: '1.10', category: 'Hot Drinks', stock: 999, minStock: 1 },
-          { name: 'Cappuccino Regular', barcode: 'COFFEE002', price: '2.80', cost: '1.00', category: 'Hot Drinks', stock: 999, minStock: 1 },
-          { name: 'Blueberry Muffin', barcode: 'BAKERY001', price: '2.50', cost: '1.20', category: 'Bakery', stock: 24, minStock: 6 },
-          { name: 'Ham & Cheese Sandwich', barcode: 'DELI001', price: '4.95', cost: '2.80', category: 'Deli', stock: 12, minStock: 3 }
+          { name: 'Signature Espresso Blend', barcode: 'COFFEE001', price: '4.20', cost: '1.50', category: 'Hot Drinks', stock: 999, minStock: 1 },
+          { name: 'Premium Cappuccino', barcode: 'COFFEE002', price: '4.80', cost: '1.80', category: 'Hot Drinks', stock: 999, minStock: 1 },
+          { name: 'Artisan Sourdough Sandwich', barcode: 'BAKERY001', price: '8.95', cost: '4.20', category: 'Food', stock: 35, minStock: 8 },
+          { name: 'Organic Pastry Selection', barcode: 'DELI001', price: '6.50', cost: '3.10', category: 'Pastries', stock: 45, minStock: 10 }
         ];
       } else {
-        // Demo Shop (organizationId === 4) - Generic test item
+        // Demo Environment - Professional test items
         productsToSeed = [
-          { name: 'Test Item', barcode: '1234567890123', price: '1.50', cost: '0.80', category: 'Test', stock: 100, minStock: 5 }
+          { name: 'Demo Product - Standard Item', barcode: '1234567890123', price: '15.99', cost: '8.50', category: 'Demo', stock: 100, minStock: 10 }
         ];
       }
       

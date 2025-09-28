@@ -9,7 +9,7 @@ import { MainMenu } from "@/components/main-menu";
 import SimpleTillAuth from "@/components/simple-till-auth";
 import TenantAwareApp from "@/components/tenant-aware-app";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
-import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
+import { ProfessionalLoadingScreen } from "@/components/quantum-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { InactiveScreen } from "@/components/inactive-screen";
 import { ComponentPreloader } from "@/utils/preloader";
@@ -187,9 +187,31 @@ function AppContent() {
     setMode('main-menu');
   };
 
+  const handleLogout = () => {
+    // Clear ALL localStorage sessions
+    localStorage.removeItem('quantum_till_session');
+    localStorage.removeItem('quantum_backup_session');
+    localStorage.removeItem('quantum_auto_login');
+    
+    // Clear all till-specific sessions
+    const tillCodes = ['1001', '1002', '1003', '1004', '1005', '1006', '1007', '1008', '1009', '1010', '2001', '2002', '2003', '2004', '2005', '9999'];
+    tillCodes.forEach(code => {
+      localStorage.removeItem(`quantum_till_${code}`);
+    });
+    
+    // Clear sessionStorage
+    sessionStorage.removeItem('quantum_till_session');
+    
+    // Reset session state and return to login
+    setTillSession(null);
+    setMode('till-auth');
+    
+    console.log('🚪 LOGOUT COMPLETE - All sessions cleared');
+  };
+
   // Show loading while seeding database
   if (isSeeding) {
-    return <KerrigansLoadingScreen />;
+    return <ProfessionalLoadingScreen />;
   }
 
   // Show inactive screen
@@ -214,7 +236,7 @@ function AppContent() {
           onSelectMode={handleModeSelect}
           onStaffLogin={() => {}} 
           currentUser={mockUser}
-          onLogout={() => {}} // No logout - stays logged in forever!
+          onLogout={handleLogout}
         />
       )}
       {mode === 'pos' && tillSession && mockUser && (

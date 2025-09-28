@@ -24,18 +24,18 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
   const [error, setError] = useState('');
   const [showSetup, setShowSetup] = useState(false);
 
-  // Pre-configured till codes - super easy setup!
+  // Pre-configured till codes - professional demo environments
   const TILL_CODES = {
-    '1001': { shopName: "Kerrigan's XL", businessType: 'offlicense' },
-    '1002': { shopName: "The Crown Pub", businessType: 'pub' },
-    '1003': { shopName: "City Coffee", businessType: 'cafe' },
-    '1004': { shopName: "Murphy's Garage", businessType: 'garage' },
-    '1005': { shopName: "Fresh Daily Bakery", businessType: 'bakery' },
-    '1006': { shopName: "Beauty Salon", businessType: 'salon' },
-    '1007': { shopName: "Hardware Store", businessType: 'hardware' },
-    '1008': { shopName: "Restaurant", businessType: 'restaurant' },
-    '1009': { shopName: "Pharmacy", businessType: 'pharmacy' },
-    '1010': { shopName: "Wholesaler", businessType: 'wholesaler' },
+    '1001': { shopName: "Dublin Retail Solutions", businessType: 'retail' },
+    '1002': { shopName: "Cork Hospitality Group", businessType: 'hospitality' },
+    '1003': { shopName: "Galway Coffee Enterprises", businessType: 'cafe' },
+    '1004': { shopName: "Limerick Auto Services", businessType: 'automotive' },
+    '1005': { shopName: "Waterford Bakery Co", businessType: 'bakery' },
+    '1006': { shopName: "Belfast Beauty Hub", businessType: 'salon' },
+    '1007': { shopName: "Athlone Hardware Ltd", businessType: 'hardware' },
+    '1008': { shopName: "Kilkenny Fine Dining", businessType: 'restaurant' },
+    '1009': { shopName: "Derry Pharmacy Plus", businessType: 'pharmacy' },
+    '1010': { shopName: "Sligo Wholesale Group", businessType: 'wholesale' },
     
     // Easy setup codes for new shops
     '2001': { shopName: "New Shop 1", businessType: 'retail' },
