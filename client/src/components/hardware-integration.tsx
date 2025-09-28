@@ -280,7 +280,7 @@ Payment: ${receiptData.paymentMethod}
               <Button 
                 onClick={() => {
                   const testData = {
-                    storeName: "QUANTUM POS DEMO",
+                    storeName: "KERRIGAN'S XL",
                     transactionId: 1001,
                     tillId: "TILL-01",
                     dateTime: new Date().toLocaleString(),

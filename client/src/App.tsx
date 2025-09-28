@@ -6,10 +6,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TillSelector } from "@/components/till-selector";
 import { MainMenu } from "@/components/main-menu";
-import SimpleTillAuth from "@/components/simple-till-auth";
-import TenantAwareApp from "@/components/tenant-aware-app";
+import { StaffLogin } from "@/components/staff-login";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
-import { ProfessionalLoadingScreen } from "@/components/quantum-loading-screen";
+import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { InactiveScreen } from "@/components/inactive-screen";
 import { ComponentPreloader } from "@/utils/preloader";
@@ -73,53 +72,13 @@ function HardwareSetupRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
   );
 }
 
-type AppMode = 'till-auth' | 'main-menu' | 'pos' | 'back-office' | 'stock-take' | 'hardware-setup' | 'inactive';
-
-interface TillSession {
-  tillCode: string;
-  shopName: string;
-  businessType: string;
-  setupDate: string;
-  isActive: boolean;
-}
+type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'stock-take' | 'hardware-setup' | 'inactive';
 
 function AppContent() {
-  const [mode, setMode] = useState<AppMode>('till-auth');
+  const [mode, setMode] = useState<AppMode>('main-menu');
   const [selectedTill, setSelectedTill] = useState<string>("");
-  const [tillSession, setTillSession] = useState<TillSession | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [lastActivity, setLastActivity] = useState<Date>(new Date());
-
-  // Check for saved session on app load - MULTIPLE backup locations!
-  useEffect(() => {
-    let savedSession = localStorage.getItem('quantum_till_session') ||
-                      localStorage.getItem('quantum_backup_session') ||
-                      sessionStorage.getItem('quantum_till_session');
-    
-    // Try backup locations if primary fails
-    if (!savedSession) {
-      const tillCodes = ['1001', '1002', '1003', '1004', '1005', '9999'];
-      for (const code of tillCodes) {
-        const backup = localStorage.getItem(`quantum_till_${code}`);
-        if (backup) {
-          savedSession = backup;
-          break;
-        }
-      }
-    }
-    
-    if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession);
-        setTillSession(session);
-        setMode('main-menu');
-        console.log('✅ AUTO-LOGIN SUCCESS:', session.tillCode, session.shopName);
-        console.log('🔒 Session NEVER expires - logged in permanently!');
-      } catch (error) {
-        console.error('Error loading saved session:', error);
-        setMode('till-auth');
-      }
-    }
-  }, []);
 
   // Debug mode changes
   useEffect(() => {
@@ -161,57 +120,27 @@ function AppContent() {
     setLastActivity(new Date());
   };
 
-  const handleTillLogin = (session: TillSession) => {
-    setTillSession(session);
-    setMode('main-menu');
-    console.log('Till logged in:', session.tillCode, session.shopName);
+  const handleStaffLogin = () => {
+    setMode('staff-login');
   };
 
-  // Create user from till session - ADMIN gets SUPER ACCESS!
-  const mockUser = tillSession ? {
-    id: parseInt(tillSession.tillCode),
-    username: tillSession.tillCode,
-    firstName: tillSession.shopName,
-    lastName: tillSession.businessType,
-    role: tillSession.tillCode === '9999' ? 'super_admin' : 'manager', // SUPER ADMIN ROLE!
-    isActive: true,
-    organizationId: tillSession.tillCode === '9999' ? 0 : parseInt(tillSession.tillCode), // Admin = org 0
-    password: '',
-    pin: '',
-    employeeId: tillSession.tillCode,
-    createdAt: new Date(tillSession.setupDate),
-    lastLogin: new Date()
-  } : null;
+  const handleLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    setMode('main-menu');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setMode('main-menu');
+  };
 
   const handleBackToMenu = () => {
     setMode('main-menu');
   };
 
-  const handleLogout = () => {
-    // Clear ALL localStorage sessions
-    localStorage.removeItem('quantum_till_session');
-    localStorage.removeItem('quantum_backup_session');
-    localStorage.removeItem('quantum_auto_login');
-    
-    // Clear all till-specific sessions
-    const tillCodes = ['1001', '1002', '1003', '1004', '1005', '1006', '1007', '1008', '1009', '1010', '2001', '2002', '2003', '2004', '2005', '9999'];
-    tillCodes.forEach(code => {
-      localStorage.removeItem(`quantum_till_${code}`);
-    });
-    
-    // Clear sessionStorage
-    sessionStorage.removeItem('quantum_till_session');
-    
-    // Reset session state and return to login
-    setTillSession(null);
-    setMode('till-auth');
-    
-    console.log('🚪 LOGOUT COMPLETE - All sessions cleared');
-  };
-
   // Show loading while seeding database
   if (isSeeding) {
-    return <ProfessionalLoadingScreen />;
+    return <KerrigansLoadingScreen />;
   }
 
   // Show inactive screen
@@ -228,26 +157,29 @@ function AppContent() {
     <TooltipProvider>
       <Toaster />
       
-      {mode === 'till-auth' && (
-        <SimpleTillAuth onLogin={handleTillLogin} />
-      )}
-      {mode === 'main-menu' && tillSession && mockUser && (
+      {mode === 'main-menu' && (
         <MainMenu
           onSelectMode={handleModeSelect}
-          onStaffLogin={() => {}} 
-          currentUser={mockUser}
+          onStaffLogin={handleStaffLogin}
+          currentUser={currentUser}
           onLogout={handleLogout}
         />
       )}
-      {mode === 'pos' && tillSession && mockUser && (
-        <POSRouter tillId={tillSession.tillCode} onBackToMenu={handleBackToMenu} onGoInactive={handleGoInactive} currentUser={mockUser} />
+      {mode === 'staff-login' && (
+        <StaffLogin
+          onLogin={handleLoginSuccess}
+          onBack={handleBackToMenu}
+        />
       )}
-      {mode === 'back-office' && tillSession && mockUser && (
-        <BackOfficeRouter onBackToMenu={handleBackToMenu} currentUser={mockUser} />
+      {mode === 'pos' && selectedTill && (
+        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
+      )}
+      {mode === 'back-office' && (
+        <BackOfficeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser || undefined} />
       )}
 
-      {mode === 'stock-take' && tillSession && mockUser && (
-        <StockTakeRouter onBackToMenu={handleBackToMenu} currentUser={mockUser} />
+      {mode === 'stock-take' && currentUser && (
+        <StockTakeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser} />
       )}
 
       {mode === 'hardware-setup' && (
@@ -265,10 +197,7 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TenantAwareApp>
-        <AppContent />
-        <Toaster />
-      </TenantAwareApp>
+      <AppContent />
     </QueryClientProvider>
   );
 }

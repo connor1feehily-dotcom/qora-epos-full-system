@@ -21,27 +21,17 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
   // Debug user data and role checking
   console.log('Current User Object:', JSON.stringify(currentUser, null, 2));
   
-  // ADMIN HAS FULL ACCESS TO EVERYTHING!
-  const isAdmin = currentUser && (
-    currentUser.role === 'super_admin' || 
-    currentUser.username === '9999' ||
-    currentUser.employeeId === '9999'
-  );
-  
   const canAccessBackOffice = currentUser && (
-    isAdmin || // ADMIN can access everything!
     currentUser.role === 'admin' || 
     currentUser.role === 'manager' ||
     currentUser.username === 'admin' ||
     currentUser.username === 'manager'
   );
   
-  console.log('Access Check:', {
+  console.log('Back Office Access Check:', {
     hasUser: !!currentUser,
     userRole: currentUser?.role,
     username: currentUser?.username,
-    employeeId: currentUser?.employeeId,
-    isAdmin: isAdmin,
     canAccess: canAccessBackOffice
   });
 
@@ -79,11 +69,8 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
                       {currentUser.firstName || 'Staff'} {currentUser.lastName || 'Member'}
                     </p>
                     <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant={isAdmin ? 'default' : 'secondary'} 
-                        className={`text-xs ${isAdmin ? 'kxl-pulse bg-red-600 text-white animate-pulse' : 'kxl-pulse'}`}
-                      >
-                        {isAdmin ? '🚨 SUPER ADMIN' : currentUser.role?.toUpperCase() || 'STAFF'}
+                      <Badge variant={currentUser.role === 'admin' ? 'default' : 'secondary'} className="text-xs kxl-pulse">
+                        {currentUser.role?.toUpperCase() || 'STAFF'}
                       </Badge>
                     </div>
                   </div>
@@ -276,68 +263,6 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
               </Button>
             </Card>
 
-            {/* SUPER ADMIN PANEL - Only for Admin Users */}
-            {isAdmin && (
-              <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl kxl-hologram border-red-500/50 animate-pulse">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-3 kxl-glow animate-bounce">
-                    <Shield className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-2">
-                    🚨 SUPER ADMIN PANEL
-                  </h2>
-                  <p className="text-sm text-red-600 font-bold kxl-slide-in animate-pulse">
-                    FULL PLATFORM ACCESS • ALL SHOPS • ALL DATA
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-red-400/50">
-                    <div className="flex items-center space-x-2">
-                      <Shield className="w-4 h-4 text-red-500" />
-                      <span className="text-xs font-bold text-red-600">Platform Admin</span>
-                    </div>
-                  </div>
-                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-pink-400/50">
-                    <div className="flex items-center space-x-2">
-                      <Tag className="w-4 h-4 text-pink-500" />
-                      <span className="text-xs font-bold text-pink-600">Marketing Tools</span>
-                    </div>
-                  </div>
-                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-red-400/50">
-                    <div className="flex items-center space-x-2">
-                      <Users className="w-4 h-4 text-red-500" />
-                      <span className="text-xs font-bold text-red-600">All Organizations</span>
-                    </div>
-                  </div>
-                  <div className="kxl-glass kxl-neural-pulse p-2 rounded-lg border border-pink-400/50">
-                    <div className="flex items-center space-x-2">
-                      <BarChart3 className="w-4 h-4 text-pink-500" />
-                      <span className="text-xs font-bold text-pink-600">Global Analytics</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Button
-                    size="lg"
-                    className="w-full h-12 text-lg font-bold bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white kxl-glow animate-pulse"
-                    onClick={() => onSelectMode('back-office')}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Shield className="w-5 h-5" />
-                      <span>ACCESS PLATFORM ADMIN</span>
-                      <Shield className="w-5 h-5" />
-                    </div>
-                  </Button>
-                  
-                  <p className="text-xs text-center text-red-600 font-bold animate-pulse">
-                    ⚡ UNLIMITED ACCESS TO ALL FEATURES ⚡
-                  </p>
-                </div>
-              </Card>
-            )}
-
             {/* Mobile Stock Take Section - Prioritized for mobile */}
             <Card className="kxl-glass kxl-ai-border p-6 shadow-2xl kxl-hologram md:order-first xl:order-none">
               <div className="text-center mb-4">
@@ -492,10 +417,10 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
             </div>
           </div>
           <p className="text-sm font-bold text-foreground mb-1">
-            QUANTUM POS • Ireland's Premier Retail Platform
+            Kerrigan's XL Manorhamilton • Point of Sale System
           </p>
           <p className="text-xs text-muted-foreground">
-            Enterprise Multi-Tenant Architecture • Powered by Quantum Commerce
+            Licensed to Kerrigan's XL from The Feehily Boyle Group
           </p>
         </div>
       </div>

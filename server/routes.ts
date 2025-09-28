@@ -1,8 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import tenantRoutes from "./tenant-routes";
-import { resolveTenant } from "./tenant-middleware";
 import { 
   processPayment, 
   processRefund, 
@@ -40,12 +38,6 @@ import { z } from 'zod';
 export async function registerRoutes(app: Express): Promise<Server> {
   // Apply security headers to all routes
   app.use(securityHeaders);
-  
-  // Apply tenant resolution middleware
-  app.use(resolveTenant);
-  
-  // Multi-tenant management routes
-  app.use('/api', tenantRoutes);
   
   // Multi-Tenant Organization Onboarding Routes
   
@@ -469,21 +461,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db } = await import("./db");
       const { users, products, customers } = await import("@shared/schema");
 
-      // Get organizationId from tenant context or default to 1 (Demo environment)
-      let organizationId = 1; // Default to Demo environment
-      if (req.tenant?.tenantId) {
-        // Extract numeric ID from tenant string like "tenant_001" -> 1
-        const match = req.tenant.tenantId.match(/tenant_(\d+|demo)/);
-        if (match) {
-          organizationId = match[1] === 'demo' ? 4 : parseInt(match[1]) || 1;
-        }
-      }
-      console.log(`Seeding data for organizationId: ${organizationId}, tenant: ${req.tenant?.tenantId || 'none'}`);
-
       // Seed staff users
       await db.insert(users).values([
         {
-          organizationId: organizationId,
           username: 'admin',
           password: 'admin123',
           pin: '0000',
@@ -494,7 +474,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
-          organizationId: organizationId,
           username: 'manager',
           password: 'manager123',
           pin: '9999',
@@ -505,7 +484,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
-          organizationId: organizationId,
           username: 'staff1',
           password: 'staff123',
           pin: '1234',
@@ -516,7 +494,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
-          organizationId: organizationId,
           username: 'staff2',
           password: 'staff456',
           pin: '5678',
@@ -528,60 +505,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ]).onConflictDoNothing();
 
-      // Seed tenant-specific products based on organizationId/business type
-      let productsToSeed = [];
-      
-      if (organizationId === 1) {
-        // Dublin Retail Solutions - Premium retail products
-        productsToSeed = [
-          { name: 'Premium Wireless Headphones', barcode: '8712000010218', price: '89.99', cost: '45.00', category: 'Electronics', stock: 25, minStock: 5 },
-          { name: 'Organic Fair Trade Coffee Beans 1kg', barcode: '5011007003227', price: '24.99', cost: '12.50', category: 'Food & Beverage', stock: 40, minStock: 10 },
-          { name: 'Eco-Friendly Water Bottle', barcode: '5000169014387', price: '19.99', cost: '8.00', category: 'Lifestyle', stock: 60, minStock: 15 },
-          { name: 'Artisan Chocolate Gift Box', barcode: '5060176362169', price: '34.99', cost: '18.00', category: 'Gifts', stock: 30, minStock: 8 }
-        ];
-      } else if (organizationId === 2) {
-        // Cork Hospitality Group - Restaurant & bar essentials
-        productsToSeed = [
-          { name: 'Premium Craft Beer 500ml', barcode: '5000168020432', price: '6.50', cost: '3.20', category: 'Beverages', stock: 120, minStock: 24 },
-          { name: 'Gourmet Burger Meal', barcode: '5391518920001', price: '18.95', cost: '8.50', category: 'Main Course', stock: 50, minStock: 10 },
-          { name: 'Artisan Pizza Margherita', barcode: '5449000000439', price: '16.50', cost: '7.20', category: 'Main Course', stock: 40, minStock: 8 },
-          { name: 'Irish Whiskey Premium', barcode: '5410316301309', price: '8.50', cost: '4.20', category: 'Spirits', stock: 60, minStock: 12 }
-        ];
-      } else if (organizationId === 3) {
-        // Galway Coffee Enterprises - Specialty coffee & pastries
-        productsToSeed = [
-          { name: 'Signature Espresso Blend', barcode: 'COFFEE001', price: '4.20', cost: '1.50', category: 'Hot Drinks', stock: 999, minStock: 1 },
-          { name: 'Premium Cappuccino', barcode: 'COFFEE002', price: '4.80', cost: '1.80', category: 'Hot Drinks', stock: 999, minStock: 1 },
-          { name: 'Artisan Sourdough Sandwich', barcode: 'BAKERY001', price: '8.95', cost: '4.20', category: 'Food', stock: 35, minStock: 8 },
-          { name: 'Organic Pastry Selection', barcode: 'DELI001', price: '6.50', cost: '3.10', category: 'Pastries', stock: 45, minStock: 10 }
-        ];
-      } else {
-        // Demo Environment - Professional test items
-        productsToSeed = [
-          { name: 'Demo Product - Standard Item', barcode: '1234567890123', price: '15.99', cost: '8.50', category: 'Demo', stock: 100, minStock: 10 }
-        ];
-      }
-      
-      // Insert the tenant-specific products
-      await db.insert(products).values(
-        productsToSeed.map(product => ({
-          organizationId: organizationId,
-          name: product.name,
-          barcode: product.barcode,
-          price: product.price,
-          cost: product.cost,
-          category: product.category,
-          stock: product.stock,
-          minStock: product.minStock,
+      // Seed ONE test product only
+      await db.insert(products).values([
+        {
+          name: 'Test Item',
+          barcode: '1234567890123',
+          price: '1.50',
+          cost: '0.80',
+          category: 'Test',
+          stock: 100,
+          minStock: 5,
           vatRate: '23.00',
           isActive: true
-        }))
-      ).onConflictDoNothing();
+        }
+      ]).onConflictDoNothing();
 
       // Seed default customer
       await db.insert(customers).values([
         {
-          organizationId: organizationId,
           name: 'Walk-in Customer',
           loyaltyPoints: 0,
           isActive: true
@@ -642,31 +583,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Products (Tenant-Aware)
+  // Products
   app.get("/api/products", async (req, res) => {
     try {
-      const allProducts = await storage.getProducts();
-      
-      // Filter products by tenant/organization
-      let filteredProducts = allProducts;
-      
-      if (req.tenant?.tenantId) {
-        // Extract organizationId from tenant
-        const match = req.tenant.tenantId.match(/tenant_(\d+|demo)/);
-        const organizationId = match ? (match[1] === 'demo' ? 4 : parseInt(match[1]) || 1) : 1;
-        
-        // Filter products for this specific organization
-        filteredProducts = allProducts.filter(product => product.organizationId === organizationId);
-        
-        console.log(`Filtered ${allProducts.length} products to ${filteredProducts.length} for organizationId: ${organizationId}`);
-      } else {
-        // No tenant context - return all products (for super admin / platform access)
-        console.log(`No tenant context - returning all ${allProducts.length} products`);
-      }
-      
-      res.json(filteredProducts);
+      const products = await storage.getProducts();
+      res.json(products);
     } catch (error) {
-      console.error('Failed to fetch products:', error);
       res.status(500).json({ message: "Failed to fetch products" });
     }
   });
