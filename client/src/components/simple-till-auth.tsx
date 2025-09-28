@@ -6,19 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Store, Key, Plus } from 'lucide-react';
 import EasyShopSetup from './easy-shop-setup';
 
-interface TillSession {
-  tillCode: string;
-  shopName: string;
+interface Organization {
+  id: string;
+  name: string;
   businessType: string;
-  setupDate: string;
-  isActive: boolean;
 }
 
 interface SimpleTillAuthProps {
-  onLogin: (session: TillSession) => void;
+  onOrganizationSelected: (organization: Organization) => void;
 }
 
-export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
+export default function SimpleTillAuth({ onOrganizationSelected }: SimpleTillAuthProps) {
   const [tillCode, setTillCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,21 +46,9 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
     '9999': { shopName: "PLATFORM ADMIN", businessType: 'admin' }
   };
 
-  // Check for existing session on load
-  useEffect(() => {
-    const savedSession = localStorage.getItem('quantum_till_session');
-    if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession);
-        // Auto-login with saved session - NEVER expires!
-        onLogin(session);
-      } catch (error) {
-        console.error('Error loading saved session:', error);
-      }
-    }
-  }, [onLogin]);
+  // No auto-login - require explicit organization selection every time
 
-  const handleLogin = async () => {
+  const handleOrganizationSelect = async () => {
     if (tillCode.length !== 4) {
       setError('Till code must be 4 digits');
       return;
@@ -72,7 +58,7 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
     setError('');
 
     // Simulate quick check
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     const shopInfo = TILL_CODES[tillCode as keyof typeof TILL_CODES];
     
@@ -82,28 +68,17 @@ export default function SimpleTillAuth({ onLogin }: SimpleTillAuthProps) {
       return;
     }
 
-    // Create permanent session
-    const session: TillSession = {
-      tillCode,
-      shopName: shopInfo.shopName,
-      businessType: shopInfo.businessType,
-      setupDate: new Date().toISOString(),
-      isActive: true
+    // Create organization object for staff authentication
+    const organization: Organization = {
+      id: tillCode, // Use till code as organization ID
+      name: shopInfo.shopName,
+      businessType: shopInfo.businessType
     };
 
-    // Save forever in localStorage - MULTIPLE backup locations!
-    localStorage.setItem('quantum_till_session', JSON.stringify(session));
-    localStorage.setItem('quantum_auto_login', 'true');
-    localStorage.setItem('quantum_backup_session', JSON.stringify(session));
-    localStorage.setItem(`quantum_till_${tillCode}`, JSON.stringify(session));
-    
-    // Also save in sessionStorage as backup
-    sessionStorage.setItem('quantum_till_session', JSON.stringify(session));
-    
-    console.log('🔐 PERMANENT LOGIN - Session saved to 5 locations, NEVER expires!');
+    console.log('🏢 ORGANIZATION SELECTED:', organization.name, '- Proceeding to staff authentication');
     
     setIsLoading(false);
-    onLogin(session);
+    onOrganizationSelected(organization);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
