@@ -823,6 +823,7 @@ export class MemStorage implements IStorage {
   private transactions: Map<number, Transaction>;
   private transactionItems: Map<number, TransactionItem>;
   private promotions: Map<number, Promotion>;
+  private promotionRules: Map<number, PromotionRule>;
   private currentId: number;
   private defaultOrgId: number = 1; // Default organization for backward compatibility
 
@@ -836,6 +837,7 @@ export class MemStorage implements IStorage {
     this.transactions = new Map();
     this.transactionItems = new Map();
     this.promotions = new Map();
+    this.promotionRules = new Map();
     this.currentId = 1;
     
     this.seedData();
@@ -1284,6 +1286,64 @@ export class MemStorage implements IStorage {
     const updated = { ...promotion, isActive: false };
     this.promotions.set(id, updated);
     return true;
+  }
+
+  // Promotion Rules
+  async getPromotionRules(): Promise<PromotionRule[]> {
+    return Array.from(this.promotionRules.values()).filter(r => r.isActive);
+  }
+
+  async getPromotionRule(id: number): Promise<PromotionRule | undefined> {
+    return this.promotionRules.get(id);
+  }
+
+  async createPromotionRule(insertRule: InsertPromotionRule): Promise<PromotionRule> {
+    const id = this.currentId++;
+    const rule: PromotionRule = {
+      ...insertRule,
+      id,
+      value: insertRule.value || null,
+      conditions: insertRule.conditions || null,
+      startDate: insertRule.startDate || null,
+      endDate: insertRule.endDate || null,
+      isActive: insertRule.isActive ?? true,
+      priority: insertRule.priority || 1,
+      usageLimit: insertRule.usageLimit || null,
+      usedCount: insertRule.usedCount || 0
+    };
+    this.promotionRules.set(id, rule);
+    return rule;
+  }
+
+  async updatePromotionRule(id: number, ruleUpdate: Partial<InsertPromotionRule>): Promise<PromotionRule | undefined> {
+    const existing = this.promotionRules.get(id);
+    if (!existing) return undefined;
+    
+    const updated: PromotionRule = { ...existing, ...ruleUpdate };
+    this.promotionRules.set(id, updated);
+    return updated;
+  }
+
+  async deletePromotionRule(id: number): Promise<boolean> {
+    const rule = this.promotionRules.get(id);
+    if (!rule) return false;
+    
+    const updated = { ...rule, isActive: false };
+    this.promotionRules.set(id, updated);
+    return true;
+  }
+
+  async getPromotionProducts(promotionId: number): Promise<PromotionProduct[]> {
+    return [];
+  }
+
+  async addPromotionProduct(insertItem: InsertPromotionProduct): Promise<PromotionProduct> {
+    const id = this.currentId++;
+    return {
+      ...insertItem,
+      id,
+      categoryName: insertItem.categoryName || null
+    };
   }
 
   // Supplier Order Integration - placeholder methods for MemStorage
