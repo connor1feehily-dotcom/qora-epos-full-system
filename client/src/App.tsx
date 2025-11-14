@@ -7,11 +7,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TillSelector } from "@/components/till-selector";
 import { MainMenu } from "@/components/main-menu";
 import { StaffLogin } from "@/components/staff-login";
+import { TillSetupWizard } from "@/components/till-setup-wizard";
 import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { InactiveScreen } from "@/components/inactive-screen";
 import { ComponentPreloader } from "@/utils/preloader";
+import { isTillConfigured, getTillConfig, getCurrentTillId } from "@/utils/till-detection";
 import type { User } from "@shared/schema";
 
 // Lazy load heavy components
@@ -79,6 +81,29 @@ function AppContent() {
   const [selectedTill, setSelectedTill] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [lastActivity, setLastActivity] = useState<Date>(new Date());
+  const [tillConfigured, setTillConfigured] = useState<boolean>(false);
+  const [checkingTillConfig, setCheckingTillConfig] = useState<boolean>(true);
+
+  // Check if till is configured on app load
+  useEffect(() => {
+    const configured = isTillConfigured();
+    setTillConfigured(configured);
+    
+    if (configured) {
+      const tillId = getCurrentTillId();
+      if (tillId) {
+        setSelectedTill(tillId);
+        console.log("Auto-detected till:", tillId);
+        
+        const tillConfig = getTillConfig();
+        if (tillConfig) {
+          console.log("Till configuration:", tillConfig);
+        }
+      }
+    }
+    
+    setCheckingTillConfig(false);
+  }, []);
 
   // Debug mode changes
   useEffect(() => {
@@ -137,6 +162,27 @@ function AppContent() {
   const handleBackToMenu = () => {
     setMode('main-menu');
   };
+
+  // Show loading while checking till configuration
+  if (checkingTillConfig) {
+    return <KerrigansLoadingScreen />;
+  }
+
+  // Show till setup wizard if not configured
+  if (!tillConfigured) {
+    return (
+      <TillSetupWizard 
+        onComplete={() => {
+          setTillConfigured(true);
+          const tillId = getCurrentTillId();
+          if (tillId) {
+            setSelectedTill(tillId);
+          }
+        }}
+        organizationId={1}
+      />
+    );
+  }
 
   // Show loading while seeding database
   if (isSeeding) {
