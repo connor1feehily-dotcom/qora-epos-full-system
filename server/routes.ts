@@ -1457,9 +1457,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { tillId } = req.query;
       const buttons = await storage.getPosButtons(tillId as string);
-      res.json(buttons);
+      res.json(buttons || []);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch POS buttons" });
+      console.error("POS buttons fetch error:", error);
+      res.json([]); // Return empty array instead of error object
     }
   });
 

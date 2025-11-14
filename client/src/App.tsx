@@ -276,22 +276,22 @@ function AppContent() {
       {mode === 'staff-login' && (
         <StaffLogin
           onLogin={handleLoginSuccess}
-          onBack={testingMode ? handleBackToMenu : undefined}
+          onBack={testingMode ? handleBackToMenu : () => {}}
         />
       )}
       {mode === 'pos' && selectedTill && (
-        <POSRouter tillId={selectedTill} onBackToMenu={testingMode ? handleBackToMenu : undefined} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
+        <POSRouter tillId={selectedTill} onBackToMenu={testingMode ? handleBackToMenu : () => {}} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
       )}
       {mode === 'back-office' && (
-        <BackOfficeRouter onBackToMenu={testingMode ? handleBackToMenu : undefined} currentUser={currentUser || undefined} />
+        <BackOfficeRouter onBackToMenu={testingMode ? handleBackToMenu : () => {}} currentUser={currentUser || undefined} />
       )}
 
       {mode === 'stock-take' && currentUser && (
-        <StockTakeRouter onBackToMenu={testingMode ? handleBackToMenu : undefined} currentUser={currentUser} />
+        <StockTakeRouter onBackToMenu={testingMode ? handleBackToMenu : () => {}} currentUser={currentUser} />
       )}
 
       {mode === 'hardware-setup' && (
-        <HardwareSetupRouter onBackToMenu={testingMode ? handleBackToMenu : undefined} />
+        <HardwareSetupRouter onBackToMenu={testingMode ? handleBackToMenu : () => {}} />
       )}
 
       {/* Customer Display Route */}
