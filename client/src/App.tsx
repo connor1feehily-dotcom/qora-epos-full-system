@@ -121,10 +121,11 @@ function AppContent() {
     ComponentPreloader.preloadDataEndpoints();
   }, []);
 
-  // Secret keyboard shortcut to enable testing mode (Ctrl+Shift+T)
+  // Secret keyboard shortcut to enable testing mode (Ctrl+Alt+M)
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+      if (e.ctrlKey && e.altKey && (e.key === 'M' || e.key === 'm')) {
+        e.preventDefault(); // Prevent default browser behavior
         setTestingMode(prev => {
           const newMode = !prev;
           console.log('Testing mode:', newMode ? 'ENABLED' : 'DISABLED');
