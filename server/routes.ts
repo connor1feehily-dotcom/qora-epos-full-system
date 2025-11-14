@@ -464,6 +464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Seed staff users
       await db.insert(users).values([
         {
+          organizationId: 1,
           username: 'admin',
           password: 'admin123',
           pin: '0000',
@@ -474,6 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
+          organizationId: 1,
           username: 'manager',
           password: 'manager123',
           pin: '9999',
@@ -484,6 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
+          organizationId: 1,
           username: 'staff1',
           password: 'staff123',
           pin: '1234',
@@ -494,6 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         {
+          organizationId: 1,
           username: 'staff2',
           password: 'staff456',
           pin: '5678',
@@ -508,6 +512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Seed ONE test product only
       await db.insert(products).values([
         {
+          organizationId: 1,
           name: 'Test Item',
           barcode: '1234567890123',
           price: '1.50',
@@ -523,6 +528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Seed default customer
       await db.insert(customers).values([
         {
+          organizationId: 1,
           name: 'Walk-in Customer',
           loyaltyPoints: 0,
           isActive: true
