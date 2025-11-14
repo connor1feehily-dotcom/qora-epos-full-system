@@ -77,12 +77,13 @@ function HardwareSetupRouter({ onBackToMenu }: { onBackToMenu: () => void }) {
 type AppMode = 'main-menu' | 'staff-login' | 'pos' | 'back-office' | 'stock-take' | 'hardware-setup' | 'inactive';
 
 function AppContent() {
-  const [mode, setMode] = useState<AppMode>('main-menu');
+  const [mode, setMode] = useState<AppMode>('staff-login');
   const [selectedTill, setSelectedTill] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [lastActivity, setLastActivity] = useState<Date>(new Date());
   const [tillConfigured, setTillConfigured] = useState<boolean>(false);
   const [checkingTillConfig, setCheckingTillConfig] = useState<boolean>(true);
+  const [testingMode, setTestingMode] = useState<boolean>(false);
 
   // Check if till is configured on app load
   useEffect(() => {
@@ -118,6 +119,22 @@ function AppContent() {
     // Start preloading immediately
     ComponentPreloader.preloadCriticalComponents();
     ComponentPreloader.preloadDataEndpoints();
+  }, []);
+
+  // Secret keyboard shortcut to enable testing mode (Ctrl+Shift+T)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+        setTestingMode(prev => {
+          const newMode = !prev;
+          console.log('Testing mode:', newMode ? 'ENABLED' : 'DISABLED');
+          return newMode;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
   const handleActivateFromInactive = () => {
@@ -215,7 +232,28 @@ function AppContent() {
     <TooltipProvider>
       <Toaster />
       
-      {mode === 'main-menu' && (
+      {/* Testing Mode Indicator - Hidden button */}
+      {testingMode && (
+        <div className="fixed top-2 right-2 z-50 flex gap-2">
+          <button
+            onClick={() => setMode('main-menu')}
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-bold shadow-lg"
+            data-testid="button-testing-menu"
+          >
+            🔧 TESTING: Main Menu
+          </button>
+          <button
+            onClick={() => setTestingMode(false)}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs"
+            data-testid="button-disable-testing"
+          >
+            Hide
+          </button>
+        </div>
+      )}
+      
+      {/* Main menu only shows in testing mode */}
+      {mode === 'main-menu' && testingMode && (
         <MainMenu
           onSelectMode={handleModeSelect}
           onStaffLogin={handleStaffLogin}
@@ -223,25 +261,36 @@ function AppContent() {
           onLogout={handleLogout}
         />
       )}
+      
+      {/* If main menu is requested but testing mode is off, redirect to login */}
+      {mode === 'main-menu' && !testingMode && (
+        <>
+          {(() => {
+            setMode('staff-login');
+            return null;
+          })()}
+        </>
+      )}
+      
       {mode === 'staff-login' && (
         <StaffLogin
           onLogin={handleLoginSuccess}
-          onBack={handleBackToMenu}
+          onBack={testingMode ? handleBackToMenu : undefined}
         />
       )}
       {mode === 'pos' && selectedTill && (
-        <POSRouter tillId={selectedTill} onBackToMenu={handleBackToMenu} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
+        <POSRouter tillId={selectedTill} onBackToMenu={testingMode ? handleBackToMenu : undefined} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
       )}
       {mode === 'back-office' && (
-        <BackOfficeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser || undefined} />
+        <BackOfficeRouter onBackToMenu={testingMode ? handleBackToMenu : undefined} currentUser={currentUser || undefined} />
       )}
 
       {mode === 'stock-take' && currentUser && (
-        <StockTakeRouter onBackToMenu={handleBackToMenu} currentUser={currentUser} />
+        <StockTakeRouter onBackToMenu={testingMode ? handleBackToMenu : undefined} currentUser={currentUser} />
       )}
 
       {mode === 'hardware-setup' && (
-        <HardwareSetupRouter onBackToMenu={handleBackToMenu} />
+        <HardwareSetupRouter onBackToMenu={testingMode ? handleBackToMenu : undefined} />
       )}
 
       {/* Customer Display Route */}
