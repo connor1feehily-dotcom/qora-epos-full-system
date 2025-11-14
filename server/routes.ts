@@ -756,6 +756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const item of items) {
         const itemData = insertTransactionItemSchema.parse({
           ...item,
+          organizationId: newTransaction.organizationId,
           transactionId: newTransaction.id
         });
         const newItem = await storage.addTransactionItem(itemData);

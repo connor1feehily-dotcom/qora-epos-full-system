@@ -299,6 +299,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   const createTransactionMutation = useMutation({
     mutationFn: async ({ paymentMethod, amountGiven, change }: { paymentMethod: 'cash' | 'card'; amountGiven?: number; change?: number }) => {
       const transactionData: InsertTransaction = {
+        organizationId: currentUser?.organizationId || 1,
         tillId,
         userId: currentUser?.id || 1,
         customerId: null,
