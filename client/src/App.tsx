@@ -151,12 +151,24 @@ function AppContent() {
 
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
-    setMode('main-menu');
+    
+    // Auto-open POS if till is configured
+    if (tillConfigured && selectedTill) {
+      console.log(`Auto-opening POS for ${selectedTill} after login`);
+      setMode('pos');
+    } else {
+      setMode('main-menu');
+    }
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setMode('main-menu');
+    // Go back to staff login for quick re-login on till terminals
+    if (tillConfigured && selectedTill) {
+      setMode('staff-login');
+    } else {
+      setMode('main-menu');
+    }
   };
 
   const handleBackToMenu = () => {
