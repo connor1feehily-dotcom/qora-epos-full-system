@@ -669,200 +669,272 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
       <div className="p-3 sm:p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Mobile-Friendly Navigation Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
-            <Button 
-              variant={activeTab === "overview" ? "default" : "outline"}
-              onClick={() => setActiveTab("overview")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Settings className="w-4 h-4" />
-              Overview
-            </Button>
-            <Button 
-              variant={activeTab === "pos-config" ? "default" : "outline"}
-              onClick={() => setActiveTab("pos-config")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Grid className="w-4 h-4" />
-              POS Config
-            </Button>
-            <Button 
-              variant={activeTab === "inventory" ? "default" : "outline"}
-              onClick={() => setActiveTab("inventory")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Package className="w-4 h-4" />
-              Inventory
-            </Button>
-            <Button 
-              variant={activeTab === "staff" ? "default" : "outline"}
-              onClick={() => setActiveTab("staff")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Users className="w-4 h-4" />
-              Staff
-            </Button>
-            <Button 
-              variant={activeTab === "sales-ledger" ? "default" : "outline"}
-              onClick={() => setActiveTab("sales-ledger")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <FileText className="w-4 h-4" />
-              Sales
-            </Button>
-            <Button 
-              variant={activeTab === "stock-ledger" ? "default" : "outline"}
-              onClick={() => setActiveTab("stock-ledger")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Package className="w-4 h-4" />
-              Stock
-            </Button>
-            <Button 
-              variant={activeTab === "advanced-inventory" ? "default" : "outline"}
-              onClick={() => setActiveTab("advanced-inventory")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Plus className="w-4 h-4" />
-              Adv Stock
-            </Button>
-            <Button 
-              variant={activeTab === "advanced-staff" ? "default" : "outline"}
-              onClick={() => setActiveTab("advanced-staff")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Clock className="w-4 h-4" />
-              Adv Staff
-            </Button>
-            <Button 
-              variant={activeTab === "smart-analytics" ? "default" : "outline"}
-              onClick={() => setActiveTab("smart-analytics")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <TrendingUp className="w-4 h-4" />
-              Analytics
-            </Button>
-            <Button 
-              variant={activeTab === "deliveries" ? "default" : "outline"}
-              onClick={() => setActiveTab("deliveries")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Deliveries
-            </Button>
-            <Button 
-              variant={activeTab === "suppliers" ? "default" : "outline"}
-              onClick={() => setActiveTab("suppliers")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Users className="w-4 h-4" />
-              Suppliers
-            </Button>
-            <Button 
-              variant={activeTab === "ai-optimization" ? "default" : "outline"}
-              onClick={() => setActiveTab("ai-optimization")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Target className="w-4 h-4" />
-              AI Price
-            </Button>
-            <Button 
-              variant={activeTab === "staff-activity" ? "default" : "outline"}
-              onClick={() => setActiveTab("staff-activity")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Eye className="w-4 h-4" />
-              Activity
-            </Button>
-            <Button 
-              variant={activeTab === "alerts" ? "default" : "outline"}
-              onClick={() => setActiveTab("alerts")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <AlertTriangle className="w-4 h-4" />
-              Alerts
-            </Button>
-            <Button 
-              variant={activeTab === "supplier-integration" ? "default" : "outline"}
-              onClick={() => setActiveTab("supplier-integration")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <DollarSign className="w-4 h-4" />
-              Orders
-            </Button>
-            <Button 
-              variant={activeTab === "mobile-scanner" ? "default" : "outline"}
-              onClick={() => setActiveTab("mobile-scanner")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Package className="w-4 h-4" />
-              Scanner
-            </Button>
-            <Button 
-              variant={activeTab === "value-projection" ? "default" : "outline"}
-              onClick={() => setActiveTab("value-projection")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <DollarSign className="w-4 h-4" />
-              Forecast
-            </Button>
-            <Button 
-              variant={activeTab === "packages" ? "default" : "outline"}
-              onClick={() => setActiveTab("packages")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Grid className="w-4 h-4" />
-              Packages
-            </Button>
-            <Button 
-              variant={activeTab === "till-stock" ? "default" : "outline"}
-              onClick={() => setActiveTab("till-stock")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Till Stock
-            </Button>
-            <Button 
-              variant={activeTab === "promotions" ? "default" : "outline"}
-              onClick={() => setActiveTab("promotions")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Target className="w-4 h-4" />
-              Promos
-            </Button>
-            <Button 
-              variant={activeTab === "maintenance" ? "default" : "outline"}
-              onClick={() => setActiveTab("maintenance")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Settings className="w-4 h-4" />
-              Maintain
-            </Button>
-            <Button 
-              variant={activeTab === "management" ? "default" : "outline"}
-              onClick={() => setActiveTab("management")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Users className="w-4 h-4" />
-              Admin
-            </Button>
-            <Button 
-              variant={activeTab === "supplier-dashboard" ? "default" : "outline"}
-              onClick={() => setActiveTab("supplier-dashboard")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <Package className="w-4 h-4" />
-              AI Orders
-            </Button>
-            <Button 
-              variant={activeTab === "stock-taking" ? "default" : "outline"}
-              onClick={() => setActiveTab("stock-taking")}
-              className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Stock Take
-            </Button>
+          {/* Organized Navigation Grid with Sections */}
+          <div className="space-y-4">
+            {/* SECTION 1: DASHBOARD & OVERVIEW */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Dashboard & Overview</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <Button 
+                  variant={activeTab === "overview" ? "default" : "outline"}
+                  onClick={() => setActiveTab("overview")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-overview"
+                >
+                  <Settings className="w-4 h-4" />
+                  Overview
+                </Button>
+                <Button 
+                  variant={activeTab === "smart-analytics" ? "default" : "outline"}
+                  onClick={() => setActiveTab("smart-analytics")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-analytics"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Analytics
+                </Button>
+                <Button 
+                  variant={activeTab === "staff-activity" ? "default" : "outline"}
+                  onClick={() => setActiveTab("staff-activity")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-activity"
+                >
+                  <Eye className="w-4 h-4" />
+                  Activity
+                </Button>
+              </div>
+            </div>
+
+            {/* SECTION 2: SALES MANAGEMENT */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Sales Management</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <Button 
+                  variant={activeTab === "sales-ledger" ? "default" : "outline"}
+                  onClick={() => setActiveTab("sales-ledger")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-sales"
+                >
+                  <FileText className="w-4 h-4" />
+                  Sales
+                </Button>
+                <Button 
+                  variant={activeTab === "supplier-integration" ? "default" : "outline"}
+                  onClick={() => setActiveTab("supplier-integration")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-orders"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  Orders
+                </Button>
+                <Button 
+                  variant={activeTab === "value-projection" ? "default" : "outline"}
+                  onClick={() => setActiveTab("value-projection")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-forecast"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  Forecast
+                </Button>
+              </div>
+            </div>
+
+            {/* SECTION 3: INVENTORY CONTROL */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Inventory Control</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <Button 
+                  variant={activeTab === "inventory" ? "default" : "outline"}
+                  onClick={() => setActiveTab("inventory")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-inventory"
+                >
+                  <Package className="w-4 h-4" />
+                  Inventory
+                </Button>
+                <Button 
+                  variant={activeTab === "stock-ledger" ? "default" : "outline"}
+                  onClick={() => setActiveTab("stock-ledger")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-stock"
+                >
+                  <Package className="w-4 h-4" />
+                  Stock
+                </Button>
+                <Button 
+                  variant={activeTab === "advanced-inventory" ? "default" : "outline"}
+                  onClick={() => setActiveTab("advanced-inventory")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-adv-stock"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adv Stock
+                </Button>
+                <Button 
+                  variant={activeTab === "till-stock" ? "default" : "outline"}
+                  onClick={() => setActiveTab("till-stock")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-till-stock"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Till Stock
+                </Button>
+                <Button 
+                  variant={activeTab === "stock-taking" ? "default" : "outline"}
+                  onClick={() => setActiveTab("stock-taking")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-stock-take"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Stock Take
+                </Button>
+                <Button 
+                  variant={activeTab === "packages" ? "default" : "outline"}
+                  onClick={() => setActiveTab("packages")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-packages"
+                >
+                  <Grid className="w-4 h-4" />
+                  Packages
+                </Button>
+              </div>
+            </div>
+
+            {/* SECTION 4: PURCHASING & SUPPLIERS */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Purchasing & Suppliers</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <Button 
+                  variant={activeTab === "deliveries" ? "default" : "outline"}
+                  onClick={() => setActiveTab("deliveries")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-deliveries"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Deliveries
+                </Button>
+                <Button 
+                  variant={activeTab === "suppliers" ? "default" : "outline"}
+                  onClick={() => setActiveTab("suppliers")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-suppliers"
+                >
+                  <Users className="w-4 h-4" />
+                  Suppliers
+                </Button>
+                <Button 
+                  variant={activeTab === "mobile-scanner" ? "default" : "outline"}
+                  onClick={() => setActiveTab("mobile-scanner")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-scanner"
+                >
+                  <Package className="w-4 h-4" />
+                  Scanner
+                </Button>
+                <Button 
+                  variant={activeTab === "supplier-dashboard" ? "default" : "outline"}
+                  onClick={() => setActiveTab("supplier-dashboard")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-ai-orders"
+                >
+                  <Package className="w-4 h-4" />
+                  AI Orders
+                </Button>
+              </div>
+            </div>
+
+            {/* SECTION 5: PRICING & PROMOTIONS */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Pricing & Promotions</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <Button 
+                  variant={activeTab === "ai-optimization" ? "default" : "outline"}
+                  onClick={() => setActiveTab("ai-optimization")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-ai-price"
+                >
+                  <Target className="w-4 h-4" />
+                  AI Price
+                </Button>
+                <Button 
+                  variant={activeTab === "promotions" ? "default" : "outline"}
+                  onClick={() => setActiveTab("promotions")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-promos"
+                >
+                  <Target className="w-4 h-4" />
+                  Promos
+                </Button>
+              </div>
+            </div>
+
+            {/* SECTION 6: STAFF & ADMINISTRATION */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Staff & Administration</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <Button 
+                  variant={activeTab === "staff" ? "default" : "outline"}
+                  onClick={() => setActiveTab("staff")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-staff"
+                >
+                  <Users className="w-4 h-4" />
+                  Staff
+                </Button>
+                <Button 
+                  variant={activeTab === "advanced-staff" ? "default" : "outline"}
+                  onClick={() => setActiveTab("advanced-staff")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-adv-staff"
+                >
+                  <Clock className="w-4 h-4" />
+                  Adv Staff
+                </Button>
+                <Button 
+                  variant={activeTab === "management" ? "default" : "outline"}
+                  onClick={() => setActiveTab("management")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-admin"
+                >
+                  <Users className="w-4 h-4" />
+                  Admin
+                </Button>
+              </div>
+            </div>
+
+            {/* SECTION 7: SYSTEM CONFIGURATION */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">System Configuration</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <Button 
+                  variant={activeTab === "pos-config" ? "default" : "outline"}
+                  onClick={() => setActiveTab("pos-config")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-pos-config"
+                >
+                  <Grid className="w-4 h-4" />
+                  POS Config
+                </Button>
+                <Button 
+                  variant={activeTab === "alerts" ? "default" : "outline"}
+                  onClick={() => setActiveTab("alerts")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-alerts"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Alerts
+                </Button>
+                <Button 
+                  variant={activeTab === "maintenance" ? "default" : "outline"}
+                  onClick={() => setActiveTab("maintenance")}
+                  className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
+                  data-testid="button-maintain"
+                >
+                  <Settings className="w-4 h-4" />
+                  Maintain
+                </Button>
+              </div>
+            </div>
           </div>
 
           <TabsContent value={activeTab}>
