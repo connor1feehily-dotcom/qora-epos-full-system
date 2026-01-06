@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Settings, 
   Package, 
@@ -51,6 +52,8 @@ interface BackOfficeDashboardProps {
 
 export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
+
+  const { toast } = useToast();
 
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard-analytics"],
@@ -563,9 +566,20 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                   {managementModules.map((module) => (
                     <Card 
                       key={module.id} 
-                      className="cursor-pointer hover:shadow-lg transition-shadow"
-                      onClick={() => setActiveTab(module.id)}
+                      className="cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden"
+                      onClick={() => {
+                        if (currentUser?.username === "demo_user") {
+                          toast({
+                            title: `${module.title} - Preview Mode`,
+                            description: "You're viewing a demo version. Full feature includes real-time analytics, automated workflows, and hardware integration.",
+                          });
+                        }
+                        setActiveTab(module.id);
+                      }}
                     >
+                      {currentUser?.username === "demo_user" && (
+                        <div className="absolute top-0 right-0 p-1 bg-amber-500 text-[10px] text-white font-bold uppercase tracking-wider">Demo</div>
+                      )}
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4">
                           <div className={`p-3 rounded-lg ${module.color}`}>

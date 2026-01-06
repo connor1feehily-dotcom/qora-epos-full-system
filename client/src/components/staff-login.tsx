@@ -93,6 +93,31 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 gap-4 mb-8">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-16 text-xl font-bold bg-amber-500/10 border-amber-500/50 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 kxl-glass kxl-neural-button"
+                onClick={() => {
+                  toast({
+                    title: "Demo Mode Activated",
+                    description: "Welcome to the Quantum POS demo! Some advanced features are preview-only.",
+                  });
+                  onLogin({
+                    id: 999,
+                    username: "demo_user",
+                    firstName: "Demo",
+                    lastName: "User",
+                    role: "admin",
+                    organizationId: 1,
+                    isActive: true
+                  } as any);
+                }}
+              >
+                🚀 TRY DEMO VERSION
+              </Button>
+            </div>
+
             <div className="grid grid-cols-3 gap-4 mb-8">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
                 <Button
