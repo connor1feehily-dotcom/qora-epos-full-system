@@ -535,7 +535,26 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onBackToMenu}
+                onClick={() => {
+                  if (currentUser?.role === 'admin' || currentUser?.role === 'manager') {
+                    onBackToMenu();
+                  } else {
+                    onBackToMenu();
+                  }
+                }}
+                title="Exit to Menu"
+              >
+                <Home className="w-4 h-4" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  // Direct logout could be implemented if needed, but for now we exit to menu
+                  onBackToMenu();
+                }}
+                title="Log Out"
               >
                 <LogOut className="w-4 h-4" />
               </Button>

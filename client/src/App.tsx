@@ -280,10 +280,18 @@ function AppContent() {
         />
       )}
       {mode === 'pos' && selectedTill && (
-        <POSRouter tillId={selectedTill} onBackToMenu={testingMode ? handleBackToMenu : () => {}} onGoInactive={handleGoInactive} currentUser={currentUser || undefined} />
+        <POSRouter 
+          tillId={selectedTill} 
+          onBackToMenu={handleBackToMenu} 
+          onGoInactive={handleGoInactive} 
+          currentUser={currentUser || undefined} 
+        />
       )}
       {mode === 'back-office' && (
-        <BackOfficeRouter onBackToMenu={testingMode ? handleBackToMenu : () => {}} currentUser={currentUser || undefined} />
+        <BackOfficeRouter 
+          onBackToMenu={handleBackToMenu} 
+          currentUser={currentUser || undefined} 
+        />
       )}
 
       {mode === 'stock-take' && currentUser && (
