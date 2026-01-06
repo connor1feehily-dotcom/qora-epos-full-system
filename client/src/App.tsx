@@ -34,10 +34,10 @@ const Reports = lazy(() => import("@/pages/reports"));
 const TillManagementPage = lazy(() => import("@/pages/till-management"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
-function POSRouter({ tillId, onBackToMenu, onGoInactive, currentUser }: { tillId: string; onBackToMenu: () => void; onGoInactive?: () => void; currentUser?: User }) {
+function POSRouter({ tillId, onBackToMenu, onGoInactive, currentUser, onSelectMode }: { tillId: string; onBackToMenu: () => void; onGoInactive?: () => void; currentUser?: User; onSelectMode: (mode: 'pos' | 'back-office' | 'stock-take' | 'hardware-setup', tillId?: string) => void }) {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div></div>}>
-      <ModernPOSInterface tillId={tillId} onBackToMenu={onBackToMenu} onGoInactive={onGoInactive} currentUser={currentUser} />
+      <ModernPOSInterface tillId={tillId} onBackToMenu={onBackToMenu} onGoInactive={onGoInactive} currentUser={currentUser} onSelectMode={onSelectMode} />
     </Suspense>
   );
 }
@@ -284,7 +284,8 @@ function AppContent() {
           tillId={selectedTill} 
           onBackToMenu={handleBackToMenu} 
           onGoInactive={handleGoInactive} 
-          currentUser={currentUser || undefined} 
+          currentUser={currentUser || undefined}
+          onSelectMode={handleModeSelect}
         />
       )}
       {mode === 'back-office' && (

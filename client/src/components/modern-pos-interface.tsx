@@ -61,9 +61,10 @@ interface ModernPOSProps {
   onBackToMenu: () => void;
   onGoInactive?: () => void;
   currentUser?: UserType;
+  onSelectMode: (mode: 'pos' | 'back-office' | 'stock-take' | 'hardware-setup', tillId?: string) => void;
 }
 
-export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, currentUser }: ModernPOSProps) {
+export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, currentUser, onSelectMode }: ModernPOSProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -535,13 +536,16 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  if (currentUser?.role === 'admin' || currentUser?.role === 'manager') {
-                    onBackToMenu();
-                  } else {
-                    onBackToMenu();
-                  }
-                }}
+                onClick={() => onSelectMode('back-office')}
+                title="Back Office"
+              >
+                <Settings className="w-4 h-4 text-blue-600" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBackToMenu}
                 title="Exit to Menu"
               >
                 <Home className="w-4 h-4" />
