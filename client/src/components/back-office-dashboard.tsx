@@ -6,6 +6,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { 
   Settings, 
   Package, 
   Users, 
@@ -52,8 +61,17 @@ interface BackOfficeDashboardProps {
 
 export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [selectedDemoModule, setSelectedDemoModule] = useState<any>(null);
 
   const { toast } = useToast();
+
+  const handleDemoFeatureClick = (title: string, icon: any, color: string, description: string) => {
+    if (currentUser?.username === "demo_user") {
+      setSelectedDemoModule({ title, icon, color, description });
+      setShowDemoModal(true);
+    }
+  };
 
   const { data: dashboardData } = useQuery({
     queryKey: ["dashboard-analytics"],
@@ -569,10 +587,8 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                       className="cursor-pointer hover:shadow-lg transition-shadow relative overflow-hidden"
                       onClick={() => {
                         if (currentUser?.username === "demo_user") {
-                          toast({
-                            title: `${module.title} - Preview Mode`,
-                            description: "You're viewing a demo version. Full feature includes real-time analytics, automated workflows, and hardware integration.",
-                          });
+                          setSelectedDemoModule(module);
+                          setShowDemoModal(true);
                         }
                         setActiveTab(module.id);
                       }}
@@ -667,6 +683,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {renderDemoModal()}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
@@ -691,7 +708,13 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
                 <Button 
                   variant={activeTab === "overview" ? "default" : "outline"}
-                  onClick={() => setActiveTab("overview")}
+                  onClick={() => {
+                    if (currentUser?.username === "demo_user") {
+                      setSelectedDemoModule({ title: "Overview", icon: Settings, color: "bg-blue-500", description: "Business performance overview" });
+                      setShowDemoModal(true);
+                    }
+                    setActiveTab("overview");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-overview"
                 >
@@ -700,7 +723,13 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "smart-analytics" ? "default" : "outline"}
-                  onClick={() => setActiveTab("smart-analytics")}
+                  onClick={() => {
+                    if (currentUser?.username === "demo_user") {
+                      setSelectedDemoModule({ title: "Analytics", icon: TrendingUp, color: "bg-purple-500", description: "Advanced smart analytics" });
+                      setShowDemoModal(true);
+                    }
+                    setActiveTab("smart-analytics");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-analytics"
                 >
@@ -709,7 +738,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "staff-activity" ? "default" : "outline"}
-                  onClick={() => setActiveTab("staff-activity")}
+                  onClick={() => {
+                    handleDemoFeatureClick("Staff Activity", Eye, "bg-blue-400", "Audit logs of staff actions");
+                    setActiveTab("staff-activity");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-activity"
                 >
@@ -725,7 +757,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
                 <Button 
                   variant={activeTab === "sales-ledger" ? "default" : "outline"}
-                  onClick={() => setActiveTab("sales-ledger")}
+                  onClick={() => {
+                    handleDemoFeatureClick("Sales Ledger", FileText, "bg-blue-500", "Complete sales transaction management");
+                    setActiveTab("sales-ledger");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-sales"
                 >
@@ -734,7 +769,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "supplier-integration" ? "default" : "outline"}
-                  onClick={() => setActiveTab("supplier-integration")}
+                  onClick={() => {
+                    handleDemoFeatureClick("Orders", DollarSign, "bg-green-500", "Supplier order integration and tracking");
+                    setActiveTab("supplier-integration");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-orders"
                 >

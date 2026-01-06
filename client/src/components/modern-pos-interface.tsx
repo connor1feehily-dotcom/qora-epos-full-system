@@ -536,7 +536,9 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onSelectMode('back-office')}
+                onClick={() => {
+                  onSelectMode('back-office');
+                }}
                 title="Back Office"
               >
                 <Settings className="w-4 h-4 text-blue-600" />
