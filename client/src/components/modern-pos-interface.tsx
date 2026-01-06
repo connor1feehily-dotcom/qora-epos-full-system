@@ -344,18 +344,8 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       // Print receipt automatically
       console.log('Transaction successful, attempting to print receipt...', result);
       try {
-        const printed = await printReceipt(result);
-        if (printed) {
-          console.log('Receipt printed successfully after transaction');
-        } else {
-          console.error('Receipt printing failed after transaction');
-          toast({
-            title: "Transaction Complete",
-            description: "Transaction successful but receipt printing failed. Check printer connection.",
-            variant: "destructive",
-            duration: 10000
-          });
-        }
+        await printReceipt(result);
+        console.log('Receipt printed successfully after transaction');
       } catch (printError) {
         console.error('Receipt printing error:', printError);
         toast({

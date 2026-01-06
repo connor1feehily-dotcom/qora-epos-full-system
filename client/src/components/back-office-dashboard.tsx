@@ -256,6 +256,39 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
     }
   ];
 
+  const renderDemoModal = () => {
+    if (!selectedDemoModule) return null;
+
+    return (
+      <AlertDialog open={showDemoModal} onOpenChange={setShowDemoModal}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className={`w-12 h-12 rounded-lg ${selectedDemoModule.color} flex items-center justify-center mb-4`}>
+              <selectedDemoModule.icon className="h-6 w-6 text-white" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-bold">{selectedDemoModule.title}</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 text-lg leading-relaxed">
+              {selectedDemoModule.description}
+              <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                <p className="text-amber-800 text-sm font-medium">
+                  Note: You are currently in Demo Mode. Some advanced management features are restricted to the full version.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => setShowDemoModal(false)}
+              className="w-full sm:w-auto bg-gray-900 text-white hover:bg-gray-800"
+            >
+              Continue Exploring
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "sales-ledger":
