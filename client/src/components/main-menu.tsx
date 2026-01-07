@@ -6,7 +6,7 @@ import { Monitor, Settings, User, ShoppingCart, BarChart3, Users, Package, Truck
 import { StatusPanels } from "./status-panels";
 import { LoginBanner } from "./login-banner";
 import type { User as StaffUser } from "@shared/schema";
-import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
+import qoraLogo from "@assets/qoraPresentation_1767793834334.jpg";
 
 interface MainMenuProps {
   onSelectMode: (mode: 'pos' | 'back-office' | 'stock-take' | 'hardware-setup', tillId?: string) => void;
@@ -42,16 +42,16 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
             <img 
-              src={quantumLogo} 
-              alt="Quantum POS Logo"
-              className="h-20 w-auto object-contain kxl-float"
+              src={qoraLogo} 
+              alt="Qora EPOS Logo"
+              className="h-24 w-auto object-contain kxl-float rounded-lg"
             />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
-            QUANTUM POS SYSTEM
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#1e3a5f] to-[#2dd4bf] bg-clip-text text-transparent mb-2">
+            QORA EPOS
           </h1>
           <p className="text-lg text-muted-foreground mb-4 kxl-slide-in">
-            Advanced Point of Sale & Management System
+            Retail. Reinvented. Results. Delivered.
           </p>
           
 
@@ -417,10 +417,10 @@ export function MainMenu({ onSelectMode, onStaffLogin, currentUser, onLogout }: 
             </div>
           </div>
           <p className="text-sm font-bold text-foreground mb-1">
-            Kerrigan's XL Manorhamilton • Point of Sale System
+            Qora EPOS • Advanced Retail System
           </p>
           <p className="text-xs text-muted-foreground">
-            Licensed to Kerrigan's XL from The Feehily Boyle Group
+            qoraepos.com • Retail. Reinvented.
           </p>
         </div>
       </div>

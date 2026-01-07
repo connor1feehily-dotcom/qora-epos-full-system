@@ -440,7 +440,7 @@
       linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)));
   }
 
-  /* Quantum UI Effects */
+  /* Qora UI Effects */
   .kxl-quantum-button {
     position: relative;
     overflow: hidden;

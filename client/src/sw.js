@@ -1,5 +1,5 @@
-// Service Worker for Quantum POS
-const CACHE_NAME = 'quantum-pos-v1';
+// Service Worker for Qora EPOS
+const CACHE_NAME = 'qora-epos-v1';
 const urlsToCache = [
   '/',
   '/manifest.json',

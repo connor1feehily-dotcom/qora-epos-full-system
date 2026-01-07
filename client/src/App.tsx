@@ -8,7 +8,7 @@ import { TillSelector } from "@/components/till-selector";
 import { MainMenu } from "@/components/main-menu";
 import { StaffLogin } from "@/components/staff-login";
 import { TillSetupWizard } from "@/components/till-setup-wizard";
-import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
+import qoraLogo from "@assets/qoraPresentation_1767793834334.jpg";
 import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { InactiveScreen } from "@/components/inactive-screen";

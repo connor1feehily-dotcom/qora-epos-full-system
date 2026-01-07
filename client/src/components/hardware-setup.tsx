@@ -340,8 +340,8 @@ export default function HardwareSetup() {
       <Alert>
         <CheckCircle className="h-4 w-4" />
         <AlertDescription>
-          <strong>GERA System Compatibility:</strong> Quantum POS works alongside your existing GERA system. 
-          Connect GERA to serial/COM port and Quantum POS to USB for best results. No conflicts.
+          <strong>GERA System Compatibility:</strong> Qora EPOS works alongside your existing GERA system. 
+          Connect GERA to serial/COM port and Qora EPOS to USB for best results. No conflicts.
         </AlertDescription>
       </Alert>
     </div>

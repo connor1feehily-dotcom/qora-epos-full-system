@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
+import qoraLogo from "@assets/qoraPresentation_1767793834334.jpg";
 
 export function KerrigansLoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState("Initializing system...");
 
   const loadingSteps = [
-    { text: "Initializing Quantum POS System...", duration: 1200 },
+    { text: "Initializing Qora EPOS...", duration: 1200 },
     { text: "Connecting to database...", duration: 1000 },
     { text: "Loading product catalog...", duration: 1000 },
     { text: "Setting up payment systems...", duration: 1200 },
@@ -61,9 +61,9 @@ export function KerrigansLoadingScreen() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img 
-            src={quantumLogo} 
-            alt="Quantum POS Logo"
-            className="h-24 w-auto object-contain animate-pulse"
+            src={qoraLogo} 
+            alt="Qora EPOS Logo"
+            className="h-28 w-auto object-contain animate-pulse rounded-lg"
           />
         </div>
 
@@ -134,13 +134,13 @@ export function KerrigansLoadingScreen() {
         {/* Welcome Message */}
         <div className="text-center">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-            Welcome to Kerrigan's XL
+            Welcome to Qora EPOS
           </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-            Manorhamilton's Premier Point of Sale System
+            Retail. Reinvented. Results. Delivered.
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-500">
-            Licensed to Kerrigan's XL from The Feehily Boyle Group
+            qoraepos.com
           </p>
         </div>
       </div>

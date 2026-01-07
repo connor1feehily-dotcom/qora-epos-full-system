@@ -28,7 +28,7 @@ import {
   Zap
 } from "lucide-react";
 import { AutoScanner } from "./auto-scanner";
-import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
+import qoraLogo from "@assets/qoraPresentation_1767793834334.jpg";
 import type { Product, Customer } from "@shared/schema";
 import type { CartItem, TransactionSummary } from "@/lib/types";
 
@@ -97,7 +97,7 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
     if (product) {
       addToCart(product);
       toast({
-        title: "🚀 Quantum Scan Complete!",
+        title: "🚀 Qora Scan Complete!",
         description: `${product.name} added via neural recognition`,
       });
     }
@@ -202,12 +202,12 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
               ← Main Menu
             </Button>
             <img 
-              src={quantumLogo} 
-              alt="Kerrigan's XL"
-              className="h-12 w-auto kxl-float"
+              src={qoraLogo} 
+              alt="Qora EPOS"
+              className="h-12 w-auto rounded-lg"
             />
-            <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              QUANTUM POS™ - {tillId.toUpperCase()}
+            <div className="text-2xl font-bold bg-gradient-to-r from-[#1e3a5f] to-[#2dd4bf] bg-clip-text text-transparent">
+              QORA EPOS - {tillId.toUpperCase()}
             </div>
           </div>
           
@@ -249,7 +249,7 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
         
         {/* Licensed to text */}
         <div className="text-center text-xs text-muted-foreground mt-2 opacity-70">
-          Licensed to Kerrigan's XL from The Feehily Boyle Group | Powered by Quantum Commerce AI™
+          Licensed to Kerrigan's XL from The Feehily Boyle Group | Powered by Qora EPOS AI
         </div>
       </div>
 
@@ -321,7 +321,7 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Cpu className="h-6 w-6 mr-2 text-primary" />
-                Quantum Product Matrix
+                Qora Product Matrix
               </CardTitle>
             </CardHeader>
             <CardContent className="h-[400px] overflow-y-auto custom-scroll">
@@ -349,7 +349,7 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
           </Card>
         </div>
 
-        {/* Quantum Transaction Panel */}
+        {/* Qora Transaction Panel */}
         <div className="w-96 p-6 space-y-4">
           {/* Real-time Analytics */}
           {aiMode && (
@@ -387,7 +387,7 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center">
                   <ShoppingCart className="h-6 w-6 mr-2" />
-                  Quantum Cart
+                  Qora Cart
                 </div>
                 <Badge variant="secondary" className="kxl-glow">
                   {transaction.itemCount} items
@@ -455,14 +455,14 @@ export function RevolutionaryPOS({ tillId, onBackToMenu }: RevolutionaryPOSProps
             </CardContent>
           </Card>
 
-          {/* Quantum Payment Buttons */}
+          {/* Qora Payment Buttons */}
           <div className="space-y-3">
             <Button 
               className="w-full kxl-quantum-button text-white py-4 text-lg font-bold"
               disabled={cart.length === 0}
             >
               <CreditCard className="h-6 w-6 mr-2" />
-              Quantum Card Payment
+              Qora Card Payment
             </Button>
             <Button 
               variant="secondary"

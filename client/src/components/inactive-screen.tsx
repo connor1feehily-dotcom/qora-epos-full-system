@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import quantumLogo from "@assets/Quantum POS Logo _1754045289852.png";
+import qoraLogo from "@assets/qoraPresentation_1767793834334.jpg";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Clock, Shield } from "lucide-react";
@@ -82,21 +82,21 @@ export function InactiveScreen({ onActivate, lastActivity }: InactiveScreenProps
         <div className="mb-12">
           <div className="relative mb-8">
             <img 
-              src={quantumLogo} 
-              alt="Quantum POS Logo"
-              className="h-32 w-auto mx-auto drop-shadow-2xl animate-pulse"
+              src={qoraLogo} 
+              alt="Qora EPOS Logo"
+              className="h-36 w-auto mx-auto drop-shadow-2xl animate-pulse rounded-lg"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full blur-xl opacity-20 animate-ping"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#1e3a5f] to-[#2dd4bf] rounded-lg blur-xl opacity-20 animate-ping"></div>
           </div>
           
           <h1 className="text-6xl font-bold text-white mb-4 tracking-wider">
-            QUANTUM POS
+            QORA EPOS
           </h1>
           
           <div className="flex items-center justify-center space-x-3 mb-8">
-            <div className="h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent flex-1"></div>
-            <span className="text-cyan-300 text-lg font-medium px-4">ADVANCED RETAIL SYSTEM</span>
-            <div className="h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent flex-1"></div>
+            <div className="h-px bg-gradient-to-r from-transparent via-[#2dd4bf] to-transparent flex-1"></div>
+            <span className="text-[#2dd4bf] text-lg font-medium px-4">RETAIL. REINVENTED.</span>
+            <div className="h-px bg-gradient-to-r from-transparent via-[#2dd4bf] to-transparent flex-1"></div>
           </div>
         </div>
 
@@ -134,18 +134,18 @@ export function InactiveScreen({ onActivate, lastActivity }: InactiveScreenProps
         </div>
 
         {/* Licensing information */}
-        <div className="border-t border-cyan-500/30 pt-8">
-          <div className="text-cyan-100 text-sm mb-2">
-            Licensed Point of Sale System
+        <div className="border-t border-[#2dd4bf]/30 pt-8">
+          <div className="text-[#2dd4bf] text-sm mb-2">
+            Advanced Retail EPOS System
           </div>
           <div className="text-white font-semibold text-lg mb-2">
-            © The Feehily Boyle Group
+            qoraepos.com
           </div>
-          <div className="text-cyan-300 text-sm">
-            Professional Retail Solutions & Technology Licensing
+          <div className="text-[#2dd4bf] text-sm">
+            Results. Delivered.
           </div>
           {lastActivity && (
-            <div className="text-cyan-400 text-xs mt-4">
+            <div className="text-[#2dd4bf] text-xs mt-4">
               Last activity: {lastActivity.toLocaleTimeString('en-IE')}
             </div>
           )}

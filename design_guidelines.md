@@ -1,4 +1,4 @@
-# Quantum POS Design Guidelines
+# Qora EPOS Design Guidelines
 
 ## Design Approach
 **Selected System:** Hybrid approach combining Linear's clarity + Stripe's professional restraint + modern SaaS dashboard patterns. Focus on data legibility, quick scanning, and touch-optimized interactions for retail/hospitality environments.

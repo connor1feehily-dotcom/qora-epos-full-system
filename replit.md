@@ -1,7 +1,7 @@
-# Quantum POS System
+# Qora EPOS System
 
 ## Overview
-A comprehensive Point of Sale system featuring advanced retail management capabilities:
+A comprehensive retail EPOS system with full demo mode, featuring advanced retail management capabilities:
 - Multi-till transaction processing
 - Advanced back office management
 - Real-time inventory tracking
@@ -17,6 +17,19 @@ A comprehensive Point of Sale system featuring advanced retail management capabi
 - Touch-optimized responsive design
 
 ## Recent Changes
+**January 7, 2026:**
+- ✅ Complete rebrand from Quantum POS to Qora EPOS with new branding and color scheme
+- ✅ New gradient: Dark blue (#1e3a5f) to teal (#2dd4bf)
+- ✅ New tagline: "Retail. Reinvented. Results. Delivered."
+- ✅ Enhanced demo mode with comprehensive educational popups for every Back Office feature
+- ✅ 24+ feature descriptions with retail-focused explanations:
+  - What each feature does
+  - Why it's important for retailers
+  - 4 key benefits per feature
+  - Measurable retail value metrics
+- ✅ Demo mode badge indicator in Back Office header
+- ✅ All features remain fully usable after viewing demo information
+
 **August 31, 2025:**
 - ✅ Fixed critical receipt printing issue - system now only connects to thermal receipt printers (not A4 office printers)
 - ✅ Enhanced hardware integration with comprehensive error handling and debugging

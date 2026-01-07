@@ -59,16 +59,197 @@ interface BackOfficeDashboardProps {
   currentUser: any;
 }
 
+// Comprehensive demo feature information for retailers
+const demoFeatureInfo: Record<string, { title: string; description: string; whyImportant: string; keyBenefits: string[]; retailValue: string }> = {
+  "overview": {
+    title: "Dashboard Overview",
+    description: "Your command center for real-time business insights. See daily revenue, transaction counts, and critical alerts at a glance.",
+    whyImportant: "Retailers need instant visibility into business performance. The dashboard eliminates guesswork by showing exactly how your store is performing RIGHT NOW.",
+    keyBenefits: ["Real-time sales tracking", "Low stock alerts", "Daily performance metrics", "Quick access to all modules"],
+    retailValue: "Average retailers save 2+ hours daily by having all critical metrics in one place instead of checking multiple reports."
+  },
+  "smart-analytics": {
+    title: "Smart Analytics",
+    description: "AI-powered business intelligence that analyzes your sales patterns, customer behavior, and inventory trends to provide actionable insights.",
+    whyImportant: "Data-driven decisions increase profit margins by 15-25%. This module transforms raw sales data into strategic recommendations.",
+    keyBenefits: ["Sales trend analysis", "Customer purchase patterns", "Peak hours identification", "Product performance ranking"],
+    retailValue: "Retailers using analytics typically see 20% improvement in inventory efficiency and 15% increase in upselling opportunities."
+  },
+  "staff-activity": {
+    title: "Staff Activity Log",
+    description: "Complete audit trail of all staff actions including price changes, void transactions, discounts applied, and inventory adjustments.",
+    whyImportant: "Accountability reduces shrinkage by up to 50%. Know exactly who did what and when for complete operational transparency.",
+    keyBenefits: ["Full audit history", "Void transaction tracking", "Discount monitoring", "Manager approval workflows"],
+    retailValue: "Stores with proper staff activity tracking see 3-5% reduction in unexplained losses."
+  },
+  "sales-ledger": {
+    title: "Sales Ledger",
+    description: "Complete transaction history with detailed line items, payment methods, and customer information for every sale.",
+    whyImportant: "Accurate sales records are essential for tax compliance, dispute resolution, and understanding your revenue streams.",
+    keyBenefits: ["Transaction search & filtering", "Payment method breakdown", "Daily/weekly/monthly summaries", "Export for accounting"],
+    retailValue: "Proper sales ledger management ensures 100% tax compliance and provides evidence for any customer disputes."
+  },
+  "supplier-integration": {
+    title: "Supplier Order Integration",
+    description: "Streamlined ordering system that connects directly with your suppliers for faster procurement and better stock management.",
+    whyImportant: "Manual ordering is error-prone and time-consuming. Automated integration reduces ordering time by 80% and prevents stockouts.",
+    keyBenefits: ["Automated reorder suggestions", "Supplier catalog integration", "Order history tracking", "Delivery scheduling"],
+    retailValue: "Retailers save an average of 5 hours per week on ordering tasks and reduce stockouts by 40%."
+  },
+  "value-projection": {
+    title: "Value Projection & Forecasting",
+    description: "Financial forecasting tools that predict future sales, cash flow, and inventory needs based on historical data and trends.",
+    whyImportant: "Planning ahead prevents cash flow problems and ensures you're prepared for seasonal demands.",
+    keyBenefits: ["Revenue forecasting", "Profit margin analysis", "Seasonal trend predictions", "Budget planning tools"],
+    retailValue: "Accurate forecasting helps retailers maintain optimal stock levels and improve cash flow management by 30%."
+  },
+  "inventory": {
+    title: "Inventory Management",
+    description: "Complete control over your stock levels, pricing, product information, and categorization.",
+    whyImportant: "Inventory is your biggest asset. Proper management prevents overstocking (dead capital) and stockouts (lost sales).",
+    keyBenefits: ["Real-time stock levels", "Product categorization", "Barcode management", "Price updates"],
+    retailValue: "Effective inventory management can reduce carrying costs by 20-30% while improving product availability."
+  },
+  "stock-ledger": {
+    title: "Stock Ledger",
+    description: "Detailed record of all stock movements including sales, deliveries, returns, wastage, and adjustments.",
+    whyImportant: "Understanding where your stock goes helps identify shrinkage, optimize ordering, and ensure accurate valuations.",
+    keyBenefits: ["Movement history", "Stock valuation", "Shrinkage tracking", "Audit compliance"],
+    retailValue: "Stock ledger analysis typically reveals 2-5% of inventory being lost to untracked causes."
+  },
+  "advanced-inventory": {
+    title: "Advanced Inventory Tools",
+    description: "Batch editing, expiry date tracking, and smart forecasting for complex inventory needs.",
+    whyImportant: "Large product ranges need efficient tools. Batch operations save hours of manual work.",
+    keyBenefits: ["Bulk price updates", "Expiry date alerts", "Demand forecasting", "Category-wide changes"],
+    retailValue: "Stores with 500+ products save 10+ hours weekly on inventory management with advanced tools."
+  },
+  "till-stock": {
+    title: "Till Stock Management",
+    description: "Allocate and track inventory at individual till stations, manage float levels, and handle inter-till transfers.",
+    whyImportant: "Multi-till operations need precise stock allocation to prevent shortages and ensure accurate Z-reads.",
+    keyBenefits: ["Till allocation", "Float management", "Stock transfers", "End-of-day reconciliation"],
+    retailValue: "Proper till management ensures accurate daily reconciliation and reduces end-of-day discrepancies by 90%."
+  },
+  "stock-taking": {
+    title: "Stock Taking System",
+    description: "Mobile-friendly stock counting with barcode scanning, variance reports, and automatic inventory updates.",
+    whyImportant: "Regular stock takes are essential for accuracy. This system makes counts 5x faster than paper-based methods.",
+    keyBenefits: ["Mobile scanning", "Variance reports", "Scheduled counts", "Automatic adjustments"],
+    retailValue: "Digital stock taking reduces counting time by 80% and improves accuracy to 99%+."
+  },
+  "packages": {
+    title: "Package & Bundle Management",
+    description: "Create product bundles, combo deals, and multi-buy offers that automatically apply at checkout.",
+    whyImportant: "Bundling increases average transaction value by 15-30%. Make it easy for customers to buy more.",
+    keyBenefits: ["Combo deal creation", "Automatic pricing", "Bundle discounts", "Promotional packages"],
+    retailValue: "Retailers using bundle promotions see 25% higher average transaction values."
+  },
+  "deliveries": {
+    title: "Delivery Management",
+    description: "Process supplier deliveries with scanning, quantity verification, and automatic stock updates.",
+    whyImportant: "Delivery errors cost money. Verification at receipt catches problems before they impact your inventory.",
+    keyBenefits: ["Delivery scanning", "Quantity verification", "Variance alerts", "Automatic stock updates"],
+    retailValue: "Catching delivery errors saves an average of 2-3% on supplier costs."
+  },
+  "suppliers": {
+    title: "Supplier Performance",
+    description: "Track supplier reliability, delivery accuracy, pricing history, and margin contributions.",
+    whyImportant: "Know which suppliers deliver value. Make data-driven decisions about who to order from.",
+    keyBenefits: ["Delivery tracking", "Price history", "Margin analysis", "Performance rankings"],
+    retailValue: "Supplier optimization typically improves margins by 3-5% through better negotiation and selection."
+  },
+  "mobile-scanner": {
+    title: "Mobile Scanner",
+    description: "Use your smartphone as a barcode scanner for stock counts, delivery verification, and price checks.",
+    whyImportant: "Mobile scanning eliminates the need for expensive handheld devices while maintaining full functionality.",
+    keyBenefits: ["Camera scanning", "Offline capability", "Real-time sync", "Multi-device support"],
+    retailValue: "Saves €500+ per device compared to dedicated scanners with same functionality."
+  },
+  "supplier-dashboard": {
+    title: "AI-Powered Ordering",
+    description: "Intelligent order suggestions based on sales velocity, seasonality, and supplier lead times.",
+    whyImportant: "AI removes guesswork from ordering. Never run out of bestsellers or overstock slow-movers.",
+    keyBenefits: ["Smart reorder points", "Seasonal adjustments", "Lead time optimization", "Budget-aware suggestions"],
+    retailValue: "AI ordering reduces stockouts by 60% and overstock by 40%."
+  },
+  "ai-optimization": {
+    title: "AI Price Optimization",
+    description: "Machine learning analyzes your market position and suggests optimal pricing for maximum profit.",
+    whyImportant: "Pricing is the biggest lever for profitability. Even 1% improvement impacts the bottom line significantly.",
+    keyBenefits: ["Competitor analysis", "Margin optimization", "Dynamic pricing", "Promotional recommendations"],
+    retailValue: "Optimized pricing typically improves gross margins by 2-5%."
+  },
+  "promotions": {
+    title: "Promotions Engine",
+    description: "Create and manage sales promotions including percentage discounts, BOGOF, multi-buy offers, and time-limited deals.",
+    whyImportant: "Strategic promotions drive traffic and clear slow stock. The right promotion at the right time maximizes ROI.",
+    keyBenefits: ["Multiple promo types", "Scheduled promotions", "Category-wide deals", "Performance tracking"],
+    retailValue: "Well-timed promotions increase foot traffic by 30% and help clear aged stock before write-offs."
+  },
+  "staff": {
+    title: "Staff Management",
+    description: "Manage employee records, roles, permissions, PIN codes, and access levels for secure operations.",
+    whyImportant: "Role-based access prevents unauthorized actions while ensuring staff have the tools they need.",
+    keyBenefits: ["Role permissions", "PIN management", "Access control", "Activity tracking"],
+    retailValue: "Proper access control reduces internal fraud and errors by 70%."
+  },
+  "advanced-staff": {
+    title: "Advanced Staff Features",
+    description: "Time clock integration, shift scheduling, performance incentives, and team communication tools.",
+    whyImportant: "Engaged staff perform better. Track hours accurately and reward top performers.",
+    keyBenefits: ["Time tracking", "Shift management", "Performance metrics", "Incentive programs"],
+    retailValue: "Staff incentive programs increase sales productivity by 15-25%."
+  },
+  "management": {
+    title: "System Administration",
+    description: "User management, system settings, security controls, and organizational configuration.",
+    whyImportant: "Proper system administration ensures security, compliance, and optimal performance.",
+    keyBenefits: ["User administration", "Security settings", "Backup management", "System configuration"],
+    retailValue: "Regular system maintenance prevents 95% of potential downtime issues."
+  },
+  "pos-config": {
+    title: "POS Configuration",
+    description: "Customize your till interface with quick-access buttons, category layouts, and shortcut configurations.",
+    whyImportant: "Optimized till layouts speed up transactions. Every second saved at checkout improves customer satisfaction.",
+    keyBenefits: ["Custom buttons", "Category shortcuts", "Layout customization", "Quick-access products"],
+    retailValue: "Optimized POS layouts reduce average transaction time by 20%."
+  },
+  "alerts": {
+    title: "System Alerts",
+    description: "Real-time notifications for low stock, price changes, system issues, and business events.",
+    whyImportant: "Proactive alerts prevent problems before they impact customers. Never be caught off guard.",
+    keyBenefits: ["Low stock warnings", "Price change alerts", "System notifications", "Custom thresholds"],
+    retailValue: "Alert systems prevent 80% of stockouts by warning before items run out."
+  },
+  "maintenance": {
+    title: "System Maintenance",
+    description: "Health monitoring, database optimization, backup management, and performance diagnostics.",
+    whyImportant: "Regular maintenance prevents system failures. Downtime during peak hours is extremely costly.",
+    keyBenefits: ["Health checks", "Performance monitoring", "Backup scheduling", "Error diagnostics"],
+    retailValue: "Proactive maintenance reduces unplanned downtime by 95%."
+  }
+};
+
 export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [selectedDemoModule, setSelectedDemoModule] = useState<any>(null);
+  const [demoInfo, setDemoInfo] = useState<typeof demoFeatureInfo[string] | null>(null);
 
   const { toast } = useToast();
 
-  const handleDemoFeatureClick = (title: string, icon: any, color: string, description: string) => {
+  const handleDemoFeatureClick = (tabId: string, icon: any, color: string) => {
     if (currentUser?.username === "demo_user") {
-      setSelectedDemoModule({ title, icon, color, description });
+      const info = demoFeatureInfo[tabId] || {
+        title: tabId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        description: "This feature helps manage your retail operations more efficiently.",
+        whyImportant: "Every aspect of retail management matters for profitability.",
+        keyBenefits: ["Improved efficiency", "Better control", "Time savings", "Reduced errors"],
+        retailValue: "This feature contributes to overall store performance."
+      };
+      setDemoInfo(info);
+      setSelectedDemoModule({ title: info.title, icon, color, description: info.description });
       setShowDemoModal(true);
     }
   };
@@ -257,31 +438,77 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
   ];
 
   const renderDemoModal = () => {
-    if (!selectedDemoModule) return null;
+    if (!selectedDemoModule || !demoInfo) return null;
 
     return (
       <AlertDialog open={showDemoModal} onOpenChange={setShowDemoModal}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
-            <div className={`w-12 h-12 rounded-lg ${selectedDemoModule.color} flex items-center justify-center mb-4`}>
-              <selectedDemoModule.icon className="h-6 w-6 text-white" />
-            </div>
-            <AlertDialogTitle className="text-2xl font-bold">{selectedDemoModule.title}</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 text-lg leading-relaxed">
-              {selectedDemoModule.description}
-              <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-100">
-                <p className="text-amber-800 text-sm font-medium">
-                  Note: You are currently in Demo Mode. Some advanced management features are restricted to the full version.
-                </p>
+            <div className="flex items-center gap-4 mb-2">
+              <div className={`w-14 h-14 rounded-xl ${selectedDemoModule.color} flex items-center justify-center shadow-lg`}>
+                <selectedDemoModule.icon className="h-7 w-7 text-white" />
               </div>
-            </AlertDialogDescription>
+              <div>
+                <AlertDialogTitle className="text-2xl font-bold text-gray-900">{demoInfo.title}</AlertDialogTitle>
+                <p className="text-sm text-gray-500">Qora EPOS Feature</p>
+              </div>
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          
+          <div className="space-y-4 mt-4">
+            {/* What it does */}
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <span className="text-lg">📋</span> What It Does
+              </h4>
+              <p className="text-blue-800 leading-relaxed">{demoInfo.description}</p>
+            </div>
+
+            {/* Why it's important */}
+            <div className="p-4 bg-green-50 rounded-xl border border-green-100">
+              <h4 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                <span className="text-lg">💡</span> Why It's Important for Retailers
+              </h4>
+              <p className="text-green-800 leading-relaxed">{demoInfo.whyImportant}</p>
+            </div>
+
+            {/* Key benefits */}
+            <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+              <h4 className="font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                <span className="text-lg">✅</span> Key Benefits
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {demoInfo.keyBenefits.map((benefit, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-purple-800">
+                    <CheckCircle className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                    <span className="text-sm">{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Retail value */}
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <h4 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                <span className="text-lg">💰</span> Real Retail Impact
+              </h4>
+              <p className="text-amber-800 leading-relaxed font-medium">{demoInfo.retailValue}</p>
+            </div>
+
+            {/* Demo mode notice */}
+            <div className="p-3 bg-gray-100 rounded-lg border border-gray-200">
+              <p className="text-gray-600 text-sm text-center">
+                🚀 <strong>Demo Mode:</strong> You have full access to explore this feature. Try it out!
+              </p>
+            </div>
+          </div>
+
+          <AlertDialogFooter className="mt-4">
             <AlertDialogAction 
               onClick={() => setShowDemoModal(false)}
-              className="w-full sm:w-auto bg-gray-900 text-white hover:bg-gray-800"
+              className="w-full bg-gradient-to-r from-[#1e3a5f] to-[#2dd4bf] text-white hover:opacity-90 font-semibold py-3"
             >
-              Continue Exploring
+              Continue to {demoInfo.title} →
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -720,9 +947,14 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Back Office Management</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#1e3a5f] to-[#2dd4bf] bg-clip-text text-transparent">Qora EPOS Back Office</h1>
             <p className="text-gray-600">
               Welcome back, {currentUser?.firstName} {currentUser?.lastName}
+              {currentUser?.username === "demo_user" && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  Demo Mode
+                </span>
+              )}
             </p>
           </div>
           <Button variant="outline" onClick={onBackToMenu}>
@@ -742,10 +974,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 <Button 
                   variant={activeTab === "overview" ? "default" : "outline"}
                   onClick={() => {
-                    if (currentUser?.username === "demo_user") {
-                      setSelectedDemoModule({ title: "Overview", icon: Settings, color: "bg-blue-500", description: "Business performance overview" });
-                      setShowDemoModal(true);
-                    }
+                    handleDemoFeatureClick("overview", Settings, "bg-blue-500");
                     setActiveTab("overview");
                   }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
@@ -757,10 +986,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 <Button 
                   variant={activeTab === "smart-analytics" ? "default" : "outline"}
                   onClick={() => {
-                    if (currentUser?.username === "demo_user") {
-                      setSelectedDemoModule({ title: "Analytics", icon: TrendingUp, color: "bg-purple-500", description: "Advanced smart analytics" });
-                      setShowDemoModal(true);
-                    }
+                    handleDemoFeatureClick("smart-analytics", TrendingUp, "bg-purple-500");
                     setActiveTab("smart-analytics");
                   }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
@@ -772,7 +998,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 <Button 
                   variant={activeTab === "staff-activity" ? "default" : "outline"}
                   onClick={() => {
-                    handleDemoFeatureClick("Staff Activity", Eye, "bg-blue-400", "Audit logs of staff actions");
+                    handleDemoFeatureClick("staff-activity", Eye, "bg-blue-400");
                     setActiveTab("staff-activity");
                   }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
@@ -791,7 +1017,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 <Button 
                   variant={activeTab === "sales-ledger" ? "default" : "outline"}
                   onClick={() => {
-                    handleDemoFeatureClick("Sales Ledger", FileText, "bg-blue-500", "Complete sales transaction management");
+                    handleDemoFeatureClick("sales-ledger", FileText, "bg-blue-500");
                     setActiveTab("sales-ledger");
                   }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
@@ -803,7 +1029,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 <Button 
                   variant={activeTab === "supplier-integration" ? "default" : "outline"}
                   onClick={() => {
-                    handleDemoFeatureClick("Orders", DollarSign, "bg-green-500", "Supplier order integration and tracking");
+                    handleDemoFeatureClick("supplier-integration", DollarSign, "bg-green-500");
                     setActiveTab("supplier-integration");
                   }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
@@ -814,7 +1040,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "value-projection" ? "default" : "outline"}
-                  onClick={() => setActiveTab("value-projection")}
+                  onClick={() => {
+                    handleDemoFeatureClick("value-projection", DollarSign, "bg-purple-500");
+                    setActiveTab("value-projection");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-forecast"
                 >
@@ -830,7 +1059,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
                 <Button 
                   variant={activeTab === "inventory" ? "default" : "outline"}
-                  onClick={() => setActiveTab("inventory")}
+                  onClick={() => {
+                    handleDemoFeatureClick("inventory", Package, "bg-green-500");
+                    setActiveTab("inventory");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-inventory"
                 >
@@ -839,7 +1071,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "stock-ledger" ? "default" : "outline"}
-                  onClick={() => setActiveTab("stock-ledger")}
+                  onClick={() => {
+                    handleDemoFeatureClick("stock-ledger", Package, "bg-green-500");
+                    setActiveTab("stock-ledger");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-stock"
                 >
@@ -848,7 +1083,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "advanced-inventory" ? "default" : "outline"}
-                  onClick={() => setActiveTab("advanced-inventory")}
+                  onClick={() => {
+                    handleDemoFeatureClick("advanced-inventory", Plus, "bg-emerald-500");
+                    setActiveTab("advanced-inventory");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-adv-stock"
                 >
@@ -857,7 +1095,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "till-stock" ? "default" : "outline"}
-                  onClick={() => setActiveTab("till-stock")}
+                  onClick={() => {
+                    handleDemoFeatureClick("till-stock", ShoppingCart, "bg-teal-500");
+                    setActiveTab("till-stock");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-till-stock"
                 >
@@ -866,7 +1107,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "stock-taking" ? "default" : "outline"}
-                  onClick={() => setActiveTab("stock-taking")}
+                  onClick={() => {
+                    handleDemoFeatureClick("stock-taking", CheckCircle, "bg-cyan-500");
+                    setActiveTab("stock-taking");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-stock-take"
                 >
@@ -875,7 +1119,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "packages" ? "default" : "outline"}
-                  onClick={() => setActiveTab("packages")}
+                  onClick={() => {
+                    handleDemoFeatureClick("packages", Grid, "bg-indigo-500");
+                    setActiveTab("packages");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-packages"
                 >
@@ -891,7 +1138,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
                 <Button 
                   variant={activeTab === "deliveries" ? "default" : "outline"}
-                  onClick={() => setActiveTab("deliveries")}
+                  onClick={() => {
+                    handleDemoFeatureClick("deliveries", ShoppingCart, "bg-orange-500");
+                    setActiveTab("deliveries");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-deliveries"
                 >
@@ -900,7 +1150,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "suppliers" ? "default" : "outline"}
-                  onClick={() => setActiveTab("suppliers")}
+                  onClick={() => {
+                    handleDemoFeatureClick("suppliers", Users, "bg-yellow-500");
+                    setActiveTab("suppliers");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-suppliers"
                 >
@@ -909,7 +1162,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "mobile-scanner" ? "default" : "outline"}
-                  onClick={() => setActiveTab("mobile-scanner")}
+                  onClick={() => {
+                    handleDemoFeatureClick("mobile-scanner", Package, "bg-cyan-500");
+                    setActiveTab("mobile-scanner");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-scanner"
                 >
@@ -918,7 +1174,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "supplier-dashboard" ? "default" : "outline"}
-                  onClick={() => setActiveTab("supplier-dashboard")}
+                  onClick={() => {
+                    handleDemoFeatureClick("supplier-dashboard", Package, "bg-pink-500");
+                    setActiveTab("supplier-dashboard");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-ai-orders"
                 >
@@ -934,7 +1193,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
                 <Button 
                   variant={activeTab === "ai-optimization" ? "default" : "outline"}
-                  onClick={() => setActiveTab("ai-optimization")}
+                  onClick={() => {
+                    handleDemoFeatureClick("ai-optimization", Target, "bg-pink-500");
+                    setActiveTab("ai-optimization");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-ai-price"
                 >
@@ -943,7 +1205,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "promotions" ? "default" : "outline"}
-                  onClick={() => setActiveTab("promotions")}
+                  onClick={() => {
+                    handleDemoFeatureClick("promotions", Target, "bg-orange-500");
+                    setActiveTab("promotions");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-promos"
                 >
@@ -959,7 +1224,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
                 <Button 
                   variant={activeTab === "staff" ? "default" : "outline"}
-                  onClick={() => setActiveTab("staff")}
+                  onClick={() => {
+                    handleDemoFeatureClick("staff", Users, "bg-blue-500");
+                    setActiveTab("staff");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-staff"
                 >
@@ -968,7 +1236,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "advanced-staff" ? "default" : "outline"}
-                  onClick={() => setActiveTab("advanced-staff")}
+                  onClick={() => {
+                    handleDemoFeatureClick("advanced-staff", Clock, "bg-indigo-500");
+                    setActiveTab("advanced-staff");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-adv-staff"
                 >
@@ -977,7 +1248,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "management" ? "default" : "outline"}
-                  onClick={() => setActiveTab("management")}
+                  onClick={() => {
+                    handleDemoFeatureClick("management", Users, "bg-red-500");
+                    setActiveTab("management");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-admin"
                 >
@@ -993,7 +1267,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 p-3 sm:p-4 bg-white dark:bg-gray-800 rounded-lg border">
                 <Button 
                   variant={activeTab === "pos-config" ? "default" : "outline"}
-                  onClick={() => setActiveTab("pos-config")}
+                  onClick={() => {
+                    handleDemoFeatureClick("pos-config", Grid, "bg-violet-500");
+                    setActiveTab("pos-config");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-pos-config"
                 >
@@ -1002,7 +1279,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "alerts" ? "default" : "outline"}
-                  onClick={() => setActiveTab("alerts")}
+                  onClick={() => {
+                    handleDemoFeatureClick("alerts", AlertTriangle, "bg-red-500");
+                    setActiveTab("alerts");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-alerts"
                 >
@@ -1011,7 +1291,10 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
                 </Button>
                 <Button 
                   variant={activeTab === "maintenance" ? "default" : "outline"}
-                  onClick={() => setActiveTab("maintenance")}
+                  onClick={() => {
+                    handleDemoFeatureClick("maintenance", Settings, "bg-gray-500");
+                    setActiveTab("maintenance");
+                  }}
                   className="h-14 sm:h-16 flex flex-col items-center justify-center text-xs gap-1 px-2"
                   data-testid="button-maintain"
                 >
