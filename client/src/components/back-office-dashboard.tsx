@@ -6,15 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { 
   Settings, 
   Package, 
   Users, 
@@ -121,84 +112,13 @@ const consolidatedModules = [
   }
 ];
 
-const demoFeatureInfo: Record<string, { title: string; description: string; whyImportant: string; keyBenefits: string[]; retailValue: string }> = {
-  "dashboard": {
-    title: "Dashboard Overview",
-    description: "Your command center for real-time business insights. See daily revenue, transaction counts, low stock alerts, and recent activity at a glance.",
-    whyImportant: "Retailers need instant visibility into business performance. The dashboard eliminates guesswork by showing exactly how your store is performing RIGHT NOW.",
-    keyBenefits: ["Real-time sales tracking", "Low stock alerts", "Daily performance metrics", "Quick access to all modules"],
-    retailValue: "Average retailers save 2+ hours daily by having all critical metrics in one place instead of checking multiple reports."
-  },
-  "inventory": {
-    title: "Inventory Hub",
-    description: "Complete inventory control including product management, stock ledger, advanced batch tools, stock taking, and package bundles - all in one unified module.",
-    whyImportant: "Inventory is your biggest asset. This consolidated hub prevents overstocking (dead capital), stockouts (lost sales), and gives you complete visibility.",
-    keyBenefits: ["Real-time stock levels & movements", "Batch editing & expiry tracking", "Mobile stock counting", "Bundle & package creation"],
-    retailValue: "Unified inventory management reduces carrying costs by 20-30%, prevents 80% of stockouts, and saves 10+ hours weekly on admin."
-  },
-  "purchasing": {
-    title: "Purchasing & Suppliers",
-    description: "Manage your entire supply chain - from supplier relationships and performance tracking to delivery processing and AI-powered reordering suggestions.",
-    whyImportant: "Your suppliers directly impact your margins and stock availability. This module ensures you order the right products at the right time from the best suppliers.",
-    keyBenefits: ["Supplier performance tracking", "Delivery scanning & verification", "AI-powered order suggestions", "Mobile scanner for goods-in"],
-    retailValue: "Optimized purchasing improves margins by 3-5%, reduces stockouts by 60%, and cuts ordering time by 80%."
-  },
-  "sales": {
-    title: "Sales & Analytics",
-    description: "Complete sales visibility with transaction history, smart analytics, value projections, and staff activity tracking - understand every aspect of your revenue.",
-    whyImportant: "Data-driven decisions increase profit margins by 15-25%. This module transforms raw sales data into strategic insights and actionable recommendations.",
-    keyBenefits: ["Complete transaction history", "AI-powered trend analysis", "Revenue forecasting", "Staff activity audit trail"],
-    retailValue: "Retailers using analytics see 20% improvement in inventory efficiency, 15% more upselling, and complete accountability."
-  },
-  "pricing": {
-    title: "Pricing & Promotions",
-    description: "Strategic pricing control with AI optimization and a powerful promotions engine - maximize margins while driving customer traffic.",
-    whyImportant: "Pricing is your biggest profit lever. Even 1% improvement in pricing significantly impacts your bottom line. Smart promotions drive traffic and clear stock.",
-    keyBenefits: ["AI-powered price optimization", "BOGOF & percentage deals", "Scheduled promotions", "Competitor analysis"],
-    retailValue: "Optimized pricing improves gross margins by 2-5%. Well-timed promotions increase foot traffic by 30%."
-  },
-  "staff": {
-    title: "Staff Management",
-    description: "Complete employee management including roles, permissions, time tracking, performance metrics, incentives, and full activity logging.",
-    whyImportant: "Your team is your business. Role-based access prevents fraud, time tracking ensures accurate payroll, and incentives boost productivity.",
-    keyBenefits: ["Role-based permissions", "Time clock & shift management", "Performance incentives", "Complete activity audit"],
-    retailValue: "Proper staff management reduces internal fraud by 70%, increases sales productivity by 15-25%, and ensures payroll accuracy."
-  },
-  "tills": {
-    title: "Till Management",
-    description: "Configure your POS interface and manage stock allocation across multiple tills for smooth checkout operations.",
-    whyImportant: "Optimized till layouts speed up transactions and reduce errors. Proper stock allocation ensures every till can serve customers efficiently.",
-    keyBenefits: ["Custom quick-access buttons", "Till-specific stock allocation", "Float management", "End-of-day reconciliation"],
-    retailValue: "Optimized POS layouts reduce transaction time by 20% and proper till management cuts reconciliation discrepancies by 90%."
-  },
-  "system": {
-    title: "System Settings",
-    description: "System health monitoring, alerts configuration, and maintenance tools to keep your EPOS running smoothly.",
-    whyImportant: "System reliability is critical. Proactive maintenance prevents downtime, and smart alerts keep you informed of issues before they impact customers.",
-    keyBenefits: ["Real-time health monitoring", "Custom alert thresholds", "Automated backups", "Performance diagnostics"],
-    retailValue: "Proactive system management prevents 95% of unplanned downtime and catches 80% of issues before they affect operations."
-  }
-};
-
 export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDashboardProps) {
   const [activeModule, setActiveModule] = useState("dashboard");
   const [activeSubTab, setActiveSubTab] = useState("");
-  const [showDemoModal, setShowDemoModal] = useState(false);
-  const [selectedDemoModule, setSelectedDemoModule] = useState<any>(null);
-  const [demoInfo, setDemoInfo] = useState<typeof demoFeatureInfo[string] | null>(null);
 
   const { toast } = useToast();
 
   const handleModuleClick = (moduleId: string) => {
-    if (currentUser?.username === "demo_user") {
-      const info = demoFeatureInfo[moduleId];
-      const module = consolidatedModules.find(m => m.id === moduleId);
-      if (info && module) {
-        setDemoInfo(info);
-        setSelectedDemoModule({ title: info.title, icon: module.icon, color: module.color, description: info.description });
-        setShowDemoModal(true);
-      }
-    }
     setActiveModule(moduleId);
     setActiveSubTab("");
   };
@@ -266,80 +186,6 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
     { action: "Staff Login", details: "John Doe logged into Till 1", time: "32 minutes ago", user: "System" },
     { action: "Promotion Created", details: "Buy 2 Get 1 Free on Sodas", time: "1 hour ago", user: "Manager" }
   ];
-
-  const renderDemoModal = () => {
-    if (!selectedDemoModule || !demoInfo) return null;
-
-    return (
-      <AlertDialog open={showDemoModal} onOpenChange={setShowDemoModal}>
-        <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-4 mb-2">
-              <div className={`w-14 h-14 rounded-xl ${selectedDemoModule.color} flex items-center justify-center shadow-lg`}>
-                <selectedDemoModule.icon className="h-7 w-7 text-white" />
-              </div>
-              <div>
-                <AlertDialogTitle className="text-2xl font-bold text-gray-900">{demoInfo.title}</AlertDialogTitle>
-                <AlertDialogDescription className="text-sm text-gray-500">Qora EPOS Feature</AlertDialogDescription>
-              </div>
-            </div>
-          </AlertDialogHeader>
-          
-          <div className="space-y-4 mt-4">
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-              <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                <span className="text-lg">📋</span> What It Does
-              </h4>
-              <p className="text-blue-800 leading-relaxed">{demoInfo.description}</p>
-            </div>
-
-            <div className="p-4 bg-green-50 rounded-xl border border-green-100">
-              <h4 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
-                <span className="text-lg">💡</span> Why It's Important for Retailers
-              </h4>
-              <p className="text-green-800 leading-relaxed">{demoInfo.whyImportant}</p>
-            </div>
-
-            <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
-              <h4 className="font-semibold text-purple-900 mb-2 flex items-center gap-2">
-                <span className="text-lg">✅</span> Key Benefits
-              </h4>
-              <div className="grid grid-cols-2 gap-2">
-                {demoInfo.keyBenefits.map((benefit, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-purple-800">
-                    <CheckCircle className="w-4 h-4 text-purple-600 flex-shrink-0" />
-                    <span className="text-sm">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-              <h4 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
-                <span className="text-lg">💰</span> Real Retail Impact
-              </h4>
-              <p className="text-amber-800 leading-relaxed font-medium">{demoInfo.retailValue}</p>
-            </div>
-
-            <div className="p-3 bg-gray-100 rounded-lg border border-gray-200">
-              <p className="text-gray-600 text-sm text-center">
-                🚀 <strong>Demo Mode:</strong> You have full access to explore this feature. Try it out!
-              </p>
-            </div>
-          </div>
-
-          <AlertDialogFooter className="mt-4">
-            <AlertDialogAction 
-              onClick={() => setShowDemoModal(false)}
-              className="w-full bg-gradient-to-r from-[#1e3a5f] to-[#2dd4bf] text-white hover:opacity-90 font-semibold py-3"
-            >
-              Continue to {demoInfo.title} →
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    );
-  };
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -945,18 +791,12 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {renderDemoModal()}
       <div className="bg-white border-b px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#1e3a5f] to-[#2dd4bf] bg-clip-text text-transparent">Qora EPOS Back Office</h1>
             <p className="text-gray-600">
               Welcome back, {currentUser?.firstName} {currentUser?.lastName}
-              {currentUser?.username === "demo_user" && (
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                  Demo Mode
-                </span>
-              )}
             </p>
           </div>
           <Button variant="outline" onClick={onBackToMenu}>
