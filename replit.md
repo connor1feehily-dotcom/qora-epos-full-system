@@ -17,16 +17,25 @@ A comprehensive retail EPOS system with full demo mode, featuring advanced retai
 - Touch-optimized responsive design
 
 ## Recent Changes
+**February 3, 2026:**
+- ✅ Consolidated Back Office from 21+ buttons to 8 main modules:
+  - Dashboard: Overview and quick stats
+  - Inventory: Products, stock ledger, advanced tools, stock taking, packages
+  - Purchasing: Deliveries, suppliers, mobile scanner, AI ordering
+  - Sales & Reports: Analytics, sales ledger, forecasting, activity log
+  - Pricing & Promos: Promotions engine, AI price optimization
+  - Staff: Staff list, time & incentives, administration
+  - Tills: POS configuration, till stock management
+  - System: Alerts, maintenance
+- ✅ Each module now has internal sub-tabs for cleaner navigation
+- ✅ Removed duplicate/overlapping features by combining related functionality
+- ✅ Maintained all demo mode functionality with updated module descriptions
+
 **January 7, 2026:**
 - ✅ Complete rebrand from Quantum POS to Qora EPOS with new branding and color scheme
 - ✅ New gradient: Dark blue (#1e3a5f) to teal (#2dd4bf)
 - ✅ New tagline: "Retail. Reinvented. Results. Delivered."
 - ✅ Enhanced demo mode with comprehensive educational popups for every Back Office feature
-- ✅ 24+ feature descriptions with retail-focused explanations:
-  - What each feature does
-  - Why it's important for retailers
-  - 4 key benefits per feature
-  - Measurable retail value metrics
 - ✅ Demo mode badge indicator in Back Office header
 - ✅ All features remain fully usable after viewing demo information
 
