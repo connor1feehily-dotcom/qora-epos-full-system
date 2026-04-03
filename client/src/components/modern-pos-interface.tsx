@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import SecurePaymentInterface from "@/components/secure-payment-interface";
+import PayzonePaymentInterface, { type PayzonePaymentResult } from "@/components/payzone-payment-interface";
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -69,6 +69,8 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showPaymentInterface, setShowPaymentInterface] = useState(false);
+  const [showPayzonePayment, setShowPayzonePayment] = useState(false);
+  const [payzoneReference, setPayzoneReference] = useState('');
   const [showCashInput, setShowCashInput] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [darkMode, setDarkMode] = useState(false);
@@ -422,15 +424,44 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
     });
   };
 
-  // Handle card payment
+  // Handle card payment — launches Payzone terminal interface
   const handleCardPayment = () => {
     if (cart.length === 0) return;
-    
-    // For card payments, we assume the card reader handles the amount automatically
-    createTransactionMutation.mutate({
-      paymentMethod: 'card',
-      amountGiven: total,
-      change: 0
+    const ref = `QORA-${tillId}-${Date.now()}`;
+    setPayzoneReference(ref);
+    setShowPayzonePayment(true);
+  };
+
+  // Called when Payzone terminal payment completes (approved or declined)
+  const handlePayzoneComplete = (result: PayzonePaymentResult) => {
+    setShowPayzonePayment(false);
+    if (result.success) {
+      createTransactionMutation.mutate({
+        paymentMethod: 'card',
+        amountGiven: result.amount,
+        change: 0
+      });
+      toast({
+        title: "Card Payment Approved",
+        description: `Auth: ${result.authCode || 'N/A'} • ${result.cardScheme || ''} ****${result.cardLast4 || ''}`.trim(),
+        duration: 5000
+      });
+    } else {
+      toast({
+        title: "Card Payment Declined",
+        description: result.message || "Payment was not approved. Please try again.",
+        variant: "destructive",
+        duration: 6000
+      });
+    }
+  };
+
+  const handlePayzoneCancel = () => {
+    setShowPayzonePayment(false);
+    toast({
+      title: "Payment Cancelled",
+      description: "Card payment was cancelled.",
+      duration: 3000
     });
   };
 
@@ -998,6 +1029,17 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         </div>
       )}
 
+      {/* Payzone Terminal Payment Interface */}
+      {showPayzonePayment && (
+        <PayzonePaymentInterface
+          amount={total}
+          reference={payzoneReference}
+          tillId={tillId}
+          onPaymentComplete={handlePayzoneComplete}
+          onCancel={handlePayzoneCancel}
+        />
+      )}
+
       {/* Transaction processing indicator */}
       {createTransactionMutation.isPending && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1119,15 +1161,26 @@ function BankSettlementModal({ tillId, onClose }: { tillId: string; onClose: () 
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [settlementData, setSettlementData] = useState<any>(null);
+  const [payzoneData, setPayzoneData] = useState<any>(null);
 
   const generateSettlement = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest('POST', '/api/reports/settlement', { tillId });
-      setSettlementData(response);
+      const [settlementResponse, payzoneResponse] = await Promise.allSettled([
+        apiRequest('POST', '/api/reports/settlement', { tillId }).then(r => r.json()),
+        apiRequest('POST', '/api/payzone/reconciliation').then(r => r.json())
+      ]);
+
+      if (settlementResponse.status === 'fulfilled') {
+        setSettlementData(settlementResponse.value);
+      }
+      if (payzoneResponse.status === 'fulfilled') {
+        setPayzoneData(payzoneResponse.value);
+      }
+
       toast({
-        title: "Settlement Generated",
-        description: "Bank settlement report generated successfully"
+        title: "Settlement Complete",
+        description: "Payzone reconciliation and settlement report generated"
       });
     } catch (error) {
       toast({
@@ -1150,47 +1203,74 @@ function BankSettlementModal({ tillId, onClose }: { tillId: string; onClose: () 
           </Button>
         </div>
 
-        {!settlementData ? (
+        {!settlementData && !payzoneData ? (
           <div className="text-center py-8">
             <CreditCard className="w-16 h-16 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-semibold mb-2">Generate Settlement Report</h3>
-            <p className="text-gray-600 mb-4">Generate bank settlement report for card transactions</p>
+            <p className="text-gray-600 mb-2">Runs Payzone terminal reconciliation and generates end-of-day settlement</p>
+            <p className="text-xs text-gray-400 mb-4">This will close the current batch on the Payzone terminal</p>
             <Button onClick={generateSettlement} disabled={isGenerating} className="w-full">
-              {isGenerating ? 'Generating...' : 'Generate Settlement'}
+              {isGenerating ? (
+                <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Running Reconciliation...</>
+              ) : (
+                'Run Payzone Reconciliation & Settlement'
+              )}
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Settlement Summary</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Terminal ID</p>
-                  <p className="font-semibold">{settlementData.terminalId}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Merchant ID</p>
-                  <p className="font-semibold">{settlementData.merchantId}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Batch Number</p>
-                  <p className="font-semibold">{settlementData.batchNumber}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Transaction Count</p>
-                  <p className="font-semibold">{settlementData.transactionCount}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Total Card Sales</p>
-                  <p className="font-semibold text-green-600">€{settlementData.totalCardSales.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Average Ticket</p>
-                  <p className="font-semibold">€{settlementData.averageTicket.toFixed(2)}</p>
+            {payzoneData && (
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                  <CreditCard className="w-4 h-4" />
+                  Payzone Terminal Reconciliation
+                </h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-gray-500">Card Sales</p>
+                    <p className="font-semibold text-green-600">{payzoneData.totalSalesCount} × €{(payzoneData.totalSalesAmount || 0).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Refunds</p>
+                    <p className="font-semibold text-red-500">{payzoneData.totalRefundsCount} × €{(payzoneData.totalRefundsAmount || 0).toFixed(2)}</p>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t border-blue-200">
+                    <p className="text-gray-500">Net Amount</p>
+                    <p className="font-bold text-lg text-blue-800 dark:text-blue-200">€{(payzoneData.netAmount || 0).toFixed(2)}</p>
+                  </div>
+                  {payzoneData.reconciliationId && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-gray-400">Reconciliation ID: {payzoneData.reconciliationId}</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-            
+            )}
+
+            {settlementData && (
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Internal Settlement Summary</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-500">Terminal ID</p>
+                    <p className="font-semibold">{settlementData.terminalId || tillId}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Transaction Count</p>
+                    <p className="font-semibold">{settlementData.transactionCount || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Total Card Sales</p>
+                    <p className="font-semibold text-green-600">€{(settlementData.totalCardSales || 0).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Average Ticket</p>
+                    <p className="font-semibold">€{(settlementData.averageTicket || 0).toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1">
                 <Printer className="w-4 h-4 mr-2" />
@@ -1305,22 +1385,138 @@ function SalesReportModal({ tillId, onClose }: { tillId: string; onClose: () => 
 
 // Simple modal components for other features
 function ReturnsModal({ tillId, onClose }: { tillId: string; onClose: () => void }) {
+  const { toast } = useToast();
+  const [transactionId, setTransactionId] = useState('');
+  const [refundAmount, setRefundAmount] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [refundResult, setRefundResult] = useState<any>(null);
+
+  const processRefund = async () => {
+    if (!transactionId.trim()) {
+      toast({ title: "Required", description: "Please enter a transaction ID", variant: "destructive" });
+      return;
+    }
+    const amount = parseFloat(refundAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({ title: "Invalid Amount", description: "Please enter a valid refund amount", variant: "destructive" });
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const result = await apiRequest('POST', '/api/payzone/refund', {
+        originalTransactionId: transactionId.trim(),
+        amount,
+        reference: `REFUND-${tillId}-${Date.now()}`
+      }).then(r => r.json());
+
+      setRefundResult(result);
+
+      if (result.status === 'APPROVED') {
+        toast({
+          title: "Refund Approved",
+          description: `€${amount.toFixed(2)} refunded via Payzone terminal. Auth: ${result.authCode || 'N/A'}`
+        });
+      } else {
+        toast({
+          title: "Refund Not Approved",
+          description: result.message || "Refund could not be processed",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Refund Error",
+        description: error.message || "Failed to process refund",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[500px] max-w-[90vw]">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Returns Processing</h2>
+          <h2 className="text-2xl font-bold">Returns & Refunds</h2>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-4 h-4" />
           </Button>
         </div>
-        <div className="text-center py-8">
-          <RotateCcw className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-semibold mb-2">Process Returns</h3>
-          <p className="text-gray-600 mb-4">Scan receipt or enter transaction ID to process returns</p>
-          <Input placeholder="Enter transaction ID or scan receipt" className="mb-4" />
-          <Button className="w-full">Process Return</Button>
-        </div>
+
+        {refundResult && refundResult.status === 'APPROVED' ? (
+          <div className="text-center py-6 space-y-4">
+            <CheckCircle className="w-16 h-16 mx-auto text-green-500" />
+            <h3 className="text-xl font-semibold text-green-600">Refund Approved</h3>
+            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Refund ID</span>
+                <span className="font-mono">{refundResult.refundId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Amount</span>
+                <span className="font-semibold text-green-600">€{(refundResult.amount || parseFloat(refundAmount)).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Auth Code</span>
+                <span className="font-mono">{refundResult.authCode || 'N/A'}</span>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500">
+              Refund processed via Payzone terminal. Customer will receive funds in 3-5 business days.
+            </p>
+            <Button onClick={onClose} className="w-full">Close</Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg flex items-start gap-2 text-sm">
+              <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+              <p className="text-amber-700 dark:text-amber-300">
+                Card refunds are processed via the Payzone terminal. The customer must present their original card.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Original Transaction ID</label>
+                <Input
+                  placeholder="Enter transaction ID or scan receipt barcode"
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Refund Amount (€)</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="0.00"
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1" onClick={onClose} disabled={isProcessing}>
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                onClick={processRefund}
+                disabled={isProcessing || !transactionId.trim() || !refundAmount}
+              >
+                {isProcessing ? (
+                  <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Processing...</>
+                ) : (
+                  <><RotateCcw className="w-4 h-4 mr-2" />Process Refund via Payzone</>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

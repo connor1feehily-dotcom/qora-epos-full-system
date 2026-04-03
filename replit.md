@@ -17,6 +17,18 @@ A comprehensive retail EPOS system with full demo mode, featuring advanced retai
 - Touch-optimized responsive design
 
 ## Recent Changes
+
+**April 3, 2026:**
+- ✅ Implemented Payzone Integrated Payments terminal integration
+  - Backend service: `server/routes/payzone-service.ts` — full Payzone REST API client (UAT: retail-services-uat.payzone.ie)
+  - Backend routes: `server/routes/payzone-routes.ts` — Express handlers for sale, status, cancel, refund, reconciliation
+  - Frontend: `client/src/components/payzone-payment-interface.tsx` — terminal payment UI with real-time status polling
+  - Card Payment button in POS now launches Payzone terminal flow (tap/insert/swipe)
+  - Bank Settlement modal now runs Payzone reconciliation + internal settlement together
+  - Returns modal now processes refunds via Payzone terminal API
+  - Simulation mode active when PAYZONE_USERNAME/PASSWORD/TERMINAL_ID env vars are not set
+  - Configure with: PAYZONE_BASE_URL, PAYZONE_USERNAME, PAYZONE_PASSWORD, PAYZONE_TERMINAL_ID
+
 **February 3, 2026:**
 - ✅ Consolidated Back Office from 21+ buttons to 8 main modules:
   - Dashboard: Overview and quick stats

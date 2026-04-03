@@ -31,6 +31,14 @@ import {
 } from "./routes/ai-routes";
 import { scanDocket, importDelivery, getDeliveryHistory, getProductSuggestions } from "./routes/delivery-routes";
 import stockTakeRoutes from "./routes/stock-take-routes";
+import {
+  payzoneInitiateSale,
+  payzoneGetStatus,
+  payzoneCancel,
+  payzoneRefund,
+  payzoneReconciliation,
+  payzoneConfig
+} from "./routes/payzone-routes";
 import { securityHeaders } from "./security/pci-compliance";
 import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema, insertOrganizationSchema } from "@shared/schema";
 import { z } from 'zod';
@@ -1544,6 +1552,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Stock Take Routes
   app.use("/api/stock-take", stockTakeRoutes);
+
+  // Payzone Integrated Payments Routes
+  app.get("/api/payzone/config", payzoneConfig);
+  app.post("/api/payzone/sale", payzoneInitiateSale);
+  app.get("/api/payzone/status/:transactionId", payzoneGetStatus);
+  app.post("/api/payzone/cancel", payzoneCancel);
+  app.post("/api/payzone/refund", payzoneRefund);
+  app.post("/api/payzone/reconciliation", payzoneReconciliation);
 
   const httpServer = createServer(app);
   return httpServer;
