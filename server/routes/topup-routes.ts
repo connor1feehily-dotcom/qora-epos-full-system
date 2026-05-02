@@ -18,15 +18,10 @@ export async function topupGetOperators(req: Request, res: Response) {
 
 export async function topupProcess(req: Request, res: Response) {
   try {
-    const { operatorId, phoneNumber, amount, customIdentifier } = req.body;
+    const { operatorId, amount, customIdentifier } = req.body;
 
-    if (!operatorId || !phoneNumber || !amount) {
-      return res.status(400).json({ error: 'operatorId, phoneNumber and amount are required' });
-    }
-
-    const phone = phoneNumber.replace(/\s/g, '');
-    if (phone.replace(/\D/g, '').length < 9) {
-      return res.status(400).json({ error: 'Invalid phone number' });
+    if (!operatorId || !amount) {
+      return res.status(400).json({ error: 'operatorId and amount are required' });
     }
 
     const parsedAmount = parseFloat(amount);
@@ -36,7 +31,6 @@ export async function topupProcess(req: Request, res: Response) {
 
     const result = await processTopUp({
       operatorId: parseInt(operatorId),
-      phoneNumber: phone,
       amount: parsedAmount,
       customIdentifier
     });

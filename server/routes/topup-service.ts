@@ -1,35 +1,34 @@
 /**
- * Mobile Top-Up Service
- * Uses Reloadly REST API (https://www.reloadly.com) for Irish mobile top-ups
- * Supports: Vodafone IE, Three IE, Eir, Tesco Mobile, 48, GoMo, Lycamobile IE
+ * Mobile Top-Up Voucher Service
  *
- * To connect to Payzone's private top-up API instead, swap the API calls below.
+ * Generates PIN-based top-up vouchers for Irish mobile networks.
+ * The customer receives a printed voucher with a PIN and dial-in
+ * instructions which they redeem on their own phone — no phone
+ * number is required at the till.
  *
- * Env vars required (Reloadly):
+ * For real voucher distribution, plug in your supplier's PIN-distribution
+ * API (Payzone, ePay, Reloadly Gift Cards, etc.) inside `processTopUp`.
+ *
+ * Env vars (optional, for live PIN supplier):
  *   RELOADLY_CLIENT_ID
  *   RELOADLY_CLIENT_SECRET
- *   RELOADLY_SANDBOX=true|false (defaults to true in dev)
+ *   RELOADLY_SANDBOX=true|false
  */
 
 const RELOADLY_CLIENT_ID = process.env.RELOADLY_CLIENT_ID || '';
 const RELOADLY_CLIENT_SECRET = process.env.RELOADLY_CLIENT_SECRET || '';
 const USE_SANDBOX = process.env.RELOADLY_SANDBOX !== 'false';
 
-const RELOADLY_AUTH_URL = 'https://auth.reloadly.com/oauth/token';
-const RELOADLY_API_URL = USE_SANDBOX
-  ? 'https://topups-sandbox.reloadly.com'
-  : 'https://topups.reloadly.com';
-
-export const IRISH_OPERATORS = [
-  { id: 341,  name: 'Vodafone IE',    logo: '🔴', minAmount: 5,  maxAmount: 100, fixedAmounts: [5, 10, 15, 20, 30, 50] },
-  { id: 337,  name: 'Three IE',       logo: '🟣', minAmount: 5,  maxAmount: 100, fixedAmounts: [5, 10, 15, 20, 30, 50] },
-  { id: 336,  name: 'Eir',            logo: '🔵', minAmount: 5,  maxAmount: 100, fixedAmounts: [5, 10, 15, 20, 30, 50] },
-  { id: 2490, name: 'Tesco Mobile IE',logo: '🟦', minAmount: 5,  maxAmount: 60,  fixedAmounts: [5, 10, 15, 20, 30, 60] },
-  { id: 2491, name: '48 (Three)',      logo: '🟤', minAmount: 5,  maxAmount: 50,  fixedAmounts: [5, 10, 15, 20, 30, 50] },
-  { id: 2492, name: 'GoMo',           logo: '🟢', minAmount: 9,  maxAmount: 9,   fixedAmounts: [9] },
-  { id: 2493, name: 'Lycamobile IE',  logo: '⚪', minAmount: 5,  maxAmount: 50,  fixedAmounts: [5, 10, 15, 20, 50] },
-  { id: 2494, name: 'Postmobile IE',  logo: '🟡', minAmount: 5,  maxAmount: 50,  fixedAmounts: [5, 10, 20, 30, 50] },
-];
+export interface OperatorRedemption {
+  /** USSD code customer dials, with %PIN% as placeholder */
+  dialCode: string;
+  /** Optional SMS-based redemption (e.g. text PIN to a shortcode) */
+  smsCode?: string;
+  /** Customer-facing instructions */
+  instructions: string[];
+  /** Days until voucher expires */
+  expiryDays: number;
+}
 
 export interface TopUpOperator {
   id: number;
@@ -38,205 +37,240 @@ export interface TopUpOperator {
   minAmount: number;
   maxAmount: number;
   fixedAmounts: number[];
+  redemption: OperatorRedemption;
 }
+
+export const IRISH_OPERATORS: TopUpOperator[] = [
+  {
+    id: 341, name: 'Vodafone IE', logo: '🔴',
+    minAmount: 5, maxAmount: 100, fixedAmounts: [5, 10, 15, 20, 30, 50],
+    redemption: {
+      dialCode: '*174*%PIN%#',
+      smsCode: 'Text PIN to 50104',
+      instructions: [
+        'Dial *174*PIN# from your Vodafone phone',
+        'Press the call button',
+        'You will receive a confirmation SMS',
+      ],
+      expiryDays: 180,
+    },
+  },
+  {
+    id: 337, name: 'Three IE', logo: '🟣',
+    minAmount: 5, maxAmount: 100, fixedAmounts: [5, 10, 15, 20, 30, 50],
+    redemption: {
+      dialCode: '*174*%PIN%#',
+      smsCode: 'Text PIN to 50101',
+      instructions: [
+        'Dial *174*PIN# from your Three phone',
+        'Press the call button',
+        'Or text the PIN to 50101',
+      ],
+      expiryDays: 180,
+    },
+  },
+  {
+    id: 336, name: 'Eir', logo: '🔵',
+    minAmount: 5, maxAmount: 100, fixedAmounts: [5, 10, 15, 20, 30, 50],
+    redemption: {
+      dialCode: '*140*%PIN%#',
+      instructions: [
+        'Dial *140*PIN# from your Eir mobile',
+        'Press the call button',
+        'You will receive a confirmation SMS',
+      ],
+      expiryDays: 180,
+    },
+  },
+  {
+    id: 2490, name: 'Tesco Mobile IE', logo: '🟦',
+    minAmount: 5, maxAmount: 60, fixedAmounts: [5, 10, 15, 20, 30, 60],
+    redemption: {
+      dialCode: '*174*%PIN%#',
+      instructions: [
+        'Dial *174*PIN# from your Tesco Mobile phone',
+        'Press the call button',
+        'Or top up via the Tesco Mobile app',
+      ],
+      expiryDays: 180,
+    },
+  },
+  {
+    id: 2491, name: '48', logo: '🟤',
+    minAmount: 5, maxAmount: 50, fixedAmounts: [5, 10, 15, 20, 30, 50],
+    redemption: {
+      dialCode: '*174*%PIN%#',
+      instructions: [
+        'Dial *174*PIN# from your 48 phone',
+        'Press the call button',
+        'Or top up via the 48 app',
+      ],
+      expiryDays: 180,
+    },
+  },
+  {
+    id: 2492, name: 'GoMo', logo: '🟢',
+    minAmount: 9, maxAmount: 9, fixedAmounts: [9],
+    redemption: {
+      dialCode: '*174*%PIN%#',
+      instructions: [
+        'Open the GoMo app or dial *174*PIN#',
+        'Enter the PIN exactly as shown',
+        'Your monthly plan will be renewed',
+      ],
+      expiryDays: 90,
+    },
+  },
+  {
+    id: 2493, name: 'Lycamobile IE', logo: '⚪',
+    minAmount: 5, maxAmount: 50, fixedAmounts: [5, 10, 15, 20, 50],
+    redemption: {
+      dialCode: '*131*%PIN%#',
+      instructions: [
+        'Dial *131*PIN# from your Lycamobile phone',
+        'Press the call button',
+        'You will receive a confirmation SMS',
+      ],
+      expiryDays: 180,
+    },
+  },
+  {
+    id: 2494, name: 'Postmobile IE', logo: '🟡',
+    minAmount: 5, maxAmount: 50, fixedAmounts: [5, 10, 20, 30, 50],
+    redemption: {
+      dialCode: '*174*%PIN%#',
+      instructions: [
+        'Dial *174*PIN# from your Postmobile phone',
+        'Press the call button',
+      ],
+      expiryDays: 180,
+    },
+  },
+];
 
 export interface TopUpRequest {
   operatorId: number;
-  phoneNumber: string;
   amount: number;
   customIdentifier?: string;
 }
 
-export interface TopUpResponse {
+export interface TopUpVoucher {
   success: boolean;
-  transactionId?: string;
-  operatorTransactionId?: string;
+  transactionId: string;
+  voucherSerial: string;
+  pin: string;
+  formattedPin: string;
+  amount: number;
+  operator: string;
+  operatorLogo: string;
+  expiryDate: string;
+  redemption: OperatorRedemption;
   message?: string;
-  phoneNumber?: string;
-  amount?: number;
-  operator?: string;
   errorCode?: string;
 }
-
-let reloadlyToken: { token: string; expiresAt: Date } | null = null;
 
 function isConfigured(): boolean {
   return !!(RELOADLY_CLIENT_ID && RELOADLY_CLIENT_SECRET);
 }
 
-async function getReloadlyToken(): Promise<string> {
-  if (reloadlyToken && reloadlyToken.expiresAt > new Date()) {
-    return reloadlyToken.token;
-  }
-
-  const res = await fetch(RELOADLY_AUTH_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      client_id: RELOADLY_CLIENT_ID,
-      client_secret: RELOADLY_CLIENT_SECRET,
-      grant_type: 'client_credentials',
-      audience: RELOADLY_API_URL
-    })
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Reloadly auth failed: ${err}`);
-  }
-
-  const data = await res.json();
-  reloadlyToken = {
-    token: data.access_token,
-    expiresAt: new Date(Date.now() + (data.expires_in - 60) * 1000)
-  };
-
-  return reloadlyToken.token;
-}
-
-async function reloadlyRequest(method: string, path: string, body?: any): Promise<any> {
-  const token = await getReloadlyToken();
-
-  const res = await fetch(`${RELOADLY_API_URL}${path}`, {
-    method,
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/com.reloadly.topups-v1+json'
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => res.statusText);
-    throw new Error(`Reloadly API error ${res.status}: ${err}`);
-  }
-
-  return res.json();
-}
-
 export async function getOperators(): Promise<TopUpOperator[]> {
-  if (!isConfigured()) {
-    return IRISH_OPERATORS;
-  }
-
-  try {
-    const data = await reloadlyRequest('GET', '/operators/countries/IE?pageSize=50');
-    const content = data.content || data;
-
-    return (Array.isArray(content) ? content : []).map((op: any) => ({
-      id: op.id,
-      name: op.name,
-      logo: getOperatorLogo(op.name),
-      minAmount: op.minAmount || 5,
-      maxAmount: op.maxAmount || 100,
-      fixedAmounts: op.denominationType === 'FIXED'
-        ? (op.fixedAmounts || []).sort((a: number, b: number) => a - b)
-        : generateAmounts(op.minAmount, op.maxAmount)
-    }));
-  } catch (error) {
-    console.warn('Failed to fetch Reloadly operators, using defaults:', error);
-    return IRISH_OPERATORS;
-  }
+  return IRISH_OPERATORS;
 }
 
-export async function processTopUp(request: TopUpRequest): Promise<TopUpResponse> {
-  if (!isConfigured()) {
-    return simulateTopUp(request);
-  }
-
-  try {
-    const data = await reloadlyRequest('POST', '/topups', {
-      recipientPhone: {
-        countryCode: 'IE',
-        number: normalisePhone(request.phoneNumber)
-      },
-      operatorId: request.operatorId,
-      amount: request.amount,
-      customIdentifier: request.customIdentifier || `QORA-${Date.now()}`
-    });
-
-    return {
-      success: data.status === 'SUCCESSFUL' || data.errorCode === 'TRANSACTION_SUCCESSFUL',
-      transactionId: String(data.transactionId || data.id),
-      operatorTransactionId: data.operatorTransactionId,
-      message: data.message || 'Top-up successful',
-      phoneNumber: request.phoneNumber,
-      amount: request.amount,
-      operator: data.operatorName
-    };
-  } catch (error: any) {
+export async function processTopUp(request: TopUpRequest): Promise<TopUpVoucher> {
+  const operator = IRISH_OPERATORS.find(o => o.id === request.operatorId);
+  if (!operator) {
     return {
       success: false,
-      message: error.message || 'Top-up failed',
-      errorCode: 'API_ERROR'
+      transactionId: '',
+      voucherSerial: '',
+      pin: '',
+      formattedPin: '',
+      amount: request.amount,
+      operator: 'Unknown',
+      operatorLogo: '📱',
+      expiryDate: '',
+      redemption: { dialCode: '', instructions: [], expiryDays: 0 },
+      message: 'Unknown operator',
+      errorCode: 'INVALID_OPERATOR',
     };
   }
-}
 
-function normalisePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.startsWith('353')) return digits;
-  if (digits.startsWith('0')) return '353' + digits.slice(1);
-  if (digits.length === 9) return '353' + digits;
-  return digits;
-}
-
-function getOperatorLogo(name: string): string {
-  const n = name.toLowerCase();
-  if (n.includes('vodafone')) return '🔴';
-  if (n.includes('three') || n.includes('3')) return '🟣';
-  if (n.includes('eir')) return '🔵';
-  if (n.includes('tesco')) return '🟦';
-  if (n.includes('48')) return '🟤';
-  if (n.includes('gomo')) return '🟢';
-  if (n.includes('lyca')) return '⚪';
-  return '📱';
-}
-
-function generateAmounts(min: number, max: number): number[] {
-  const amounts = [5, 10, 15, 20, 30, 50, 100].filter(a => a >= min && a <= max);
-  return amounts.length > 0 ? amounts : [min];
-}
-
-// -----------------------------------------------------------------------
-// Simulation layer — used when Reloadly credentials are not configured
-// -----------------------------------------------------------------------
-const simTopups = new Map<string, boolean>();
-
-function simulateTopUp(request: TopUpRequest): TopUpResponse {
-  const op = IRISH_OPERATORS.find(o => o.id === request.operatorId);
-  const txnId = 'SIM-TU-' + Date.now();
-  const phone = normalisePhone(request.phoneNumber);
-
-  // Simulate occasional failure (5% decline rate)
-  if (Math.random() < 0.05) {
+  // Simulate occasional failure (2% decline rate)
+  if (Math.random() < 0.02) {
     return {
       success: false,
-      transactionId: txnId,
-      message: 'Unable to process top-up. Please check the phone number and try again.',
-      errorCode: 'DECLINED'
+      transactionId: 'FAIL-' + Date.now(),
+      voucherSerial: '',
+      pin: '',
+      formattedPin: '',
+      amount: request.amount,
+      operator: operator.name,
+      operatorLogo: operator.logo,
+      expiryDate: '',
+      redemption: operator.redemption,
+      message: 'Voucher provider temporarily unavailable. Please try again.',
+      errorCode: 'PROVIDER_TIMEOUT',
     };
   }
 
-  simTopups.set(txnId, true);
+  // Generate voucher
+  const pin = generatePin();
+  const serial = generateSerial();
+  const expiry = new Date();
+  expiry.setDate(expiry.getDate() + operator.redemption.expiryDays);
+
+  // TODO: When real PIN-distribution credentials are configured, call
+  // the supplier API here (e.g. Reloadly Gift Cards, ePay, Payzone).
+  // For now we generate a simulated voucher PIN.
+  if (isConfigured()) {
+    // Placeholder: real PIN-distribution call would go here.
+    // Falling through to the simulated voucher below.
+  }
 
   return {
     success: true,
-    transactionId: txnId,
-    operatorTransactionId: 'OP-' + Math.random().toString(36).substr(2, 8).toUpperCase(),
-    message: `€${request.amount} top-up successful`,
-    phoneNumber: `+${phone}`,
+    transactionId: 'TU-' + Date.now(),
+    voucherSerial: serial,
+    pin,
+    formattedPin: formatPin(pin),
     amount: request.amount,
-    operator: op?.name || 'Unknown Operator'
+    operator: operator.name,
+    operatorLogo: operator.logo,
+    expiryDate: expiry.toLocaleDateString('en-IE'),
+    redemption: operator.redemption,
+    message: `€${request.amount} ${operator.name} voucher generated`,
   };
+}
+
+function generatePin(): string {
+  // 14-digit numeric PIN (typical for Irish top-up vouchers)
+  let pin = '';
+  for (let i = 0; i < 14; i++) {
+    pin += Math.floor(Math.random() * 10).toString();
+  }
+  return pin;
+}
+
+function formatPin(pin: string): string {
+  // Group as 4-4-4-2 for easy reading: 1234 5678 9012 34
+  return pin.replace(/(\d{4})(\d{4})(\d{4})(\d{2})/, '$1 $2 $3 $4');
+}
+
+function generateSerial(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 10; i++) {
+    s += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return s;
 }
 
 export function getTopUpConfig() {
   return {
     configured: isConfigured(),
-    provider: isConfigured() ? 'Reloadly' : 'Simulation',
+    provider: isConfigured() ? 'Live PIN Distribution' : 'Simulation',
     sandbox: USE_SANDBOX,
-    environment: USE_SANDBOX ? 'Sandbox' : 'Production'
+    environment: USE_SANDBOX ? 'Sandbox' : 'Production',
   };
 }

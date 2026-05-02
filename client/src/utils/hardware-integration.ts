@@ -606,62 +606,116 @@ export class POSHardware {
     return true;
   }
 
-  // Print a mobile top-up voucher slip
-  async printTopUpReceipt(topUp: {
+  // Print a mobile top-up voucher with PIN and redemption instructions
+  async printTopUpVoucher(voucher: {
     transactionId: string;
-    operatorTransactionId?: string;
-    operator: string;
-    phoneNumber: string;
+    voucherSerial: string;
+    pin: string;
+    formattedPin: string;
     amount: number;
+    operator: string;
+    operatorLogo?: string;
+    expiryDate: string;
+    redemption: {
+      dialCode: string;
+      smsCode?: string;
+      instructions: string[];
+    };
     paymentMethod: string;
+    tillId?: string;
     timestamp: string;
   }): Promise<boolean> {
+    const dialDisplay = voucher.redemption.dialCode.replace('%PIN%', voucher.pin);
+
     const html = `
       <html>
         <head>
-          <title>Top-Up Receipt</title>
+          <title>Mobile Top-Up Voucher</title>
           <style>
-            body { font-family: monospace; font-size: 12px; margin: 10px; width: 280px; }
+            body { font-family: 'Courier New', monospace; font-size: 12px; margin: 8px; width: 280px; color: #000; }
             .center { text-align: center; }
-            .bold { font-weight: bold; font-size: 13px; }
-            .large { font-size: 22px; font-weight: bold; }
+            .bold { font-weight: bold; }
             .line { border-bottom: 1px dashed #000; margin: 6px 0; }
+            .double-line { border-bottom: 3px double #000; margin: 6px 0; }
             .row { display: flex; justify-content: space-between; margin: 3px 0; }
-            .highlight { background: #f0f0f0; padding: 6px; text-align: center; margin: 6px 0; border: 1px solid #ccc; }
+            .pin-box {
+              border: 2px solid #000;
+              padding: 10px 6px;
+              margin: 8px 0;
+              text-align: center;
+            }
+            .pin-label { font-size: 11px; letter-spacing: 2px; }
+            .pin-value {
+              font-family: 'Courier New', monospace;
+              font-size: 22px;
+              font-weight: bold;
+              letter-spacing: 2px;
+              margin: 6px 0;
+              word-break: break-all;
+            }
+            .amount-box {
+              background: #000;
+              color: #fff;
+              padding: 8px;
+              text-align: center;
+              margin: 6px 0;
+              font-size: 18px;
+              font-weight: bold;
+            }
+            .step { margin: 4px 0; padding-left: 14px; text-indent: -14px; }
+            .footer { font-size: 10px; text-align: center; margin-top: 8px; }
           </style>
         </head>
         <body>
-          <div class="center bold">KERRIGANS XL MANORHAMILTON</div>
-          <div class="center">Main Street, Manorhamilton</div>
-          <div class="center">Tel: (071) 985-5555</div>
+          <div class="center bold" style="font-size:14px;">KERRIGANS XL MANORHAMILTON</div>
+          <div class="center" style="font-size:10px;">Main Street, Manorhamilton</div>
+          <div class="center" style="font-size:10px;">Tel: (071) 985-5555</div>
+          <div class="double-line"></div>
+          <div class="center bold" style="font-size:15px;">MOBILE TOP-UP VOUCHER</div>
+          <div class="center bold" style="font-size:13px; margin-top:4px;">${voucher.operator}</div>
           <div class="line"></div>
-          <div class="center bold" style="font-size:14px;">*** MOBILE TOP-UP ***</div>
-          <div class="line"></div>
-          <div class="row"><span>Date:</span><span>${new Date(topUp.timestamp).toLocaleDateString('en-IE')}</span></div>
-          <div class="row"><span>Time:</span><span>${new Date(topUp.timestamp).toLocaleTimeString('en-IE')}</span></div>
-          <div class="row"><span>Ref #:</span><span>${topUp.transactionId}</span></div>
-          <div class="line"></div>
-          <div class="row"><span>Network:</span><span class="bold">${topUp.operator}</span></div>
-          <div class="row"><span>Phone:</span><span class="bold">${topUp.phoneNumber}</span></div>
-          <div class="line"></div>
-          <div class="highlight">
-            <div>Top-Up Amount</div>
-            <div class="large">€${topUp.amount.toFixed(2)}</div>
+
+          <div class="amount-box">€${voucher.amount.toFixed(2)} CREDIT</div>
+
+          <div class="pin-box">
+            <div class="pin-label">YOUR TOP-UP PIN</div>
+            <div class="pin-value">${voucher.formattedPin}</div>
+            <div style="font-size:10px;">Serial: ${voucher.voucherSerial}</div>
           </div>
+
           <div class="line"></div>
-          <div class="row"><span>Payment:</span><span>${topUp.paymentMethod}</span></div>
-          ${topUp.operatorTransactionId ? `<div class="row"><span>Op. Ref:</span><span>${topUp.operatorTransactionId}</span></div>` : ''}
+          <div class="bold center" style="font-size:13px; margin-bottom:6px;">HOW TO REDEEM</div>
+          ${voucher.redemption.instructions.map((step, i) => `
+            <div class="step">${i + 1}. ${step}</div>
+          `).join('')}
+
+          <div style="margin-top:8px; padding:6px; border:1px solid #000; text-align:center;">
+            <div style="font-size:10px;">Quick dial:</div>
+            <div class="bold" style="font-size:14px; margin-top:2px;">${dialDisplay}</div>
+            ${voucher.redemption.smsCode ? `<div style="font-size:10px; margin-top:4px;">${voucher.redemption.smsCode}</div>` : ''}
+          </div>
+
           <div class="line"></div>
-          <div class="center" style="margin-top:10px;">Credit applied instantly.</div>
-          <div class="center">Keep this receipt as proof</div>
-          <div class="center">of your top-up.</div>
-          <div class="center" style="margin-top:10px;">Thank you for shopping!</div>
+          <div class="row"><span>Date:</span><span>${new Date(voucher.timestamp).toLocaleDateString('en-IE')}</span></div>
+          <div class="row"><span>Time:</span><span>${new Date(voucher.timestamp).toLocaleTimeString('en-IE')}</span></div>
+          <div class="row"><span>Ref #:</span><span>${voucher.transactionId}</span></div>
+          ${voucher.tillId ? `<div class="row"><span>Till:</span><span>${voucher.tillId}</span></div>` : ''}
+          <div class="row"><span>Payment:</span><span>${voucher.paymentMethod}</span></div>
+          <div class="row bold"><span>Expires:</span><span>${voucher.expiryDate}</span></div>
+          <div class="line"></div>
+
+          <div class="footer">
+            <div class="bold">KEEP THIS VOUCHER SAFE</div>
+            <div>This PIN is required to apply credit.</div>
+            <div>Lost vouchers cannot be replaced.</div>
+            <div style="margin-top:6px;">Thank you for shopping with us!</div>
+          </div>
           <br/><br/>
         </body>
       </html>
     `;
 
-    const printWindow = window.open('', '_blank', 'width=320,height=600');
+    const printWindow = window.open('', '_blank', 'width=320,height=700');
     if (!printWindow) return false;
     printWindow.document.write(html);
     printWindow.document.close();

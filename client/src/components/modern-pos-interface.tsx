@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,7 +74,8 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   const [showPayzonePayment, setShowPayzonePayment] = useState(false);
   const [payzoneReference, setPayzoneReference] = useState('');
   const [showTopUp, setShowTopUp] = useState(false);
-  const [pendingTopUpCardAmount, setPendingTopUpCardAmount] = useState<number | null>(null);
+  const [topUpCardAmount, setTopUpCardAmount] = useState<number | null>(null);
+  const topUpPaymentResolverRef = useRef<((approved: boolean) => void) | null>(null);
   const [showCashInput, setShowCashInput] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [darkMode, setDarkMode] = useState(false);
@@ -439,6 +440,31 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   // Called when Payzone terminal payment completes (approved or declined)
   const handlePayzoneComplete = (result: PayzonePaymentResult) => {
     setShowPayzonePayment(false);
+
+    // Top-up flow: resolve the awaiting promise, do NOT create a cart transaction
+    if (topUpPaymentResolverRef.current) {
+      const resolve = topUpPaymentResolverRef.current;
+      topUpPaymentResolverRef.current = null;
+      setTopUpCardAmount(null);
+      if (result.success) {
+        toast({
+          title: "Top-Up Card Payment Approved",
+          description: `Auth: ${result.authCode || 'N/A'} • €${result.amount.toFixed(2)}`,
+          duration: 4000,
+        });
+      } else {
+        toast({
+          title: "Top-Up Card Payment Declined",
+          description: result.message || "No voucher will be issued.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+      resolve(result.success);
+      return;
+    }
+
+    // Normal cart payment
     if (result.success) {
       createTransactionMutation.mutate({
         paymentMethod: 'card',
@@ -462,6 +488,13 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
 
   const handlePayzoneCancel = () => {
     setShowPayzonePayment(false);
+    // Resolve any awaiting top-up payment as failed
+    if (topUpPaymentResolverRef.current) {
+      const resolve = topUpPaymentResolverRef.current;
+      topUpPaymentResolverRef.current = null;
+      setTopUpCardAmount(null);
+      resolve(false);
+    }
     toast({
       title: "Payment Cancelled",
       description: "Card payment was cancelled.",
@@ -1046,22 +1079,22 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       {showTopUp && (
         <MobileTopUpInterface
           tillId={tillId}
-          onClose={() => {
-            setShowTopUp(false);
-            setPendingTopUpCardAmount(null);
-          }}
+          onClose={() => setShowTopUp(false)}
           onPayWithCard={(amount, reference) => {
-            setShowTopUp(false);
-            setPendingTopUpCardAmount(amount);
-            setPayzoneReference(reference);
-            setShowPayzonePayment(true);
+            // Returns a Promise that resolves true/false based on Payzone result.
+            // Top-up modal stays open and shows "Waiting for card terminal..." state.
+            return new Promise<boolean>((resolve) => {
+              topUpPaymentResolverRef.current = resolve;
+              setTopUpCardAmount(amount);
+              setPayzoneReference(reference);
+              setShowPayzonePayment(true);
+            });
           }}
           onPayWithCash={(amount) => {
-            setShowTopUp(false);
             toast({
-              title: "Top-Up — Cash Collected",
+              title: "Top-Up — Collect Cash",
               description: `Collect €${amount.toFixed(2)} from customer`,
-              duration: 6000
+              duration: 6000,
             });
           }}
         />
@@ -1070,7 +1103,7 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       {/* Payzone Terminal Payment Interface */}
       {showPayzonePayment && (
         <PayzonePaymentInterface
-          amount={total}
+          amount={topUpCardAmount ?? total}
           reference={payzoneReference}
           tillId={tillId}
           onPaymentComplete={handlePayzoneComplete}
