@@ -24,7 +24,19 @@ import {
   CheckCircle,
   Truck,
   BarChart3,
-  Wrench
+  Wrench,
+  Zap,
+  Brain,
+  Smartphone,
+  Activity,
+  Sparkles,
+  ShieldCheck,
+  Cloud,
+  Mail,
+  Bell,
+  Wifi,
+  LineChart,
+  Rocket
 } from "lucide-react";
 import { PosButtonConfigurator } from "./pos-button-configurator";
 import { InventoryManagement } from "./inventory-management";
@@ -189,9 +201,46 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
 
   const renderDashboard = () => (
     <div className="space-y-6">
+      {/* Hero promise banner — mirrors the marketing site */}
+      <Card className="overflow-hidden border-0 shadow-xl">
+        <div className="bg-gradient-to-r from-[#1e3a5f] via-[#1e5f7a] to-[#2dd4bf] text-white p-8 relative">
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+              <Activity className="w-3 h-3 mr-1" /> Live
+            </Badge>
+            <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+              <ShieldCheck className="w-3 h-3 mr-1" /> Enterprise Ireland
+            </Badge>
+          </div>
+          <div className="flex items-center gap-3 mb-2">
+            <Sparkles className="w-6 h-6" />
+            <span className="text-sm font-semibold tracking-wide uppercase opacity-90">Qora EPOS</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-2">A smarter till. A smarter business.</h2>
+          <p className="text-white/90 max-w-2xl mb-6">
+            Automating up to 80% of manual retail tasks with built-in AI — stock, ordering, pricing, and reporting — so you can focus on growing Kerrigan's XL.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { value: "80%", label: "Tasks Automated", icon: Zap },
+              { value: "25%", label: "Profit Increase", icon: TrendingUp },
+              { value: "18", label: "AI Modules", icon: Brain },
+              { value: "24/7", label: "Always Active", icon: Activity },
+            ].map((p, i) => (
+              <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <p.icon className="w-5 h-5 mb-1 opacity-80" />
+                <div className="text-3xl font-bold">{p.value}</div>
+                <div className="text-xs uppercase tracking-wide opacity-90">{p.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Live KPIs from the actual store */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {quickStats.map((stat, index) => (
-          <Card key={index}>
+          <Card key={index} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -206,6 +255,141 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
         ))}
       </div>
 
+      {/* Four pillars from the marketing site */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">What Qora is doing for you right now</h3>
+            <p className="text-sm text-gray-600">Every pillar of the Qora promise — running 24/7 in the background.</p>
+          </div>
+          <Badge variant="outline" className="border-emerald-500 text-emerald-700">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>
+            All systems operational
+          </Badge>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Pillar: Lightning-Fast Transactions */}
+          <Card className="border-l-4 border-l-amber-500 hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Core POS System</p>
+                  <CardTitle className="flex items-center gap-2 mt-1">
+                    <Zap className="h-5 w-5 text-amber-500" />
+                    Lightning-Fast Transactions
+                  </CardTitle>
+                </div>
+                <span className="text-2xl font-bold text-amber-500">0.3s</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-2 text-gray-700">
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-500" /> 0.3-second transaction processing</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-500" /> Real-time inventory sync</li>
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-500" /> Multi-payment support (Cash, Payzone card, voucher)</li>
+                <li className="flex items-center gap-2"><Cloud className="w-4 h-4 text-emerald-500" /> Automatic cloud backup</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Pillar: QBOT AI Assistant */}
+          <Card className="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide">Your AI Business Partner</p>
+                  <CardTitle className="flex items-center gap-2 mt-1">
+                    <Brain className="h-5 w-5 text-purple-500" />
+                    QBOT AI Assistant
+                  </CardTitle>
+                </div>
+                <Badge className="bg-purple-100 text-purple-800 border-purple-200">24/7</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-2 text-gray-700">
+                <li className="flex items-center gap-2"><LineChart className="w-4 h-4 text-purple-500" /> Predictive demand analytics</li>
+                <li className="flex items-center gap-2"><Truck className="w-4 h-4 text-purple-500" /> Automated supplier ordering</li>
+                <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-purple-500" /> Email order parsing</li>
+                <li className="flex items-center gap-2"><Target className="w-4 h-4 text-purple-500" /> Smart price optimisation</li>
+              </ul>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-4 border-purple-300 text-purple-700 hover:bg-purple-50"
+                onClick={() => { setActiveModule("sales"); setActiveSubTab("ai-insights"); }}
+              >
+                <Sparkles className="w-3 h-3 mr-1" /> Open AI Insights
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Pillar: Mobile Command */}
+          <Card className="border-l-4 border-l-cyan-500 hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-cyan-600 uppercase tracking-wide">Manage from Anywhere</p>
+                  <CardTitle className="flex items-center gap-2 mt-1">
+                    <Smartphone className="h-5 w-5 text-cyan-500" />
+                    Mobile Command
+                  </CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-2 text-gray-700">
+                <li className="flex items-center gap-2"><Eye className="w-4 h-4 text-cyan-500" /> Remote management & live dashboard</li>
+                <li className="flex items-center gap-2"><Bell className="w-4 h-4 text-cyan-500" /> Push notifications for urgent alerts</li>
+                <li className="flex items-center gap-2"><Wifi className="w-4 h-4 text-cyan-500" /> Offline-first sync</li>
+                <li className="flex items-center gap-2"><Truck className="w-4 h-4 text-cyan-500" /> Mobile delivery scanning</li>
+              </ul>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-4 border-cyan-300 text-cyan-700 hover:bg-cyan-50"
+                onClick={() => { setActiveModule("purchasing"); setActiveSubTab("scanner"); }}
+              >
+                <Smartphone className="w-3 h-3 mr-1" /> Open Mobile Scanner
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Pillar: Analytics Pro Suite */}
+          <Card className="border-l-4 border-l-emerald-500 hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Data-Driven Decisions</p>
+                  <CardTitle className="flex items-center gap-2 mt-1">
+                    <BarChart3 className="h-5 w-5 text-emerald-500" />
+                    Analytics Pro Suite
+                  </CardTitle>
+                </div>
+                <span className="text-2xl font-bold text-emerald-500">18</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm space-y-2 text-gray-700">
+                <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-500" /> 18 integrated management modules</li>
+                <li className="flex items-center gap-2"><FileText className="w-4 h-4 text-emerald-500" /> Custom reports & Z-Read history</li>
+                <li className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500" /> Trend analysis & forecasting</li>
+                <li className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-500" /> Margin & ROI tracking</li>
+              </ul>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-4 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                onClick={() => { setActiveModule("sales"); setActiveSubTab(""); }}
+              >
+                <BarChart3 className="w-3 h-3 mr-1" /> Open Reports
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Recent activity & stock alerts (operational essentials) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -261,6 +445,22 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
           </CardContent>
         </Card>
       </div>
+
+      {/* Footer brand strip */}
+      <Card className="bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200">
+        <CardContent className="p-5 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1e3a5f] to-[#2dd4bf] flex items-center justify-center">
+              <Rocket className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-800">Precision-built for Irish retail.</p>
+              <p className="text-xs text-slate-600">Developed by Feehily Boyle Group, Manorhamilton — backed by Enterprise Ireland's New Frontiers Programme (Phases 2 &amp; 3).</p>
+            </div>
+          </div>
+          <Badge className="bg-[#1e3a5f] text-white">Retail. Reinvented. Results. Delivered.</Badge>
+        </CardContent>
+      </Card>
     </div>
   );
 
