@@ -1,12 +1,7 @@
 import type { Request, Response } from "express";
 import { storage } from "../storage";
 import { z } from "zod";
-
-// OCR processing simulation - In production, this would use services like:
-// - Google Vision API
-// - AWS Textract
-// - Azure Computer Vision
-// - Tesseract.js for client-side processing
+import OpenAI from "openai";
 
 interface ScannedProduct {
   id?: number;
@@ -32,7 +27,7 @@ interface DeliveryDocket {
 
 const scanDocketSchema = z.object({
   imageData: z.string(),
-  existingProducts: z.array(z.any()).optional()
+  existingProducts: z.array(z.any()).optional(),
 });
 
 const importDeliverySchema = z.object({
@@ -49,96 +44,216 @@ const importDeliverySchema = z.object({
     total: z.number(),
     matched: z.boolean(),
     confidence: z.number(),
-    originalText: z.string()
+    originalText: z.string(),
   })),
   totalAmount: z.number(),
-  status: z.enum(['scanned', 'processing', 'matched', 'imported'])
+  status: z.enum(['scanned', 'processing', 'matched', 'imported']),
 });
 
-// Simulate OCR text extraction and product parsing
-function simulateOCRProcessing(imageData: string, existingProducts: any[] = []): DeliveryDocket {
-  // In a real implementation, this would:
-  // 1. Send image to OCR service
-  // 2. Extract text using AI/ML
-  // 3. Parse product information
-  // 4. Match against existing products
-  
-  // For demonstration, we'll simulate realistic OCR results
-  const mockExtractedText = `
-    KERRIGANS XL SUPPLIER INVOICE
-    Invoice: INV-2025-001234
-    Date: ${new Date().toISOString().split('T')[0]}
-    
-    PRODUCTS:
-    Coca Cola 500ml x24     €18.99
-    Tayto Crisps Cheese     €2.49
-    Brennans Bread White    €1.89
-    Milk Fresh 2L           €2.35
-    Cadbury Dairy Milk      €3.29
-    
-    TOTAL: €29.01
-  `;
+// ── Real AI parsing of delivery dockets ──────────────────────────────────────
+//
+// Uses OpenAI's vision-capable model (gpt-4o-mini) to read a photo of a
+// supplier delivery docket and return structured line-items. We then fuzzy-
+// match each extracted product against the shop's existing inventory so the
+// shopkeeper can confirm before any stock change is committed.
+//
+// Failures are explicit — we never silently fall back to mock data. If the
+// API key is missing or the model can't read the docket, the endpoint returns
+// an error and the UI tells the user to retry or enter manually.
 
-  // Parse the extracted text into structured data
-  const products = parseExtractedText(mockExtractedText, existingProducts);
-  
-  return {
-    id: `docket-${Date.now()}`,
-    supplierName: "Kerrigans XL Supplier",
-    deliveryDate: new Date().toISOString().split('T')[0],
-    invoiceNumber: "INV-2025-001234",
-    products,
-    totalAmount: products.reduce((sum, p) => sum + p.total, 0),
-    status: 'matched'
-  };
+function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not configured. Cannot scan dockets.');
+  }
+  return new OpenAI({ apiKey });
 }
 
-function parseExtractedText(text: string, existingProducts: any[]): ScannedProduct[] {
-  // Simulate intelligent parsing of OCR text
-  const mockProducts = [
-    { name: "Coca Cola 500ml", quantity: 24, unitPrice: 0.79, barcode: "5449000000996" },
-    { name: "Tayto Crisps Cheese & Onion", quantity: 1, unitPrice: 2.49, barcode: "5011306001041" },
-    { name: "Brennans Bread White", quantity: 1, unitPrice: 1.89, barcode: "5011021003326" },
-    { name: "Fresh Milk 2L", quantity: 1, unitPrice: 2.35, barcode: "5011021001018" },
-    { name: "Cadbury Dairy Milk", quantity: 1, unitPrice: 3.29, barcode: "7622210001771" }
-  ];
+const DOCKET_PROMPT = `You are reading a photograph of a supplier delivery docket / invoice for a small Irish convenience shop.
 
-  return mockProducts.map(product => {
-    // Try to match against existing products
-    const existingMatch = existingProducts.find(p => 
-      p.name.toLowerCase().includes(product.name.toLowerCase().split(' ')[0]) ||
-      p.barcode === product.barcode
-    );
+Extract the following as strict JSON. Use null when a field genuinely cannot be read. Quantities and prices must be numbers (not strings). Prices are in Euros.
+
+{
+  "supplierName": string | null,        // e.g. "Musgrave", "BWG Foods", "Coca Cola HBC"
+  "invoiceNumber": string | null,       // the invoice / docket number printed on the page
+  "deliveryDate": string | null,        // ISO date "YYYY-MM-DD" if visible
+  "totalAmount": number | null,         // grand total in euros if printed
+  "products": [
+    {
+      "name": string,                   // product description as printed (e.g. "Coca Cola 500ml 24pk")
+      "barcode": string | null,         // EAN/barcode if printed (digits only)
+      "quantity": number,               // case/pack count delivered
+      "unitPrice": number | null        // unit cost ex-VAT in euros (per case OR per single unit, whichever the docket shows)
+    }
+  ]
+}
+
+Rules:
+- Only include real product line items. Skip subtotals, VAT lines, delivery charges, headers.
+- Be conservative: if a quantity or price is illegible, set it to null rather than guessing.
+- If the image is not a delivery docket at all, return {"supplierName": null, "invoiceNumber": null, "deliveryDate": null, "totalAmount": null, "products": []}.
+
+Return ONLY the JSON object, no surrounding prose.`;
+
+interface ParsedAIResult {
+  supplierName: string | null;
+  invoiceNumber: string | null;
+  deliveryDate: string | null;
+  totalAmount: number | null;
+  products: Array<{
+    name: string;
+    barcode: string | null;
+    quantity: number;
+    unitPrice: number | null;
+  }>;
+}
+
+async function callOpenAIVision(imageData: string): Promise<ParsedAIResult> {
+  const client = getOpenAIClient();
+
+  // The frontend sends a data URL ("data:image/jpeg;base64,..."). OpenAI's
+  // image_url accepts that directly.
+  const imageUrl = imageData.startsWith('data:')
+    ? imageData
+    : `data:image/jpeg;base64,${imageData}`;
+
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o-mini',
+    response_format: { type: 'json_object' },
+    max_tokens: 2000,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: DOCKET_PROMPT },
+          { type: 'image_url', image_url: { url: imageUrl, detail: 'high' } },
+        ],
+      },
+    ],
+  });
+
+  const raw = response.choices[0]?.message?.content;
+  if (!raw) {
+    throw new Error('AI returned no content. Try a clearer photo.');
+  }
+
+  let parsed: ParsedAIResult;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error('AI returned malformed JSON. Try a clearer photo.');
+  }
+
+  if (!parsed || !Array.isArray(parsed.products)) {
+    throw new Error('AI could not read any products from the docket.');
+  }
+
+  return parsed;
+}
+
+// Fuzzy match a parsed name/barcode against the shop's existing inventory.
+// Returns the matched product (with confidence 0..1) or null.
+function fuzzyMatch(
+  parsedName: string,
+  parsedBarcode: string | null,
+  existing: any[],
+): { product: any; confidence: number } | null {
+  if (!existing || existing.length === 0) return null;
+
+  // 1. Exact barcode match wins outright.
+  if (parsedBarcode) {
+    const exact = existing.find((p) => p.barcode && p.barcode === parsedBarcode);
+    if (exact) return { product: exact, confidence: 0.99 };
+  }
+
+  // 2. Token-overlap score on names.
+  const norm = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const parsedTokens = new Set(norm(parsedName).split(' ').filter((t) => t.length > 1));
+  if (parsedTokens.size === 0) return null;
+
+  let best: { product: any; confidence: number } | null = null;
+  for (const p of existing) {
+    if (!p?.name) continue;
+    const productTokens = new Set(norm(p.name).split(' ').filter((t) => t.length > 1));
+    let overlap = 0;
+    for (const t of parsedTokens) {
+      if (productTokens.has(t)) overlap++;
+    }
+    const denom = Math.max(parsedTokens.size, productTokens.size);
+    const score = denom === 0 ? 0 : overlap / denom;
+    if (score >= 0.5 && (!best || score > best.confidence)) {
+      best = { product: p, confidence: score };
+    }
+  }
+  return best;
+}
+
+function buildDocketFromAI(ai: ParsedAIResult, existing: any[]): DeliveryDocket {
+  const products: ScannedProduct[] = ai.products.map((p) => {
+    const qty = Math.max(1, Math.floor(p.quantity || 1));
+    const unitPrice = typeof p.unitPrice === 'number' && p.unitPrice >= 0 ? p.unitPrice : 0;
+    const match = fuzzyMatch(p.name, p.barcode, existing);
 
     return {
-      id: existingMatch?.id,
-      name: product.name,
-      barcode: product.barcode,
-      quantity: product.quantity,
-      unitPrice: product.unitPrice,
-      total: product.quantity * product.unitPrice,
-      matched: !!existingMatch,
-      confidence: existingMatch ? 0.95 : 0.75,
-      originalText: `${product.name} x${product.quantity} €${product.unitPrice}`
+      id: match?.product?.id,
+      name: match?.product?.name || p.name,
+      barcode: p.barcode || match?.product?.barcode || undefined,
+      quantity: qty,
+      unitPrice,
+      total: Number((qty * unitPrice).toFixed(2)),
+      matched: !!match,
+      confidence: match ? Number(match.confidence.toFixed(2)) : 0,
+      originalText: `${p.name}${p.barcode ? ' [' + p.barcode + ']' : ''} x${qty}${unitPrice ? ' €' + unitPrice : ''}`,
     };
   });
+
+  const computedTotal = Number(products.reduce((sum, p) => sum + p.total, 0).toFixed(2));
+
+  return {
+    id: `docket-${Date.now()}`,
+    supplierName: ai.supplierName || 'Unknown supplier',
+    deliveryDate: ai.deliveryDate || new Date().toISOString().split('T')[0],
+    invoiceNumber: ai.invoiceNumber || `MANUAL-${Date.now()}`,
+    products,
+    totalAmount: ai.totalAmount && ai.totalAmount > 0 ? ai.totalAmount : computedTotal,
+    status: 'matched',
+  };
 }
 
 export async function scanDocket(req: Request, res: Response) {
   try {
     const { imageData, existingProducts } = scanDocketSchema.parse(req.body);
-    
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const processedDocket = simulateOCRProcessing(imageData, existingProducts);
-    
-    res.json(processedDocket);
-  } catch (error) {
+
+    if (!imageData || imageData.length < 100) {
+      return res.status(400).json({ error: 'No image received. Please try again.' });
+    }
+
+    let aiResult: ParsedAIResult;
+    try {
+      aiResult = await callOpenAIVision(imageData);
+    } catch (aiError: any) {
+      console.error('AI docket parsing failed:', aiError?.message || aiError);
+      return res.status(502).json({
+        error: 'Could not read the docket',
+        message: aiError?.message || 'The AI could not read the photo. Try a clearer image, or enter the products manually.',
+      });
+    }
+
+    if (aiResult.products.length === 0) {
+      return res.status(422).json({
+        error: 'No products found',
+        message: 'The image was read but no product lines were found. If this is a delivery docket, try a clearer photo. Otherwise enter the products manually.',
+      });
+    }
+
+    const docket = buildDocketFromAI(aiResult, existingProducts || []);
+    return res.json(docket);
+  } catch (error: any) {
     console.error('Docket scanning error:', error);
-    res.status(400).json({ 
+    return res.status(400).json({
       error: 'Failed to process docket',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error?.message || 'Unknown error',
     });
   }
 }
@@ -146,143 +261,132 @@ export async function scanDocket(req: Request, res: Response) {
 export async function importDelivery(req: Request, res: Response) {
   try {
     const deliveryData = importDeliverySchema.parse(req.body);
-    
-    // Process each product in the delivery
-    const importResults = [];
-    
+
+    const importResults: Array<{ product: string; action: string; success: boolean; id?: number; error?: string }> = [];
+
     for (const product of deliveryData.products) {
       try {
         let productRecord;
-        
+
         if (product.matched && product.id) {
-          // Update existing product stock
           const existingProduct = await storage.getProduct(product.id);
           if (existingProduct) {
             const newStock = existingProduct.stock + product.quantity;
             productRecord = await storage.updateProduct(product.id, {
               stock: newStock,
-              costPrice: product.unitPrice.toString()
+              costPrice: product.unitPrice.toString(),
             });
-            
-            // Create audit log for stock update
+
             await storage.createAuditLog({
-              userId: 1, // Should be current user
+              userId: 1,
               tableName: 'products',
               recordId: product.id.toString(),
               action: 'UPDATE',
               changes: JSON.stringify({
                 stock: { from: existingProduct.stock, to: newStock },
-                reason: `Delivery import: ${deliveryData.invoiceNumber}`
-              })
+                reason: `Delivery import: ${deliveryData.invoiceNumber}`,
+              }),
             });
           }
         } else {
-          // Create new product
           productRecord = await storage.createProduct({
             name: product.name,
             barcode: product.barcode || '',
-            price: (product.unitPrice * 1.2).toString(), // Add 20% markup
+            price: (product.unitPrice * 1.2).toString(),
             costPrice: product.unitPrice.toString(),
             stock: product.quantity,
             category: 'General',
             description: `Imported from delivery: ${deliveryData.invoiceNumber}`,
-            isActive: true
+            isActive: true,
           });
-          
-          // Create audit log for new product
+
           await storage.createAuditLog({
-            userId: 1, // Should be current user
+            userId: 1,
             tableName: 'products',
             recordId: productRecord.id.toString(),
             action: 'CREATE',
             changes: JSON.stringify({
               reason: `New product from delivery: ${deliveryData.invoiceNumber}`,
-              supplier: deliveryData.supplierName
-            })
+              supplier: deliveryData.supplierName,
+            }),
           });
         }
-        
+
         importResults.push({
           product: product.name,
           action: product.matched ? 'updated' : 'created',
           success: true,
-          id: productRecord?.id
+          id: productRecord?.id,
         });
-        
       } catch (productError) {
         console.error(`Error processing product ${product.name}:`, productError);
         importResults.push({
           product: product.name,
           action: 'failed',
           success: false,
-          error: productError instanceof Error ? productError.message : 'Unknown error'
+          error: productError instanceof Error ? productError.message : 'Unknown error',
         });
       }
     }
-    
-    // Create purchase order record for tracking
+
     try {
       const purchaseOrder = await storage.createPurchaseOrder({
-        supplierId: 1, // Default supplier - should be matched or created
+        supplierId: 1,
         orderDate: new Date(deliveryData.deliveryDate),
         expectedDate: new Date(deliveryData.deliveryDate),
         status: 'delivered',
         notes: `Imported from scanned docket: ${deliveryData.invoiceNumber}`,
-        totalAmount: deliveryData.totalAmount.toString()
+        totalAmount: deliveryData.totalAmount.toString(),
       });
-      
-      // Add items to purchase order
+
       for (const product of deliveryData.products) {
-        if (importResults.find(r => r.product === product.name)?.success) {
+        const result = importResults.find((r) => r.product === product.name);
+        if (result?.success) {
           await storage.addPurchaseOrderItem({
             purchaseOrderId: purchaseOrder.id,
-            productId: importResults.find(r => r.product === product.name)?.id || 0,
+            productId: result.id || 0,
             quantity: product.quantity,
             unitCost: product.unitPrice.toString(),
-            receivedQuantity: product.quantity
+            receivedQuantity: product.quantity,
           });
         }
       }
     } catch (orderError) {
       console.error('Error creating purchase order:', orderError);
-      // Don't fail the entire import for this
     }
-    
+
     res.json({
       success: true,
-      message: `Successfully imported ${importResults.filter(r => r.success).length} of ${importResults.length} products`,
+      message: `Successfully imported ${importResults.filter((r) => r.success).length} of ${importResults.length} products`,
       results: importResults,
-      deliveryId: deliveryData.id
+      deliveryId: deliveryData.id,
     });
-    
   } catch (error) {
     console.error('Delivery import error:', error);
     res.status(400).json({
       error: 'Failed to import delivery',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-// Get delivery history for tracking
-export async function getDeliveryHistory(req: Request, res: Response) {
+export async function getDeliveryHistory(_req: Request, res: Response) {
   try {
-    // Get recent purchase orders that were imported from scanned dockets
     const deliveries = await storage.getPurchaseOrders();
-    
+
     const recentDeliveries = (deliveries || [])
-      .filter(po => po && (po.notes ?? '').includes('scanned docket'))
+      .filter((po) => po && (po.notes ?? '').includes('scanned docket'))
       .slice(0, 20)
-      .map(po => ({
+      .map((po) => ({
         id: po.id,
-        supplierName: 'Supplier', // Would get from supplier table
+        supplierName: 'Supplier',
         deliveryDate: po.orderDate,
         invoiceNumber: (po.notes ?? '').match(/docket: (.+)/)?.[1] || 'Unknown',
         totalAmount: parseFloat(po.totalAmount),
         status: po.status,
-        itemCount: 0 // Would count items
+        itemCount: 0,
       }));
-    
+
     res.json(recentDeliveries);
   } catch (error) {
     console.error('Error fetching delivery history:', error);
@@ -290,31 +394,27 @@ export async function getDeliveryHistory(req: Request, res: Response) {
   }
 }
 
-// Smart product suggestions for manual entry
 export async function getProductSuggestions(req: Request, res: Response) {
   try {
     const { query } = req.query as { query: string };
-    
+
     if (!query || query.length < 2) {
       return res.json([]);
     }
-    
+
     const products = await storage.getProducts();
     const suggestions = products
-      .filter(p => 
-        p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.barcode?.includes(query)
-      )
+      .filter((p) => p.name.toLowerCase().includes(query.toLowerCase()) || p.barcode?.includes(query))
       .slice(0, 10)
-      .map(p => ({
+      .map((p) => ({
         id: p.id,
         name: p.name,
         barcode: p.barcode,
         currentPrice: parseFloat(p.price),
         currentStock: p.stock,
-        category: p.category
+        category: p.category,
       }));
-    
+
     res.json(suggestions);
   } catch (error) {
     console.error('Error getting product suggestions:', error);

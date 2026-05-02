@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -194,7 +194,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/analyze", ...triggerAiAnalysis);
 
   // Delivery Management routes for Valerie
-  app.post("/api/delivery/scan-docket", scanDocket);
+  // scan-docket gets a larger body limit (phone photos) + simple per-IP rate
+  // limit so a runaway client cannot drain the OpenAI quota.
+  const scanRateLimit = (() => {
+    const hits = new Map<string, number[]>();
+    const WINDOW_MS = 60_000;
+    const MAX = 12;
+    return (req: any, res: any, next: any) => {
+      const ip = (req.ip || req.headers['x-forwarded-for'] || 'unknown').toString();
+      const now = Date.now();
+      const recent = (hits.get(ip) || []).filter((t) => now - t < WINDOW_MS);
+      if (recent.length >= MAX) {
+        return res.status(429).json({
+          error: 'Too many scans',
+          message: 'You are scanning too quickly. Please wait a minute and try again.',
+        });
+      }
+      recent.push(now);
+      hits.set(ip, recent);
+      next();
+    };
+  })();
+  app.post(
+    "/api/delivery/scan-docket",
+    express.json({ limit: '15mb' }),
+    scanRateLimit,
+    scanDocket,
+  );
   app.post("/api/delivery/import", importDelivery);
   app.get("/api/delivery/history", getDeliveryHistory);
   app.get("/api/delivery/product-suggestions", getProductSuggestions);

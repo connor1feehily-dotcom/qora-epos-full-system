@@ -60,21 +60,30 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
         imageData,
         existingProducts
       });
+      if (!response.ok) {
+        let message = 'Could not read the docket. Try a clearer photo or enter manually.';
+        try {
+          const body = await response.json();
+          if (body?.message) message = body.message;
+          else if (body?.error) message = body.error;
+        } catch {}
+        throw new Error(message);
+      }
       return response.json();
     },
     onSuccess: (data: DeliveryDocket) => {
       setCurrentDocket(data);
       setIsScanning(false);
       toast({
-        title: "Docket Scanned Successfully",
-        description: `Found ${data.products.length} products. ${data.products.filter(p => p.matched).length} automatically matched.`
+        title: "Docket Scanned",
+        description: `Found ${data.products.length} products. ${data.products.filter(p => p.matched).length} matched to existing stock. Review before importing.`
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       setIsScanning(false);
       toast({
         title: "Scanning Failed",
-        description: "Unable to process the delivery docket. Please try again or enter manually.",
+        description: error?.message || "Unable to process the delivery docket. Please try again or enter manually.",
         variant: "destructive"
       });
     }
