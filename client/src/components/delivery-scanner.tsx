@@ -95,7 +95,6 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
 
       const response = await apiRequest('POST', '/api/delivery/scan-docket', {
         ocrText,
-        existingProducts,
       });
       if (!response.ok) {
         let message = 'Could not read the docket. Try a clearer photo or enter manually.';

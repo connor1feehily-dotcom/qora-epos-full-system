@@ -25,9 +25,7 @@ interface DeliveryDocket {
 }
 
 const scanDocketSchema = z.object({
-  ocrText: z.string().optional(),
-  imageData: z.string().optional(),
-  existingProducts: z.array(z.any()).optional(),
+  ocrText: z.string().min(20).max(50_000),
 });
 
 const importDeliverySchema = z.object({
@@ -257,15 +255,44 @@ function fuzzyMatch(
   return best;
 }
 
+// Lightweight per-IP rate limit. OCR is on-device so there is no API cost,
+// but the server still does regex + O(lines × products) fuzzy matching on
+// every call — protect against runaway clients.
+const scanHits = new Map<string, number[]>();
+const SCAN_RATE_WINDOW_MS = 60_000;
+const SCAN_RATE_MAX = 20;
+
 export async function scanDocket(req: Request, res: Response) {
   try {
-    const { ocrText, existingProducts } = scanDocketSchema.parse(req.body);
+    const ip = (req.ip || req.headers['x-forwarded-for'] || 'unknown').toString();
+    const now = Date.now();
+    const recent = (scanHits.get(ip) || []).filter((t) => now - t < SCAN_RATE_WINDOW_MS);
+    if (recent.length >= SCAN_RATE_MAX) {
+      return res.status(429).json({
+        error: 'Too many scans',
+        message: 'You are scanning too quickly. Please wait a minute and try again.',
+      });
+    }
+    recent.push(now);
+    scanHits.set(ip, recent);
 
-    if (!ocrText || ocrText.trim().length < 20) {
+    let parsed: { ocrText: string };
+    try {
+      parsed = scanDocketSchema.parse(req.body);
+    } catch {
       return res.status(400).json({
         error: 'No text received',
         message: 'The photo could not be read. Try a clearer, well-lit photo of the docket — keep it flat and avoid shadows.',
       });
+    }
+    const { ocrText } = parsed;
+
+    // Server-side product fetch — never trust the client's idea of inventory.
+    let existingProducts: any[] = [];
+    try {
+      existingProducts = (await storage.getProducts()) || [];
+    } catch (e) {
+      console.error('Failed to load products for matching (continuing unmatched):', e);
     }
 
     const header = parseSupplierAndInvoice(ocrText);
@@ -279,7 +306,7 @@ export async function scanDocket(req: Request, res: Response) {
     }
 
     const products: ScannedProduct[] = lines.map((line) => {
-      const match = fuzzyMatch(line.name, line.barcode, existingProducts || []);
+      const match = fuzzyMatch(line.name, line.barcode, existingProducts);
       return {
         id: match?.product?.id,
         name: match?.product?.name || line.name,
