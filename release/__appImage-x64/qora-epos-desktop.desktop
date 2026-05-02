@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Qora EPOS
+Exec=AppRun --no-sandbox %U
+Terminal=false
+Type=Application
+Icon=qora-epos-desktop
+StartupWMClass=Qora EPOS
+X-AppImage-Version=1.0.0
+Comment=Qora EPOS — desktop till app for Kerrigans XL Manorhamilton
+Categories=Office;

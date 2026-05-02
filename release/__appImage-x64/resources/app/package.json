@@ -1,0 +1,9 @@
+{
+  "name": "qora-epos-desktop",
+  "version": "1.0.0",
+  "description": "Qora EPOS — desktop till app for Kerrigans XL Manorhamilton",
+  "main": "main.js",
+  "author": "Kerrigans XL",
+  "license": "UNLICENSED",
+  "private": true
+}

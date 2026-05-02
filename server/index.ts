@@ -56,15 +56,19 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  // Default port 5000 for Replit dev/deploy; honour PORT override so the
+  // Electron desktop app can boot this same bundle on a random free local
+  // port. HOST defaults to 0.0.0.0 so Replit deployments stay reachable;
+  // Electron sets HOST=127.0.0.1 explicitly to keep the till backend
+  // loopback-only. reusePort is Linux-only AND only useful for Replit's
+  // hot-reload pattern (binding 5000 on 0.0.0.0); skip it everywhere else.
+  const port = parseInt(process.env.PORT || '', 10) || 5000;
+  const host = process.env.HOST || '0.0.0.0';
+  const listenOpts: any = { port, host };
+  if (!process.env.PORT && !process.env.HOST && process.platform === 'linux') {
+    listenOpts.reusePort = true;
+  }
+  server.listen(listenOpts, () => {
+    log(`serving on ${host}:${port}`);
   });
 })();

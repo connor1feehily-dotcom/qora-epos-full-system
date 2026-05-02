@@ -1,81 +1,62 @@
 {
-  "name": "quantum-pos-desktop",
-  "version": "1.0.0", 
-  "description": "Quantum POS Desktop Application",
+  "name": "qora-epos-desktop",
+  "version": "1.0.0",
+  "description": "Qora EPOS — desktop till app for Kerrigans XL Manorhamilton",
   "main": "main.js",
+  "author": "Kerrigans XL",
+  "license": "UNLICENSED",
+  "private": true,
   "scripts": {
     "start": "electron .",
-    "dev": "NODE_ENV=development electron .",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac", 
-    "build:linux": "electron-builder --linux",
-    "dist": "electron-builder --publish=never",
-    "pack": "electron-builder --dir"
+    "dev": "NODE_ENV=development electron ."
   },
   "build": {
-    "appId": "ie.kerrigansxl.quantumpos",
-    "productName": "Quantum POS",
+    "appId": "ie.kerrigansxl.qoraepos",
+    "productName": "Qora EPOS",
+    "electronVersion": "37.4.0",
+    "asar": false,
     "directories": {
-      "output": "dist"
+      "buildResources": "assets",
+      "output": "../release"
     },
     "files": [
       "main.js",
       "preload.js",
       "assets/**/*",
-      "../client/dist/**/*",
-      "node_modules/**/*"
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist",
+        "to": "app/dist",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../node_modules",
+        "to": "app/node_modules",
+        "filter": ["**/*", "!**/{test,tests,docs,examples,.bin}/**"]
+      }
     ],
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable", 
-          "arch": ["x64"]
-        }
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
       ],
-      "icon": "assets/icon.ico",
-      "publisherName": "Kerrigan's XL"
-    },
-    "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["x64", "arm64"]
-        }
-      ],
-      "icon": "assets/icon.icns",
-      "category": "public.app-category.business"
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": ["x64"]
-        },
-        {
-          "target": "deb",
-          "arch": ["x64"]
-        }
-      ],
-      "icon": "assets/icon.png",
-      "category": "Office"
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Quantum POS"
+      "shortcutName": "Qora EPOS",
+      "artifactName": "Qora-EPOS-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [{ "target": "AppImage", "arch": ["x64"] }],
+      "icon": "assets/icon.png",
+      "category": "Office",
+      "artifactName": "Qora-EPOS-${version}.${ext}"
     }
-  },
-  "dependencies": {
-    "electron": "^28.1.4"
-  },
-  "devDependencies": {
-    "electron-builder": "^24.9.1"
   }
 }
