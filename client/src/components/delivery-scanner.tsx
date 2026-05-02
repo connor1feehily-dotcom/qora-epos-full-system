@@ -495,11 +495,17 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
 
         <CardContent className="space-y-6">
           {isScanning ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-lg font-medium">Processing your docket...</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Using AI to extract product information
+            <div className="text-center py-8 space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-lg font-medium">{scanStatus || "Processing your docket..."}</p>
+              <div className="max-w-sm mx-auto">
+                <Progress value={scanProgress} />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  {scanProgress}% — reading the photo on this device. Nothing is uploaded.
+                </p>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                First scan downloads the reader (~5 MB). After that it works offline.
               </p>
             </div>
           ) : (
