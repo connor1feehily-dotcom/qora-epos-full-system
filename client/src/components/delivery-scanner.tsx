@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Upload, FileText, Package, CheckCircle, XCircle, Edit3, Save, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -41,6 +42,8 @@ interface DeliveryScannerProps {
 export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
   const [currentDocket, setCurrentDocket] = useState<DeliveryDocket | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanStatus, setScanStatus] = useState<string>("");
   const [editingProduct, setEditingProduct] = useState<number | null>(null);
   const [manualEntry, setManualEntry] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,12 +56,46 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
     queryKey: ['/api/products'],
   });
 
-  // OCR processing mutation
+  // OCR + parse mutation. OCR runs entirely in the browser via Tesseract.js
+  // (no API key, no upload of the photo). Only the extracted text is sent
+  // to the server, which parses it into line items and matches them against
+  // existing stock.
   const processOCRMutation = useMutation({
-    mutationFn: async (imageData: string) => {
+    mutationFn: async (file: File) => {
+      setScanStatus("Loading scanner...");
+      setScanProgress(5);
+
+      // Dynamic import keeps Tesseract out of the main bundle.
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('eng', 1, {
+        logger: (m: any) => {
+          if (m.status === 'recognizing text') {
+            setScanStatus("Reading docket...");
+            setScanProgress(20 + Math.round(m.progress * 70));
+          } else if (m.status === 'loading tesseract core' || m.status === 'initializing tesseract') {
+            setScanStatus("Loading scanner...");
+            setScanProgress(10);
+          } else if (m.status === 'loading language traineddata' || m.status === 'initializing api') {
+            setScanStatus("Preparing...");
+            setScanProgress(15);
+          }
+        },
+      });
+
+      let ocrText = '';
+      try {
+        const { data } = await worker.recognize(file);
+        ocrText = data.text || '';
+      } finally {
+        try { await worker.terminate(); } catch {}
+      }
+
+      setScanStatus("Matching products...");
+      setScanProgress(95);
+
       const response = await apiRequest('POST', '/api/delivery/scan-docket', {
-        imageData,
-        existingProducts
+        ocrText,
+        existingProducts,
       });
       if (!response.ok) {
         let message = 'Could not read the docket. Try a clearer photo or enter manually.';
@@ -74,6 +111,8 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
     onSuccess: (data: DeliveryDocket) => {
       setCurrentDocket(data);
       setIsScanning(false);
+      setScanProgress(0);
+      setScanStatus("");
       toast({
         title: "Docket Scanned",
         description: `Found ${data.products.length} products. ${data.products.filter(p => p.matched).length} matched to existing stock. Review before importing.`
@@ -81,6 +120,8 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
     },
     onError: (error: Error) => {
       setIsScanning(false);
+      setScanProgress(0);
+      setScanStatus("");
       toast({
         title: "Scanning Failed",
         description: error?.message || "Unable to process the delivery docket. Please try again or enter manually.",
@@ -125,12 +166,9 @@ export function DeliveryScanner({ onClose }: DeliveryScannerProps) {
     }
 
     setIsScanning(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageData = e.target?.result as string;
-      processOCRMutation.mutate(imageData);
-    };
-    reader.readAsDataURL(file);
+    setScanProgress(0);
+    setScanStatus("Starting...");
+    processOCRMutation.mutate(file);
   };
 
   const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {

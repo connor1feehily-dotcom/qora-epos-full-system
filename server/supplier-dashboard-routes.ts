@@ -1,85 +1,7 @@
 // Standalone supplier dashboard routes without complex schema dependencies
 import type { Express } from "express";
-import OpenAI from "openai";
 import { storage } from "./storage";
 import { AISupplierEngine } from "./ai-supplier-engine";
-
-const EMAIL_PARSE_PROMPT = `You are reading the body of an email a supplier sent to a small Irish convenience shop. The email is either a purchase-order confirmation, a delivery notice, or an invoice.
-
-Extract the following as strict JSON. Use null when a field genuinely cannot be read. Quantities and prices must be numbers (not strings). Prices are in euros.
-
-{
-  "supplier": string | null,
-  "orderNumber": string | null,
-  "orderDate": string | null,         // ISO YYYY-MM-DD
-  "expectedDeliveryDate": string | null,
-  "totalAmount": number | null,
-  "items": [
-    {
-      "name": string,
-      "quantity": number,
-      "unitPrice": number | null,
-      "barcode": string | null
-    }
-  ]
-}
-
-Rules:
-- Only include real product line items. Skip subtotals, VAT, delivery charges, signatures, headers, marketing copy.
-- Be conservative: if a value is unclear, use null rather than guessing.
-- If the email is not an order/invoice/delivery notice at all, return {"supplier": null, "orderNumber": null, "orderDate": null, "expectedDeliveryDate": null, "totalAmount": null, "items": []}.
-
-Return ONLY the JSON object, no surrounding prose.`;
-
-interface AIEmailParse {
-  supplier: string | null;
-  orderNumber: string | null;
-  orderDate: string | null;
-  expectedDeliveryDate: string | null;
-  totalAmount: number | null;
-  items: Array<{
-    name: string;
-    quantity: number;
-    unitPrice: number | null;
-    barcode: string | null;
-  }>;
-}
-
-async function parseEmailWithAI(
-  emailSubject: string,
-  emailBody: string,
-  emailFrom: string,
-): Promise<AIEmailParse> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not configured. Cannot parse emails with AI.');
-  }
-  const client = new OpenAI({ apiKey });
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    response_format: { type: 'json_object' },
-    max_tokens: 2000,
-    messages: [
-      { role: 'system', content: EMAIL_PARSE_PROMPT },
-      {
-        role: 'user',
-        content: `From: ${emailFrom}\nSubject: ${emailSubject}\n\n${emailBody}`,
-      },
-    ],
-  });
-  const raw = response.choices[0]?.message?.content;
-  if (!raw) throw new Error('AI returned no content.');
-  let parsed: AIEmailParse;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new Error('AI returned malformed JSON.');
-  }
-  if (!parsed || !Array.isArray(parsed.items)) {
-    throw new Error('AI could not read any line items.');
-  }
-  return parsed;
-}
 
 export function registerSupplierDashboardRoutes(app: Express) {
   // Mock data for supplier dashboard functionality
@@ -317,17 +239,13 @@ export function registerSupplierDashboardRoutes(app: Express) {
     }
   });
 
-  // Real AI email-order parsing.
-  // Two-stage strategy:
-  //   1. Try the deterministic regex parser (free, fast). If it returns
-  //      reasonable confidence (>= 70) and at least one line item, use it.
-  //   2. Otherwise call OpenAI to parse the email properly.
-  // After parsing, match items against actual products in storage so the
-  // caller sees real matches (not fake "Sample Product 1").
-  // Failures are explicit — no silent fallback to mock data.
+  // Free, deterministic email-order parsing using the existing regex engine.
+  // No external AI. Items are matched against real products in storage so
+  // the caller sees real matches (not the old "Sample Product 1" mock).
+  // Failures are explicit — no silent fallback to fake data.
   const emailParseHits = new Map<string, number[]>();
   const EMAIL_RATE_WINDOW_MS = 60_000;
-  const EMAIL_RATE_MAX = 20;
+  const EMAIL_RATE_MAX = 30;
 
   app.post("/api/email/parse-order", async (req, res) => {
     try {
@@ -355,81 +273,34 @@ export function registerSupplierDashboardRoutes(app: Express) {
         });
       }
 
-      // Stage 1: deterministic regex parse.
-      const regexResult = AISupplierEngine.parseEmailOrder(emailSubject, emailBody, emailFrom);
+      const parseResult = AISupplierEngine.parseEmailOrder(emailSubject, emailBody, emailFrom);
 
-      let orderData: any;
-      let items: any[];
-      let confidence: number;
-      let parseSource: 'regex' | 'ai';
-
-      if (regexResult.confidence >= 70 && regexResult.items.length > 0) {
-        orderData = regexResult.orderData;
-        items = regexResult.items;
-        confidence = regexResult.confidence;
-        parseSource = 'regex';
-      } else {
-        // Stage 2: AI parse.
-        let ai: AIEmailParse;
-        try {
-          ai = await parseEmailWithAI(emailSubject, emailBody, emailFrom);
-        } catch (aiError: any) {
-          console.error('AI email parsing failed:', aiError?.message || aiError);
-          return res.status(502).json({
-            error: 'Could not read the email',
-            message: aiError?.message || 'The AI could not read this email. Forward it again or enter the order manually.',
-          });
-        }
-
-        if (!ai.items || ai.items.length === 0) {
-          return res.status(422).json({
-            error: 'No order lines found',
-            message: 'The email was read but no order line items were found. If this is supposed to be an order, double-check the message.',
-          });
-        }
-
-        const fallbackSupplier =
-          ai.supplier ||
-          (emailFrom.split('@')[1] || '').split('.')[0].toUpperCase() ||
-          'UNKNOWN_SUPPLIER';
-
-        items = ai.items.map((it) => {
-          const qty = Math.max(1, Math.floor(it.quantity || 1));
-          const unitPrice = typeof it.unitPrice === 'number' && it.unitPrice >= 0 ? it.unitPrice : 0;
-          return {
-            name: it.name,
-            quantity: qty,
-            unitPrice,
-            totalPrice: Number((qty * unitPrice).toFixed(2)),
-            barcode: it.barcode || undefined,
-          };
+      if (!parseResult.items || parseResult.items.length === 0) {
+        return res.status(422).json({
+          error: 'No order lines found',
+          message: 'No product lines could be identified in this email. Common formats supported: "10 x Coca Cola @ €0.79 = €7.90" or "Coca Cola - 10 - 0.79 - 7.90". If the email is in a different format, enter the order manually.',
         });
-        const computedTotal = Number(items.reduce((s, i) => s + i.totalPrice, 0).toFixed(2));
-        orderData = {
-          orderNumber: ai.orderNumber || `AUTO-${Date.now()}`,
-          supplier: fallbackSupplier,
-          totalAmount: ai.totalAmount && ai.totalAmount > 0 ? ai.totalAmount : computedTotal,
-          orderDate: ai.orderDate || new Date().toISOString().split('T')[0],
-          expectedDeliveryDate: ai.expectedDeliveryDate || undefined,
-        };
-        confidence = 90;
-        parseSource = 'ai';
       }
 
-      // Match items against real products in storage (not mock data).
+      // Match items against real products in storage.
       let matchResult: { matchedItems: any[]; unmatchedItems: any[] } = {
         matchedItems: [],
-        unmatchedItems: items,
+        unmatchedItems: parseResult.items,
       };
       try {
         const products = await storage.getProducts();
-        matchResult = AISupplierEngine.matchOrderToInventory(items, products || []);
+        matchResult = AISupplierEngine.matchOrderToInventory(parseResult.items, products || []);
       } catch (matchError) {
         console.error('Product match step failed (continuing with unmatched):', matchError);
       }
 
       return res.json({
-        parseResult: { confidence, orderData, items, parseSource },
+        parseResult: {
+          confidence: parseResult.confidence,
+          orderData: parseResult.orderData,
+          items: parseResult.items,
+          parseSource: 'regex',
+        },
         matchResult,
         timestamp: new Date().toISOString(),
       });

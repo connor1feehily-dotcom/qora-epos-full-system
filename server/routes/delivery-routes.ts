@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { storage } from "../storage";
 import { z } from "zod";
-import OpenAI from "openai";
 
 interface ScannedProduct {
   id?: number;
@@ -26,7 +25,8 @@ interface DeliveryDocket {
 }
 
 const scanDocketSchema = z.object({
-  imageData: z.string(),
+  ocrText: z.string().optional(),
+  imageData: z.string().optional(),
   existingProducts: z.array(z.any()).optional(),
 });
 
@@ -50,109 +50,179 @@ const importDeliverySchema = z.object({
   status: z.enum(['scanned', 'processing', 'matched', 'imported']),
 });
 
-// ── Real AI parsing of delivery dockets ──────────────────────────────────────
+// ── Free, on-device parsing of delivery dockets ──────────────────────────────
 //
-// Uses OpenAI's vision-capable model (gpt-4o-mini) to read a photo of a
-// supplier delivery docket and return structured line-items. We then fuzzy-
-// match each extracted product against the shop's existing inventory so the
-// shopkeeper can confirm before any stock change is committed.
+// The browser runs Tesseract.js to OCR the photo and sends us the extracted
+// text. This server parses that text into line items using a set of robust
+// regex patterns that cover the common Irish supplier docket layouts
+// (Musgrave, BWG, Coca Cola HBC, Cuisine de France, etc.).
 //
-// Failures are explicit — we never silently fall back to mock data. If the
-// API key is missing or the model can't read the docket, the endpoint returns
-// an error and the UI tells the user to retry or enter manually.
+// No paid AI. No external API. Photos never leave the till.
+//
+// The shopkeeper always reviews the parsed list before any stock change is
+// committed, so OCR errors can be corrected before they affect inventory.
 
-function getOpenAIClient(): OpenAI {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not configured. Cannot scan dockets.');
+function parseSupplierAndInvoice(text: string): { supplier: string | null; invoice: string | null; date: string | null; total: number | null } {
+  const supplierPatterns = [
+    /(?:from|supplier|vendor)[\s:]+([A-Z][A-Za-z &'.\-]{2,40})/i,
+    /^([A-Z][A-Za-z &'.\-]{3,40})\s*(?:LTD|LIMITED|PLC|LLC|LLP)/m,
+    /(MUSGRAVE|BWG|COCA[\s-]?COLA[\s-]?HBC|CUISINE DE FRANCE|TENNANT|HENDERSON|HENDERSONS|GLANBIA|KERRY|VALEO|MULLINS|JFC|DIAGEO|HEINEKEN|BRENNANS|TAYTO)\b/i,
+  ];
+  let supplier: string | null = null;
+  for (const p of supplierPatterns) {
+    const m = text.match(p);
+    if (m && m[1]) { supplier = m[1].trim(); break; }
   }
-  return new OpenAI({ apiKey });
-}
 
-const DOCKET_PROMPT = `You are reading a photograph of a supplier delivery docket / invoice for a small Irish convenience shop.
+  const invoicePatterns = [
+    /(?:invoice|inv|docket|delivery|po|order)[\s#:.\-]*([A-Z0-9][A-Z0-9\-/]{2,20})/i,
+    /\b(INV[\-/]?\d{3,})\b/i,
+    /\b(\d{4,}[\-/]\d{2,}[\-/]?\d{2,})\b/,
+  ];
+  let invoice: string | null = null;
+  for (const p of invoicePatterns) {
+    const m = text.match(p);
+    if (m && m[1]) { invoice = m[1].trim(); break; }
+  }
 
-Extract the following as strict JSON. Use null when a field genuinely cannot be read. Quantities and prices must be numbers (not strings). Prices are in Euros.
+  const datePatterns = [
+    /(?:date|delivered|delivery)[\s:]+(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i,
+    /\b(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})\b/,
+    /\b(\d{4}-\d{2}-\d{2})\b/,
+  ];
+  let date: string | null = null;
+  for (const p of datePatterns) {
+    const m = text.match(p);
+    if (m && m[1]) { date = m[1].trim(); break; }
+  }
 
-{
-  "supplierName": string | null,        // e.g. "Musgrave", "BWG Foods", "Coca Cola HBC"
-  "invoiceNumber": string | null,       // the invoice / docket number printed on the page
-  "deliveryDate": string | null,        // ISO date "YYYY-MM-DD" if visible
-  "totalAmount": number | null,         // grand total in euros if printed
-  "products": [
-    {
-      "name": string,                   // product description as printed (e.g. "Coca Cola 500ml 24pk")
-      "barcode": string | null,         // EAN/barcode if printed (digits only)
-      "quantity": number,               // case/pack count delivered
-      "unitPrice": number | null        // unit cost ex-VAT in euros (per case OR per single unit, whichever the docket shows)
+  const totalPatterns = [
+    /(?:total|grand\s*total|amount\s*due|balance\s*due)[\s:€£$]*([0-9,]+\.\d{2})/i,
+    /€\s*([0-9,]+\.\d{2})\s*$/m,
+  ];
+  let total: number | null = null;
+  for (const p of totalPatterns) {
+    const m = text.match(p);
+    if (m && m[1]) {
+      const n = parseFloat(m[1].replace(/,/g, ''));
+      if (!isNaN(n) && n > 0) { total = n; break; }
     }
-  ]
+  }
+
+  return { supplier, invoice, date, total };
 }
 
-Rules:
-- Only include real product line items. Skip subtotals, VAT lines, delivery charges, headers.
-- Be conservative: if a quantity or price is illegible, set it to null rather than guessing.
-- If the image is not a delivery docket at all, return {"supplierName": null, "invoiceNumber": null, "deliveryDate": null, "totalAmount": null, "products": []}.
-
-Return ONLY the JSON object, no surrounding prose.`;
-
-interface ParsedAIResult {
-  supplierName: string | null;
-  invoiceNumber: string | null;
-  deliveryDate: string | null;
-  totalAmount: number | null;
-  products: Array<{
-    name: string;
-    barcode: string | null;
-    quantity: number;
-    unitPrice: number | null;
-  }>;
+interface ParsedLine {
+  name: string;
+  barcode: string | null;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  originalText: string;
 }
 
-async function callOpenAIVision(imageData: string): Promise<ParsedAIResult> {
-  const client = getOpenAIClient();
+function parseLineItems(text: string): ParsedLine[] {
+  const skip = /^(invoice|date|delivered|delivery|supplier|vendor|po\b|order\b|customer|account|page|subtotal|sub-total|sub total|vat|tax|total|amount|balance|payment|terms|signature|received|notes?|description|item|qty|quantity|unit|price|cost|line|ref|batch|kerrigans|address|phone|tel|email|web|www\.|http)/i;
 
-  // The frontend sends a data URL ("data:image/jpeg;base64,..."). OpenAI's
-  // image_url accepts that directly.
-  const imageUrl = imageData.startsWith('data:')
-    ? imageData
-    : `data:image/jpeg;base64,${imageData}`;
+  // Patterns ordered by specificity. Each must capture: qty, name, unitPrice,
+  // (optionally) total. Barcodes are picked up separately if present on the line.
+  // Numbers may use comma or dot decimal; currency symbols optional.
+  const num = (s: string) => parseFloat(s.replace(/,/g, '.').replace(/[^\d.]/g, ''));
 
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    response_format: { type: 'json_object' },
-    max_tokens: 2000,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: DOCKET_PROMPT },
-          { type: 'image_url', image_url: { url: imageUrl, detail: 'high' } },
-        ],
+  // Detect 8-14 digit barcodes anywhere on the line.
+  const barcodeRe = /\b(\d{8,14})\b/;
+
+  const patterns: Array<{ re: RegExp; map: (m: RegExpMatchArray) => Omit<ParsedLine, 'originalText'> | null }> = [
+    {
+      // "10 x Coca Cola 500ml @ €0.79 = €7.90"
+      re: /^\s*(\d{1,4})\s*[x×*]\s+(.+?)\s+@?\s*[€£$]?\s*([\d.,]+)\s*=?\s*[€£$]?\s*([\d.,]+)?\s*$/i,
+      map: (m) => {
+        const qty = parseInt(m[1], 10);
+        const name = m[2].trim();
+        const unit = num(m[3]);
+        const total = m[4] ? num(m[4]) : qty * unit;
+        if (!isFinite(qty) || qty < 1 || !isFinite(unit) || unit < 0 || name.length < 2) return null;
+        return { name, barcode: null, quantity: qty, unitPrice: unit, total };
       },
-    ],
-  });
+    },
+    {
+      // "5449000000996  Coca Cola 500ml  10  0.79  7.90"
+      re: /^\s*(\d{8,14})\s+(.+?)\s+(\d{1,4})\s+[€£$]?([\d.,]+)\s+[€£$]?([\d.,]+)\s*$/,
+      map: (m) => {
+        const barcode = m[1];
+        const name = m[2].trim();
+        const qty = parseInt(m[3], 10);
+        const unit = num(m[4]);
+        const total = num(m[5]);
+        if (!isFinite(qty) || qty < 1 || name.length < 2) return null;
+        return { name, barcode, quantity: qty, unitPrice: unit, total };
+      },
+    },
+    {
+      // "Coca Cola 500ml    24    €18.99"  (qty after name, total only)
+      re: /^\s*([A-Za-z][A-Za-z0-9 &'./\-]{2,60}?)\s{2,}(\d{1,4})\s{2,}[€£$]\s*([\d.,]+)\s*$/,
+      map: (m) => {
+        const name = m[1].trim();
+        const qty = parseInt(m[2], 10);
+        const total = num(m[3]);
+        if (!isFinite(qty) || qty < 1 || total <= 0) return null;
+        const unit = total / qty;
+        return { name, barcode: null, quantity: qty, unitPrice: unit, total };
+      },
+    },
+    {
+      // "10  Coca Cola 500ml  €0.79"  (qty, name, unit price)
+      re: /^\s*(\d{1,4})\s+([A-Za-z][A-Za-z0-9 &'./\-]{2,60}?)\s+[€£$]\s*([\d.,]+)\s*$/,
+      map: (m) => {
+        const qty = parseInt(m[1], 10);
+        const name = m[2].trim();
+        const unit = num(m[3]);
+        if (!isFinite(qty) || qty < 1 || unit < 0 || name.length < 2) return null;
+        return { name, barcode: null, quantity: qty, unitPrice: unit, total: qty * unit };
+      },
+    },
+    {
+      // "Coca Cola 500ml x24 €18.99"
+      re: /^\s*([A-Za-z][A-Za-z0-9 &'./\-]{2,60}?)\s+[x×*]\s*(\d{1,4})\s+[€£$]?\s*([\d.,]+)\s*$/i,
+      map: (m) => {
+        const name = m[1].trim();
+        const qty = parseInt(m[2], 10);
+        const total = num(m[3]);
+        if (!isFinite(qty) || qty < 1 || total <= 0) return null;
+        const unit = total / qty;
+        return { name, barcode: null, quantity: qty, unitPrice: unit, total };
+      },
+    },
+  ];
 
-  const raw = response.choices[0]?.message?.content;
-  if (!raw) {
-    throw new Error('AI returned no content. Try a clearer photo.');
+  const out: ParsedLine[] = [];
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (line.length < 5) continue;
+    if (skip.test(line)) continue;
+    // Skip lines that are mostly digits (likely phone numbers, refs).
+    const digitsOnly = line.replace(/\D/g, '').length;
+    if (digitsOnly > line.length * 0.8 && line.length > 6) continue;
+
+    for (const { re, map } of patterns) {
+      const m = line.match(re);
+      if (m) {
+        const parsed = map(m);
+        if (parsed) {
+          // Try to grab a barcode anywhere on the line if not already set.
+          if (!parsed.barcode) {
+            const bm = line.match(barcodeRe);
+            if (bm) parsed.barcode = bm[1];
+          }
+          out.push({ ...parsed, originalText: line });
+          break;
+        }
+      }
+    }
   }
-
-  let parsed: ParsedAIResult;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new Error('AI returned malformed JSON. Try a clearer photo.');
-  }
-
-  if (!parsed || !Array.isArray(parsed.products)) {
-    throw new Error('AI could not read any products from the docket.');
-  }
-
-  return parsed;
+  return out;
 }
 
-// Fuzzy match a parsed name/barcode against the shop's existing inventory.
-// Returns the matched product (with confidence 0..1) or null.
 function fuzzyMatch(
   parsedName: string,
   parsedBarcode: string | null,
@@ -160,13 +230,11 @@ function fuzzyMatch(
 ): { product: any; confidence: number } | null {
   if (!existing || existing.length === 0) return null;
 
-  // 1. Exact barcode match wins outright.
   if (parsedBarcode) {
     const exact = existing.find((p) => p.barcode && p.barcode === parsedBarcode);
     if (exact) return { product: exact, confidence: 0.99 };
   }
 
-  // 2. Token-overlap score on names.
   const norm = (s: string) =>
     s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
   const parsedTokens = new Set(norm(parsedName).split(' ').filter((t) => t.length > 1));
@@ -189,65 +257,54 @@ function fuzzyMatch(
   return best;
 }
 
-function buildDocketFromAI(ai: ParsedAIResult, existing: any[]): DeliveryDocket {
-  const products: ScannedProduct[] = ai.products.map((p) => {
-    const qty = Math.max(1, Math.floor(p.quantity || 1));
-    const unitPrice = typeof p.unitPrice === 'number' && p.unitPrice >= 0 ? p.unitPrice : 0;
-    const match = fuzzyMatch(p.name, p.barcode, existing);
-
-    return {
-      id: match?.product?.id,
-      name: match?.product?.name || p.name,
-      barcode: p.barcode || match?.product?.barcode || undefined,
-      quantity: qty,
-      unitPrice,
-      total: Number((qty * unitPrice).toFixed(2)),
-      matched: !!match,
-      confidence: match ? Number(match.confidence.toFixed(2)) : 0,
-      originalText: `${p.name}${p.barcode ? ' [' + p.barcode + ']' : ''} x${qty}${unitPrice ? ' €' + unitPrice : ''}`,
-    };
-  });
-
-  const computedTotal = Number(products.reduce((sum, p) => sum + p.total, 0).toFixed(2));
-
-  return {
-    id: `docket-${Date.now()}`,
-    supplierName: ai.supplierName || 'Unknown supplier',
-    deliveryDate: ai.deliveryDate || new Date().toISOString().split('T')[0],
-    invoiceNumber: ai.invoiceNumber || `MANUAL-${Date.now()}`,
-    products,
-    totalAmount: ai.totalAmount && ai.totalAmount > 0 ? ai.totalAmount : computedTotal,
-    status: 'matched',
-  };
-}
-
 export async function scanDocket(req: Request, res: Response) {
   try {
-    const { imageData, existingProducts } = scanDocketSchema.parse(req.body);
+    const { ocrText, existingProducts } = scanDocketSchema.parse(req.body);
 
-    if (!imageData || imageData.length < 100) {
-      return res.status(400).json({ error: 'No image received. Please try again.' });
-    }
-
-    let aiResult: ParsedAIResult;
-    try {
-      aiResult = await callOpenAIVision(imageData);
-    } catch (aiError: any) {
-      console.error('AI docket parsing failed:', aiError?.message || aiError);
-      return res.status(502).json({
-        error: 'Could not read the docket',
-        message: aiError?.message || 'The AI could not read the photo. Try a clearer image, or enter the products manually.',
+    if (!ocrText || ocrText.trim().length < 20) {
+      return res.status(400).json({
+        error: 'No text received',
+        message: 'The photo could not be read. Try a clearer, well-lit photo of the docket — keep it flat and avoid shadows.',
       });
     }
 
-    if (aiResult.products.length === 0) {
+    const header = parseSupplierAndInvoice(ocrText);
+    const lines = parseLineItems(ocrText);
+
+    if (lines.length === 0) {
       return res.status(422).json({
         error: 'No products found',
-        message: 'The image was read but no product lines were found. If this is a delivery docket, try a clearer photo. Otherwise enter the products manually.',
+        message: 'The text was read but no product lines could be identified. Try a clearer photo, or tap "Manual Entry" to add the products by hand.',
       });
     }
 
-    const docket = buildDocketFromAI(aiResult, existingProducts || []);
+    const products: ScannedProduct[] = lines.map((line) => {
+      const match = fuzzyMatch(line.name, line.barcode, existingProducts || []);
+      return {
+        id: match?.product?.id,
+        name: match?.product?.name || line.name,
+        barcode: line.barcode || match?.product?.barcode || undefined,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+        total: Number(line.total.toFixed(2)),
+        matched: !!match,
+        confidence: match ? Number(match.confidence.toFixed(2)) : 0,
+        originalText: line.originalText,
+      };
+    });
+
+    const computedTotal = Number(products.reduce((s, p) => s + p.total, 0).toFixed(2));
+
+    const docket: DeliveryDocket = {
+      id: `docket-${Date.now()}`,
+      supplierName: header.supplier || 'Unknown supplier',
+      deliveryDate: header.date || new Date().toISOString().split('T')[0],
+      invoiceNumber: header.invoice || `MANUAL-${Date.now()}`,
+      products,
+      totalAmount: header.total && header.total > 0 ? header.total : computedTotal,
+      status: 'matched',
+    };
+
     return res.json(docket);
   } catch (error: any) {
     console.error('Docket scanning error:', error);
