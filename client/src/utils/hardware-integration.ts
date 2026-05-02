@@ -606,6 +606,70 @@ export class POSHardware {
     return true;
   }
 
+  // Print a mobile top-up voucher slip
+  async printTopUpReceipt(topUp: {
+    transactionId: string;
+    operatorTransactionId?: string;
+    operator: string;
+    phoneNumber: string;
+    amount: number;
+    paymentMethod: string;
+    timestamp: string;
+  }): Promise<boolean> {
+    const html = `
+      <html>
+        <head>
+          <title>Top-Up Receipt</title>
+          <style>
+            body { font-family: monospace; font-size: 12px; margin: 10px; width: 280px; }
+            .center { text-align: center; }
+            .bold { font-weight: bold; font-size: 13px; }
+            .large { font-size: 22px; font-weight: bold; }
+            .line { border-bottom: 1px dashed #000; margin: 6px 0; }
+            .row { display: flex; justify-content: space-between; margin: 3px 0; }
+            .highlight { background: #f0f0f0; padding: 6px; text-align: center; margin: 6px 0; border: 1px solid #ccc; }
+          </style>
+        </head>
+        <body>
+          <div class="center bold">KERRIGANS XL MANORHAMILTON</div>
+          <div class="center">Main Street, Manorhamilton</div>
+          <div class="center">Tel: (071) 985-5555</div>
+          <div class="line"></div>
+          <div class="center bold" style="font-size:14px;">*** MOBILE TOP-UP ***</div>
+          <div class="line"></div>
+          <div class="row"><span>Date:</span><span>${new Date(topUp.timestamp).toLocaleDateString('en-IE')}</span></div>
+          <div class="row"><span>Time:</span><span>${new Date(topUp.timestamp).toLocaleTimeString('en-IE')}</span></div>
+          <div class="row"><span>Ref #:</span><span>${topUp.transactionId}</span></div>
+          <div class="line"></div>
+          <div class="row"><span>Network:</span><span class="bold">${topUp.operator}</span></div>
+          <div class="row"><span>Phone:</span><span class="bold">${topUp.phoneNumber}</span></div>
+          <div class="line"></div>
+          <div class="highlight">
+            <div>Top-Up Amount</div>
+            <div class="large">€${topUp.amount.toFixed(2)}</div>
+          </div>
+          <div class="line"></div>
+          <div class="row"><span>Payment:</span><span>${topUp.paymentMethod}</span></div>
+          ${topUp.operatorTransactionId ? `<div class="row"><span>Op. Ref:</span><span>${topUp.operatorTransactionId}</span></div>` : ''}
+          <div class="line"></div>
+          <div class="center" style="margin-top:10px;">Credit applied instantly.</div>
+          <div class="center">Keep this receipt as proof</div>
+          <div class="center">of your top-up.</div>
+          <div class="center" style="margin-top:10px;">Thank you for shopping!</div>
+          <br/><br/>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=320,height=600');
+    if (!printWindow) return false;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
+    return true;
+  }
+
   // Browser print fallback
   private printReceiptBrowser(receipt: Receipt): void {
     const printWindow = window.open('', '_blank', 'width=300,height=600');

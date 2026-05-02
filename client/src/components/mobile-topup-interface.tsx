@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { posHardware } from "@/utils/hardware-integration";
 import {
   Smartphone,
   X,
@@ -16,7 +17,8 @@ import {
   Phone,
   RefreshCw,
   CreditCard,
-  Banknote
+  Banknote,
+  Printer
 } from "lucide-react";
 
 interface MobileTopUpInterfaceProps {
@@ -71,6 +73,17 @@ export default function MobileTopUpInterface({
       if (result.success) {
         setTopUpResult(result);
         setStep("success");
+        // Auto-print the top-up receipt
+        const amount = selectedAmount ?? parseFloat(customAmount);
+        posHardware.printTopUpReceipt({
+          transactionId: result.transactionId,
+          operatorTransactionId: result.operatorTransactionId,
+          operator: result.operator || selectedOperator?.name || "",
+          phoneNumber: result.phoneNumber || `+353 ${phoneNumber}`,
+          amount,
+          paymentMethod: paymentMethod === "card" ? "Card" : "Cash",
+          timestamp: new Date().toISOString(),
+        });
       } else {
         toast({
           title: "Top-Up Failed",
@@ -397,6 +410,26 @@ export default function MobileTopUpInterface({
               <p className="text-xs text-muted-foreground">
                 Credit applied instantly. A receipt has been added to the transaction.
               </p>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  const amount = selectedAmount ?? parseFloat(customAmount);
+                  posHardware.printTopUpReceipt({
+                    transactionId: topUpResult.transactionId,
+                    operatorTransactionId: topUpResult.operatorTransactionId,
+                    operator: topUpResult.operator || selectedOperator?.name || "",
+                    phoneNumber: topUpResult.phoneNumber || `+353 ${phoneNumber}`,
+                    amount,
+                    paymentMethod: paymentMethod === "card" ? "Card" : "Cash",
+                    timestamp: new Date().toISOString(),
+                  });
+                }}
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Reprint Receipt
+              </Button>
 
               <div className="flex gap-3">
                 <Button
