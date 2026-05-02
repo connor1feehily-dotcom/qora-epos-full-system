@@ -270,14 +270,14 @@ export async function getDeliveryHistory(req: Request, res: Response) {
     // Get recent purchase orders that were imported from scanned dockets
     const deliveries = await storage.getPurchaseOrders();
     
-    const recentDeliveries = deliveries
-      .filter(po => po.notes?.includes('scanned docket'))
+    const recentDeliveries = (deliveries || [])
+      .filter(po => po && (po.notes ?? '').includes('scanned docket'))
       .slice(0, 20)
       .map(po => ({
         id: po.id,
         supplierName: 'Supplier', // Would get from supplier table
         deliveryDate: po.orderDate,
-        invoiceNumber: po.notes?.match(/docket: (.+)/)?.[1] || 'Unknown',
+        invoiceNumber: (po.notes ?? '').match(/docket: (.+)/)?.[1] || 'Unknown',
         totalAmount: parseFloat(po.totalAmount),
         status: po.status,
         itemCount: 0 // Would count items

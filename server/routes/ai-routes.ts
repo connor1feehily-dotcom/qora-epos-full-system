@@ -8,13 +8,22 @@ export const getAiInsights = [
   async (req: Request, res: Response) => {
     try {
       const { category, type } = req.query;
-      
+
+      // Run each insight generator independently so a single failure
+      // doesn't take down the whole dashboard.
+      const safe = async <T,>(fn: () => Promise<T>, fallback: T): Promise<T> => {
+        try { return await fn(); } catch (err) {
+          console.error('AI insight component failed:', err);
+          return fallback;
+        }
+      };
+
       const insights = {
-        demandForecasts: await valBot.generateDemandForecast(1, 7),
-        stockRecommendations: await valBot.generateStockRecommendations(),
-        suspiciousActivity: await valBot.detectSuspiciousTransactions(),
-        promotionSuggestions: await valBot.generatePromotionSuggestions(),
-        storeHealth: await valBot.calculateStoreHealthScore()
+        demandForecasts: await safe(() => valBot.generateDemandForecast(1, 7), [] as any),
+        stockRecommendations: await safe(() => valBot.generateStockRecommendations(), [] as any),
+        suspiciousActivity: await safe(() => valBot.detectSuspiciousTransactions(), [] as any),
+        promotionSuggestions: await safe(() => valBot.generatePromotionSuggestions(), [] as any),
+        storeHealth: await safe(() => valBot.calculateStoreHealthScore(), { score: 0, status: 'unavailable' } as any),
       };
 
       if (category) {

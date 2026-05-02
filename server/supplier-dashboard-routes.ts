@@ -239,14 +239,21 @@ export function registerSupplierDashboardRoutes(app: Express) {
 
   app.post("/api/email/parse-order", async (req, res) => {
     try {
-      const { emailSubject, emailBody, emailFrom } = req.body;
-      
+      const body = req.body || {};
+      const emailSubject = String(body.emailSubject ?? '');
+      const emailBody = String(body.emailBody ?? '');
+      const emailFrom = String(body.emailFrom ?? '');
+
+      // Safely derive a supplier name from the sender domain when possible
+      const domain = (emailFrom.split('@')[1] || '').split('.')[0];
+      const supplierName = domain ? domain.toUpperCase() : 'UNKNOWN_SUPPLIER';
+
       // Mock AI parsing results
       const parseResult = {
         confidence: 87,
         orderData: {
           orderNumber: "AUTO-" + Date.now(),
-          supplier: emailFrom.split('@')[1].split('.')[0].toUpperCase(),
+          supplier: supplierName,
           totalAmount: 450.75,
           orderDate: new Date().toISOString().split('T')[0],
           expectedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]

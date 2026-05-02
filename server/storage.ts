@@ -824,6 +824,15 @@ export class MemStorage implements IStorage {
   private transactionItems: Map<number, TransactionItem>;
   private promotions: Map<number, Promotion>;
   private promotionRules: Map<number, PromotionRule>;
+  private tillSessions: Map<number, TillSession>;
+  private dailyReports: Map<number, DailyReport>;
+  private posButtons: Map<number, PosButton>;
+  private purchaseOrders: Map<number, PurchaseOrder>;
+  private purchaseOrderItems: Map<number, PurchaseOrderItem>;
+  private auditLogs: Map<number, AuditLog>;
+  private staffSchedules: Map<number, StaffSchedule>;
+  private deliveryDockets: Map<number, DeliveryDocket>;
+  private deliveryItems: Map<number, DeliveryItem>;
   private currentId: number;
   private defaultOrgId: number = 1; // Default organization for backward compatibility
 
@@ -838,6 +847,15 @@ export class MemStorage implements IStorage {
     this.transactionItems = new Map();
     this.promotions = new Map();
     this.promotionRules = new Map();
+    this.tillSessions = new Map();
+    this.dailyReports = new Map();
+    this.posButtons = new Map();
+    this.purchaseOrders = new Map();
+    this.purchaseOrderItems = new Map();
+    this.auditLogs = new Map();
+    this.staffSchedules = new Map();
+    this.deliveryDockets = new Map();
+    this.deliveryItems = new Map();
     this.currentId = 1;
     
     this.seedData();
@@ -1416,6 +1434,306 @@ export class MemStorage implements IStorage {
   // Notifications
   async createNotification(notification: any): Promise<any> {
     return { id: Date.now(), ...notification };
+  }
+
+  // ==========================================================================
+  // Till Sessions
+  // ==========================================================================
+  async getCurrentTillSession(tillId: string): Promise<TillSession | undefined> {
+    return Array.from(this.tillSessions.values())
+      .filter(s => s.tillId === tillId && s.isActive === true)
+      .sort((a, b) => new Date(b.openedAt as any).getTime() - new Date(a.openedAt as any).getTime())[0];
+  }
+
+  async openTillSession(insertSession: InsertTillSession): Promise<TillSession> {
+    const id = this.currentId++;
+    const session: TillSession = {
+      id,
+      organizationId: (insertSession as any).organizationId ?? this.defaultOrgId,
+      tillId: insertSession.tillId,
+      userId: insertSession.userId,
+      openingFloat: String(insertSession.openingFloat ?? '0'),
+      closingFloat: null,
+      expectedCash: null,
+      actualCash: null,
+      variance: null,
+      openedAt: new Date(),
+      closedAt: null,
+      isActive: true,
+    };
+    this.tillSessions.set(id, session);
+    return session;
+  }
+
+  async closeTillSession(sessionId: number, closingData: { closingFloat: number; actualCash: number }): Promise<TillSession> {
+    const existing = this.tillSessions.get(sessionId);
+    if (!existing) throw new Error('Till session not found');
+    const closingFloatNum = Number(closingData.closingFloat ?? 0);
+    const actualCashNum = Number(closingData.actualCash ?? 0);
+    const expectedCashNum = Number(existing.openingFloat ?? 0); // simple expected = opening; deltas can refine later
+    const updated: TillSession = {
+      ...existing,
+      closingFloat: closingFloatNum.toFixed(2),
+      actualCash: actualCashNum.toFixed(2),
+      expectedCash: expectedCashNum.toFixed(2),
+      variance: (actualCashNum - expectedCashNum).toFixed(2),
+      closedAt: new Date(),
+      isActive: false,
+    };
+    this.tillSessions.set(sessionId, updated);
+    return updated;
+  }
+
+  async getTillSessions(tillId?: string): Promise<TillSession[]> {
+    const all = Array.from(this.tillSessions.values());
+    return tillId ? all.filter(s => s.tillId === tillId) : all;
+  }
+
+  // ==========================================================================
+  // Daily Reports (X-Read / Z-Read)
+  // ==========================================================================
+  async generateDailyReport(tillId: string, reportType: 'X' | 'Z', generatedBy: number): Promise<DailyReport> {
+    const allTx = Array.from(this.transactions.values()).filter(t => t.tillId === tillId);
+    const totalSales = allTx.reduce((sum, t) => sum + parseFloat((t.total as any) || '0'), 0);
+    const totalVat = allTx.reduce((sum, t) => sum + parseFloat((t as any).vatAmount || '0'), 0);
+    const cashSales = allTx.filter(t => t.paymentMethod === 'cash').reduce((sum, t) => sum + parseFloat((t.total as any) || '0'), 0);
+    const cardSales = allTx.filter(t => t.paymentMethod === 'card').reduce((sum, t) => sum + parseFloat((t.total as any) || '0'), 0);
+
+    const currentSession = await this.getCurrentTillSession(tillId);
+
+    const id = this.currentId++;
+    const report: DailyReport = {
+      id,
+      organizationId: this.defaultOrgId,
+      tillId,
+      reportType,
+      reportDate: new Date(),
+      totalSales: totalSales.toFixed(2),
+      totalVat: totalVat.toFixed(2),
+      transactionCount: allTx.length,
+      cashSales: cashSales.toFixed(2),
+      cardSales: cardSales.toFixed(2),
+      openingFloat: currentSession?.openingFloat ?? '0',
+      closingFloat: currentSession?.closingFloat ?? '0',
+      generatedBy,
+    };
+    this.dailyReports.set(id, report);
+    return report;
+  }
+
+  async getDailyReports(tillId?: string, date?: Date): Promise<DailyReport[]> {
+    let all = Array.from(this.dailyReports.values());
+    if (tillId) all = all.filter(r => r.tillId === tillId);
+    if (date) {
+      const start = new Date(date); start.setHours(0, 0, 0, 0);
+      const end = new Date(date); end.setHours(23, 59, 59, 999);
+      all = all.filter(r => {
+        const d = new Date(r.reportDate as any);
+        return d >= start && d <= end;
+      });
+    }
+    return all.sort((a, b) => new Date(b.reportDate as any).getTime() - new Date(a.reportDate as any).getTime());
+  }
+
+  async getLastZReport(tillId: string): Promise<DailyReport | undefined> {
+    return Array.from(this.dailyReports.values())
+      .filter(r => r.tillId === tillId && r.reportType === 'Z')
+      .sort((a, b) => new Date(b.reportDate as any).getTime() - new Date(a.reportDate as any).getTime())[0];
+  }
+
+  // ==========================================================================
+  // POS Buttons
+  // ==========================================================================
+  async getPosButtons(tillId?: string): Promise<PosButton[]> {
+    const all = Array.from(this.posButtons.values()).filter(b => b.isActive !== false);
+    return tillId ? all.filter(b => !b.tillId || b.tillId === tillId) : all;
+  }
+
+  async createPosButton(button: InsertPosButton): Promise<PosButton> {
+    const id = this.currentId++;
+    const newButton: PosButton = {
+      id,
+      organizationId: (button as any).organizationId ?? this.defaultOrgId,
+      tillId: button.tillId ?? null,
+      productId: button.productId ?? null,
+      label: button.label,
+      color: button.color ?? '#3b82f6',
+      icon: button.icon ?? null,
+      position: button.position,
+      page: button.page ?? 1,
+      isActive: button.isActive ?? true,
+    } as PosButton;
+    this.posButtons.set(id, newButton);
+    return newButton;
+  }
+
+  async updatePosButton(id: number, button: Partial<InsertPosButton>): Promise<PosButton | undefined> {
+    const existing = this.posButtons.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...button } as PosButton;
+    this.posButtons.set(id, updated);
+    return updated;
+  }
+
+  async deletePosButton(id: number): Promise<boolean> {
+    return this.posButtons.delete(id);
+  }
+
+  // ==========================================================================
+  // Purchase Orders
+  // ==========================================================================
+  async getPurchaseOrders(): Promise<PurchaseOrder[]> {
+    return Array.from(this.purchaseOrders.values())
+      .sort((a, b) => new Date((b as any).orderDate || 0).getTime() - new Date((a as any).orderDate || 0).getTime());
+  }
+
+  async getPurchaseOrder(id: number): Promise<PurchaseOrder | undefined> {
+    return this.purchaseOrders.get(id);
+  }
+
+  async createPurchaseOrder(po: InsertPurchaseOrder): Promise<PurchaseOrder> {
+    const id = this.currentId++;
+    const newPO: PurchaseOrder = {
+      id,
+      organizationId: (po as any).organizationId ?? this.defaultOrgId,
+      poNumber: (po as any).poNumber || `PO-${Date.now()}-${id}`,
+      supplierId: po.supplierId ?? null,
+      status: po.status || 'pending',
+      totalAmount: (po as any).totalAmount ?? null,
+      orderDate: (po as any).orderDate || new Date(),
+      expectedDate: (po as any).expectedDate ?? null,
+      receivedDate: (po as any).receivedDate ?? null,
+      createdBy: po.createdBy ?? null,
+      notes: po.notes ?? null,
+    };
+    this.purchaseOrders.set(id, newPO);
+    return newPO;
+  }
+
+  async updatePurchaseOrder(id: number, po: Partial<InsertPurchaseOrder>): Promise<PurchaseOrder | undefined> {
+    const existing = this.purchaseOrders.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...po } as PurchaseOrder;
+    this.purchaseOrders.set(id, updated);
+    return updated;
+  }
+
+  async getPurchaseOrderItems(poId: number): Promise<PurchaseOrderItem[]> {
+    return Array.from(this.purchaseOrderItems.values()).filter(i => i.purchaseOrderId === poId);
+  }
+
+  async addPurchaseOrderItem(item: InsertPurchaseOrderItem): Promise<PurchaseOrderItem> {
+    const id = this.currentId++;
+    const newItem = { id, ...item } as PurchaseOrderItem;
+    this.purchaseOrderItems.set(id, newItem);
+    return newItem;
+  }
+
+  // ==========================================================================
+  // Audit Logs
+  // ==========================================================================
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const id = this.currentId++;
+    const newLog: AuditLog = {
+      id,
+      ...log,
+      createdAt: new Date(),
+    } as AuditLog;
+    this.auditLogs.set(id, newLog);
+    return newLog;
+  }
+
+  async getAuditLogs(userId?: number, tableName?: string): Promise<AuditLog[]> {
+    let all = Array.from(this.auditLogs.values());
+    if (userId) all = all.filter(l => l.userId === userId);
+    if (tableName) all = all.filter(l => l.tableName === tableName);
+    return all.sort((a, b) => new Date(b.createdAt as any).getTime() - new Date(a.createdAt as any).getTime());
+  }
+
+  // ==========================================================================
+  // Staff Schedules
+  // ==========================================================================
+  async getStaffSchedules(userId?: number, date?: Date): Promise<StaffSchedule[]> {
+    let all = Array.from(this.staffSchedules.values());
+    if (userId) all = all.filter(s => s.userId === userId);
+    if (date) {
+      const start = new Date(date); start.setHours(0, 0, 0, 0);
+      const end = new Date(date); end.setHours(23, 59, 59, 999);
+      all = all.filter(s => {
+        const d = new Date(s.shiftStart as any);
+        return d >= start && d <= end;
+      });
+    }
+    return all.sort((a, b) => new Date(a.shiftStart as any).getTime() - new Date(b.shiftStart as any).getTime());
+  }
+
+  async createStaffSchedule(schedule: InsertStaffSchedule): Promise<StaffSchedule> {
+    const id = this.currentId++;
+    const newSchedule = { id, ...schedule } as StaffSchedule;
+    this.staffSchedules.set(id, newSchedule);
+    return newSchedule;
+  }
+
+  async updateStaffSchedule(id: number, schedule: Partial<InsertStaffSchedule>): Promise<StaffSchedule | undefined> {
+    const existing = this.staffSchedules.get(id);
+    if (!existing) return undefined;
+    const updated = { ...existing, ...schedule } as StaffSchedule;
+    this.staffSchedules.set(id, updated);
+    return updated;
+  }
+
+  // ==========================================================================
+  // Delivery Dockets / Items
+  // ==========================================================================
+  async getDeliveryDockets(status?: string): Promise<DeliveryDocket[]> {
+    const all = Array.from(this.deliveryDockets.values());
+    return status ? all.filter(d => d.status === status) : all;
+  }
+
+  async createDeliveryDocket(docket: InsertDeliveryDocket): Promise<DeliveryDocket> {
+    const id = this.currentId++;
+    const newDocket: DeliveryDocket = {
+      id,
+      organizationId: (docket as any).organizationId ?? this.defaultOrgId,
+      docketNumber: docket.docketNumber,
+      supplierName: docket.supplierName,
+      supplierId: docket.supplierId ?? null,
+      scannedByUserId: docket.scannedByUserId ?? null,
+      approvedByUserId: docket.approvedByUserId ?? null,
+      deliveryDate: docket.deliveryDate as any,
+      totalItems: docket.totalItems ?? 0,
+      totalValue: docket.totalValue ?? '0.00',
+      status: docket.status || 'pending',
+      scanMethod: docket.scanMethod ?? 'mobile',
+      imageUrl: docket.imageUrl ?? null,
+      notes: docket.notes ?? null,
+      createdAt: new Date(),
+    } as DeliveryDocket;
+    this.deliveryDockets.set(id, newDocket);
+    return newDocket;
+  }
+
+  async getDeliveryItems(docketId: number): Promise<DeliveryItem[]> {
+    return Array.from(this.deliveryItems.values()).filter(i => i.docketId === docketId);
+  }
+
+  async createDeliveryItem(item: InsertDeliveryItem): Promise<DeliveryItem> {
+    const id = this.currentId++;
+    const newItem = { id, ...item } as DeliveryItem;
+    this.deliveryItems.set(id, newItem);
+    return newItem;
+  }
+
+  async approveDeliveryDocket(docketId: number, approvedByUserId: number): Promise<DeliveryDocket> {
+    const existing = this.deliveryDockets.get(docketId);
+    if (!existing) throw new Error('Delivery docket not found');
+    const updated: DeliveryDocket = {
+      ...existing,
+      status: 'approved',
+      approvedByUserId,
+    };
+    this.deliveryDockets.set(docketId, updated);
+    return updated;
   }
 }
 

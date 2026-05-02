@@ -18,6 +18,21 @@ A comprehensive retail EPOS system with full demo mode, featuring advanced retai
 
 ## Recent Changes
 
+**May 2, 2026 — Deployment readiness pass:**
+- ✅ Fixed 8 broken endpoints discovered in full feature audit (root cause: `MemStorage` was missing methods declared on `IStorage`)
+- ✅ Added complete `MemStorage` implementations matching the `shared/schema.ts` contracts:
+  - Till sessions (open / close / current / list) — uses `userId` + `isActive`, computes `expectedCash` and `variance` on close
+  - Daily reports (X-Read / Z-Read / list / last-Z) — persisted with `organizationId`
+  - POS button CRUD, Purchase order CRUD + items, Audit logs, Staff schedules, Delivery dockets/items + approve
+- ✅ Hardened `/api/ai/insights` so any single sub-component failure no longer kills the whole dashboard (per-component `safe()` wrapper)
+- ✅ Filled in missing ValBot helper methods (`getSeasonalTrend`, `getUpcomingEvents`, `calculateOptimalOrderQuantity`, `calculateUrgency`, `generateRecommendationReasoning`) and fixed urgency-sort bug (string comparison → rank map)
+- ✅ Wrapped `valbot.saveInsight` in try/catch so analytics keep working even when the `ai_insights` table is unavailable
+- ✅ Hardened `/api/email/parse-order` against missing/non-string fields (no more 500 on empty body)
+- ✅ Hardened `/api/delivery/history` to handle null `notes` safely
+- ✅ Fixed `/api/reports/z-read` to actually persist via `storage.generateDailyReport` (older handler returned an unsaved object, so `last-z-read` always reported "No Z-Read found")
+- ✅ Mobile top-up voucher: card flow now Promise-based, Payzone receives correct amount, modal stays open during processing
+- 🔑 Outstanding for live deploy: provision Payzone Ireland creds (`PAYZONE_USERNAME`, `PAYZONE_PASSWORD`, `PAYZONE_TERMINAL_ID`) and Reloadly creds (`RELOADLY_CLIENT_ID`, `RELOADLY_CLIENT_SECRET`). System runs in simulation mode until these are set.
+
 **April 3, 2026:**
 - ✅ Implemented Payzone Integrated Payments terminal integration
   - Backend service: `server/routes/payzone-service.ts` — full Payzone REST API client (UAT: retail-services-uat.payzone.ie)

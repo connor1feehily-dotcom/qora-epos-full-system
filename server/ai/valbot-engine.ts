@@ -76,7 +76,8 @@ export class ValBotEngine {
       recommendations.push(recommendation);
     }
     
-    return recommendations.sort((a, b) => b.urgency - a.urgency);
+    const urgencyRank: Record<string, number> = { high: 3, medium: 2, low: 1 };
+    return recommendations.sort((a, b) => (urgencyRank[b.urgency] ?? 0) - (urgencyRank[a.urgency] ?? 0));
   }
 
   // Fraud Detection & Suspicious Activity
@@ -341,16 +342,24 @@ export class ValBotEngine {
   }
 
   private async saveInsight(insight: any): Promise<void> {
-    await db.insert(aiInsights).values({
-      type: insight.type,
-      category: insight.category,
-      productId: insight.productId,
-      customerId: insight.customerId,
-      tillId: insight.tillId,
-      confidence: insight.confidence.toString(),
-      prediction: insight.prediction,
-      metadata: insight.metadata
-    });
+    // Best-effort persistence: silently ignore if the ai_insights table is
+    // unavailable (e.g. when running on in-memory storage or before a DB
+    // migration). Failure to save an insight should never break the user-facing
+    // analytics endpoints.
+    try {
+      await db.insert(aiInsights).values({
+        type: insight.type,
+        category: insight.category,
+        productId: insight.productId,
+        customerId: insight.customerId,
+        tillId: insight.tillId,
+        confidence: insight.confidence.toString(),
+        prediction: insight.prediction,
+        metadata: insight.metadata
+      });
+    } catch (err) {
+      // swallow — analytics should remain available even if persistence fails
+    }
   }
 
   private getSampleQueries(): string[] {
@@ -374,6 +383,37 @@ export class ValBotEngine {
 
   private async getLocalEvents(): Promise<any[]> {
     return [];
+  }
+
+  private async getSeasonalTrend(productId: number): Promise<any> {
+    return { trend: 'stable', multiplier: 1.0 };
+  }
+
+  private async getUpcomingEvents(): Promise<any[]> {
+    return [];
+  }
+
+  private calculateOptimalOrderQuantity(forecast: any, product: any): number {
+    const dailyAvg = forecast?.dailyAverage ?? 1;
+    const daysOfStockTarget = 14;
+    const currentStock = product?.stock ?? 0;
+    return Math.max(0, Math.ceil(dailyAvg * daysOfStockTarget - currentStock));
+  }
+
+  private calculateUrgency(stock: number, dailyAverage: number): 'low' | 'medium' | 'high' {
+    if (!dailyAverage || dailyAverage <= 0) return 'low';
+    const daysOfStock = stock / dailyAverage;
+    if (daysOfStock < 3) return 'high';
+    if (daysOfStock < 7) return 'medium';
+    return 'low';
+  }
+
+  private generateRecommendationReasoning(forecast: any, seasonality: any, localEvents: any[]): string {
+    const parts: string[] = [];
+    if (forecast?.dailyAverage) parts.push(`Average daily demand: ${forecast.dailyAverage}`);
+    if (seasonality?.trend) parts.push(`Seasonal trend: ${seasonality.trend}`);
+    if (localEvents?.length) parts.push(`${localEvents.length} upcoming local event(s)`);
+    return parts.join('. ') || 'Based on current stock levels';
   }
 
   private async calculateSuspiciousScore(transaction: any): Promise<number> {

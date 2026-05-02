@@ -373,35 +373,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Z-Read and End of Day Reports
   app.post("/api/reports/z-read", async (req, res) => {
     try {
-      const { tillId } = req.body;
+      const { tillId, generatedBy = 1 } = req.body;
+      if (!tillId) {
+        return res.status(400).json({ error: "tillId is required" });
+      }
+
       const today = new Date();
       const startOfDay = new Date(today.setHours(0, 0, 0, 0));
       const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-      
-      // Get all transactions for today
+
+      // Persist the Z-Read so it shows up in last-z-read / daily report history.
+      const zRead = await storage.generateDailyReport(tillId, 'Z', generatedBy);
       const transactions = await storage.getTransactionsByDateRange(startOfDay, endOfDay, tillId);
-      
-      const totalSales = transactions.reduce((sum, t) => sum + parseFloat(t.total), 0);
-      const totalVat = transactions.reduce((sum, t) => sum + parseFloat(t.vatAmount), 0);
-      const cashSales = transactions.filter(t => t.paymentMethod === 'cash').reduce((sum, t) => sum + parseFloat(t.total), 0);
-      const cardSales = transactions.filter(t => t.paymentMethod === 'card').reduce((sum, t) => sum + parseFloat(t.total), 0);
-      
-      const zRead = {
-        reportType: 'Z',
-        tillId,
-        reportDate: new Date(),
-        totalSales,
-        totalVat,
-        transactionCount: transactions.length,
-        cashSales,
-        cardSales,
-        openingFloat: 100.00, // Default opening float
-        closingFloat: 100.00 + cashSales, // Opening + cash sales
-        generatedBy: 1
-      };
-      
+
       res.json({ zRead, transactions });
     } catch (error) {
+      console.error('Z-read generation error:', error);
       res.status(500).json({ error: "Failed to generate Z-read" });
     }
   });
