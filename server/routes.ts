@@ -39,6 +39,11 @@ import {
   payzoneReconciliation,
   payzoneConfig
 } from "./routes/payzone-routes";
+import {
+  topupGetOperators,
+  topupProcess,
+  topupConfig
+} from "./routes/topup-routes";
 import { securityHeaders } from "./security/pci-compliance";
 import { insertProductSchema, insertCustomerSchema, insertSupplierSchema, insertTransactionSchema, insertTransactionItemSchema, insertPromotionSchema, insertOrganizationSchema } from "@shared/schema";
 import { z } from 'zod';
@@ -1560,6 +1565,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payzone/cancel", payzoneCancel);
   app.post("/api/payzone/refund", payzoneRefund);
   app.post("/api/payzone/reconciliation", payzoneReconciliation);
+
+  // Mobile Top-Up Routes
+  app.get("/api/topup/config", topupConfig);
+  app.get("/api/topup/operators", topupGetOperators);
+  app.post("/api/topup/process", topupProcess);
 
   const httpServer = createServer(app);
   return httpServer;

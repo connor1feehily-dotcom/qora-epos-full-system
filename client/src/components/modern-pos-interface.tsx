@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import PayzonePaymentInterface, { type PayzonePaymentResult } from "@/components/payzone-payment-interface";
+import MobileTopUpInterface from "@/components/mobile-topup-interface";
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -42,7 +43,8 @@ import {
   Lock,
   LogOut,
   X,
-  Download
+  Download,
+  Smartphone
 } from "lucide-react";
 import type { Product, InsertTransaction, InsertTransactionItem, User as UserType, PosButton } from "@shared/schema";
 import qoraLogo from "@assets/qoraPresentation_1767793834334.jpg";
@@ -71,6 +73,8 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
   const [showPaymentInterface, setShowPaymentInterface] = useState(false);
   const [showPayzonePayment, setShowPayzonePayment] = useState(false);
   const [payzoneReference, setPayzoneReference] = useState('');
+  const [showTopUp, setShowTopUp] = useState(false);
+  const [pendingTopUpCardAmount, setPendingTopUpCardAmount] = useState<number | null>(null);
   const [showCashInput, setShowCashInput] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [darkMode, setDarkMode] = useState(false);
@@ -642,6 +646,15 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
             <Button 
               variant="ghost" 
               size="sm" 
+              className="w-full h-12 flex flex-col items-center space-y-1 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+              onClick={() => setShowTopUp(true)}
+            >
+              <Smartphone className="w-5 h-5" />
+              <span className="text-xs">Top-Up</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
               className="w-full h-12 flex flex-col items-center space-y-1"
               onClick={() => setShowSettlementsModal(true)}
             >
@@ -1027,6 +1040,31 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
             </div>
           </div>
         </div>
+      )}
+
+      {/* Mobile Top-Up Interface */}
+      {showTopUp && (
+        <MobileTopUpInterface
+          tillId={tillId}
+          onClose={() => {
+            setShowTopUp(false);
+            setPendingTopUpCardAmount(null);
+          }}
+          onPayWithCard={(amount, reference) => {
+            setShowTopUp(false);
+            setPendingTopUpCardAmount(amount);
+            setPayzoneReference(reference);
+            setShowPayzonePayment(true);
+          }}
+          onPayWithCash={(amount) => {
+            setShowTopUp(false);
+            toast({
+              title: "Top-Up — Cash Collected",
+              description: `Collect €${amount.toFixed(2)} from customer`,
+              duration: 6000
+            });
+          }}
+        />
       )}
 
       {/* Payzone Terminal Payment Interface */}
