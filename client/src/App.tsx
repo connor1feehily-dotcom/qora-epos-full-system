@@ -13,7 +13,7 @@ import { KerrigansLoadingScreen } from "@/components/kerrigan-loading-screen";
 import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { InactiveScreen } from "@/components/inactive-screen";
 import { ComponentPreloader } from "@/utils/preloader";
-import { isTillConfigured, getTillConfig, getCurrentTillId } from "@/utils/till-detection";
+import { isTillConfigured, getTillConfig, getCurrentTillId, getDeviceRole, type DeviceRole } from "@/utils/till-detection";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { startAutoFlush } from "@/lib/offline-queue";
 import { registerServiceWorker } from "@/lib/push-client";
@@ -85,6 +85,7 @@ function AppContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [lastActivity, setLastActivity] = useState<Date>(new Date());
   const [tillConfigured, setTillConfigured] = useState<boolean>(false);
+  const [deviceRole, setDeviceRoleState] = useState<DeviceRole>('both');
   const [checkingTillConfig, setCheckingTillConfig] = useState<boolean>(true);
   const [testingMode, setTestingMode] = useState<boolean>(false);
 
@@ -92,20 +93,22 @@ function AppContent() {
   useEffect(() => {
     const configured = isTillConfigured();
     setTillConfigured(configured);
-    
+
     if (configured) {
       const tillId = getCurrentTillId();
+      const role = getDeviceRole();
+      setDeviceRoleState(role);
       if (tillId) {
         setSelectedTill(tillId);
-        console.log("Auto-detected till:", tillId);
-        
+        console.log("Auto-detected till:", tillId, "role:", role);
+
         const tillConfig = getTillConfig();
         if (tillConfig) {
           console.log("Till configuration:", tillConfig);
         }
       }
     }
-    
+
     setCheckingTillConfig(false);
   }, []);
 
@@ -159,6 +162,17 @@ function AppContent() {
   };
 
   const handleModeSelect = (selectedMode: 'pos' | 'back-office' | 'stock-take' | 'hardware-setup', tillId?: string) => {
+    // Enforce device role: a Till device can never enter back office;
+    // a Back Office device can never enter POS / stock-take.
+    if (deviceRole === 'till' && (selectedMode === 'back-office' || selectedMode === 'stock-take')) {
+      console.warn('Blocked: this device is configured as a Till only.');
+      return;
+    }
+    if (deviceRole === 'back-office' && (selectedMode === 'pos' || selectedMode === 'stock-take' || selectedMode === 'hardware-setup')) {
+      console.warn('Blocked: this device is configured as Back Office only.');
+      return;
+    }
+
     if (selectedMode === 'pos' && tillId) {
       setSelectedTill(tillId);
       setMode('pos');
@@ -178,8 +192,29 @@ function AppContent() {
 
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
-    
-    // Auto-open POS if till is configured
+
+    // Route by device role.
+    if (deviceRole === 'back-office') {
+      // Back-office PCs require manager/admin.
+      const allowed = user.role === 'admin' || user.role === 'manager' ||
+        user.username === 'admin' || user.username === 'manager';
+      if (!allowed) {
+        console.warn('Non-manager tried to log in on a Back Office device');
+        setCurrentUser(null);
+        setMode('staff-login');
+        return;
+      }
+      setMode('back-office');
+      return;
+    }
+
+    if (deviceRole === 'till' && tillConfigured && selectedTill) {
+      console.log(`Till device — auto-opening POS for ${selectedTill}`);
+      setMode('pos');
+      return;
+    }
+
+    // 'both' role — keep existing behavior.
     if (tillConfigured && selectedTill) {
       console.log(`Auto-opening POS for ${selectedTill} after login`);
       setMode('pos');
@@ -210,13 +245,16 @@ function AppContent() {
   // Show till setup wizard if not configured
   if (!tillConfigured) {
     return (
-      <TillSetupWizard 
+      <TillSetupWizard
         onComplete={() => {
           setTillConfigured(true);
           const tillId = getCurrentTillId();
           if (tillId) {
             setSelectedTill(tillId);
           }
+          // Refresh role from storage so the very first session after setup
+          // already enforces the new device role (no reload required).
+          setDeviceRoleState(getDeviceRole());
         }}
         organizationId={1}
       />
@@ -289,19 +327,19 @@ function AppContent() {
           onBack={testingMode ? handleBackToMenu : () => {}}
         />
       )}
-      {mode === 'pos' && selectedTill && (
-        <POSRouter 
-          tillId={selectedTill} 
-          onBackToMenu={handleBackToMenu} 
-          onGoInactive={handleGoInactive} 
+      {mode === 'pos' && selectedTill && deviceRole !== 'back-office' && (
+        <POSRouter
+          tillId={selectedTill}
+          onBackToMenu={handleBackToMenu}
+          onGoInactive={handleGoInactive}
           currentUser={currentUser || undefined}
           onSelectMode={handleModeSelect}
         />
       )}
-      {mode === 'back-office' && (
-        <BackOfficeRouter 
-          onBackToMenu={handleBackToMenu} 
-          currentUser={currentUser || undefined} 
+      {mode === 'back-office' && deviceRole !== 'till' && (
+        <BackOfficeRouter
+          onBackToMenu={handleBackToMenu}
+          currentUser={currentUser || undefined}
         />
       )}
 

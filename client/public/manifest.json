@@ -1,55 +1,18 @@
 {
-  "name": "Quantum POS - Kerrigan's XL",
-  "short_name": "Quantum POS",
-  "description": "Advanced Point of Sale System for Kerrigan's XL Manorhamilton",
+  "name": "Qora EPOS",
+  "short_name": "Qora EPOS",
+  "description": "Qora EPOS — the till that never stops. Built for Irish convenience stores.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1e293b",
-  "theme_color": "#3b82f6",
+  "background_color": "#1e3a5f",
+  "theme_color": "#1e3a5f",
   "orientation": "any",
   "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icon-512.png", 
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable any"
-    }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "categories": ["business", "productivity", "utilities"],
-  "screenshots": [
-    {
-      "src": "/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshot-narrow.png", 
-      "sizes": "640x1136",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Point of Sale",
-      "short_name": "POS",
-      "description": "Start POS session",
-      "url": "/?mode=pos",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Stock Take",
-      "short_name": "Stock",
-      "description": "Mobile stock take",
-      "url": "/?mode=stock-take", 
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    }
-  ]
+  "categories": ["business", "productivity"]
 }

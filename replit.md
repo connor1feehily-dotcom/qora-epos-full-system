@@ -18,6 +18,12 @@ A comprehensive retail EPOS system with full demo mode, featuring advanced retai
 
 ## Recent Changes
 
+**May 2, 2026 — Installable PWA + per-device role lock:**
+- ✅ **Installable as an app** — fixed broken PWA install (icons `/icon-192.png` and `/icon-512.png` were referenced but didn't exist). Generated real PNG icons from the Qora logo via ImageMagick. Rebranded `client/public/manifest.json` from "Quantum POS" to "Qora EPOS". New `<InstallPwaButton>` component (in `client/src/components/install-pwa-button.tsx`) listens for `beforeinstallprompt` and shows an "Install Qora EPOS" button on the staff-login screen and the device-setup wizard. iOS users get a "Tap Share → Add to Home Screen" hint instead.
+- ✅ **Per-device role lock** — every device now picks a role on first launch: **Till** (POS only, no back-office), **Back Office PC** (back office only, no POS, login restricted to admin/manager), or **Manager Terminal (Both)**. Stored as `deviceRole` field in `TillConfig` localStorage. Backward-compat: existing configs default to `'both'`. Routing in `client/src/App.tsx` enforces the role both at login and on every mode transition. A till device cannot reach back office; a back-office device cannot reach POS.
+  - Modified: `client/src/utils/till-detection.ts` (added `DeviceRole` type + `getDeviceRole()` + role param to `setTillConfig`), `client/src/components/till-setup-wizard.tsx` (new role-selection step), `client/src/App.tsx` (role-aware routing), `client/src/components/staff-login.tsx` (footer shows role + "Reconfigure" link).
+- ✅ **Multi-till already works end-to-end** — confirmed: each device's till number is saved in localStorage, every transaction is tagged with `tillId` (DB column `till_id`), and Z/X reports filter by `tillId`. No code changes needed there.
+
 **May 2, 2026 — Real offline queue + real Web Push notifications:**
 - ✅ **Offline sales queue** — when the till loses internet, sales are saved to the device (IndexedDB via `idb-keyval`) and auto-synced when the connection returns. Visible amber banner shows offline status; blue banner shows pending sync count. POS receipt-id becomes `OFFLINE-XXXXXX` while offline; toast says "Sale saved offline". Auto-flush runs on `online` event and every 30s. 4xx replay errors are dropped (won't retry forever); 5xx/network errors keep retrying.
   - New: `client/src/lib/offline-queue.ts`, `client/src/components/offline-indicator.tsx`

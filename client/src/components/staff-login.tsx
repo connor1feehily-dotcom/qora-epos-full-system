@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, User, ArrowLeft } from "lucide-react";
+import { Shield, User, ArrowLeft, Settings } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { User as StaffUser } from "@shared/schema";
 import qoraLogo from "@assets/qoraPresentation_1767793834334.jpg";
+import { InstallPwaButton } from "@/components/install-pwa-button";
+import { clearTillConfig, getTillConfig } from "@/utils/till-detection";
 
 interface StaffLoginProps {
   onLogin: (user: StaffUser) => void;
@@ -156,9 +158,49 @@ export function StaffLogin({ onLogin, onBack }: StaffLoginProps) {
                 <div>Cashier: 2222</div>
               </div>
             </div>
+
+            <div className="mt-4 flex flex-col items-center gap-3">
+              <InstallPwaButton />
+              <DeviceInfoFooter />
+            </div>
           </div>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function DeviceInfoFooter() {
+  const config = getTillConfig();
+  if (!config) return null;
+
+  const roleLabel =
+    config.deviceRole === 'till' ? 'Till'
+      : config.deviceRole === 'back-office' ? 'Back Office'
+      : 'Manager Terminal';
+
+  const handleReset = () => {
+    const confirmed = window.confirm(
+      "Reconfigure this device? You will be asked to pick the device role and till number again. Sales already saved are NOT affected.",
+    );
+    if (!confirmed) return;
+    clearTillConfig();
+    window.location.reload();
+  };
+
+  return (
+    <div className="text-xs text-muted-foreground flex items-center gap-2">
+      <span>{roleLabel}{config.deviceRole !== 'back-office' ? ` · ${config.tillName}` : ''}</span>
+      <span>·</span>
+      <button
+        type="button"
+        onClick={handleReset}
+        className="inline-flex items-center gap-1 underline hover:text-primary"
+        data-testid="link-reset-device"
+      >
+        <Settings className="w-3 h-3" />
+        Reconfigure
+      </button>
     </div>
   );
 }
