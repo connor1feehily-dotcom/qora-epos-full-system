@@ -14,6 +14,9 @@ import { useAutoSeed } from "@/hooks/useAutoSeed";
 import { InactiveScreen } from "@/components/inactive-screen";
 import { ComponentPreloader } from "@/utils/preloader";
 import { isTillConfigured, getTillConfig, getCurrentTillId } from "@/utils/till-detection";
+import { OfflineIndicator } from "@/components/offline-indicator";
+import { startAutoFlush } from "@/lib/offline-queue";
+import { registerServiceWorker } from "@/lib/push-client";
 import type { User } from "@shared/schema";
 
 // Lazy load heavy components
@@ -119,6 +122,12 @@ function AppContent() {
     // Start preloading immediately
     ComponentPreloader.preloadCriticalComponents();
     ComponentPreloader.preloadDataEndpoints();
+  }, []);
+
+  // Register service worker (push + offline app shell) and start auto-syncing offline sales
+  useEffect(() => {
+    registerServiceWorker().catch(() => {});
+    startAutoFlush();
   }, []);
 
   // Secret keyboard shortcut to enable testing mode (Ctrl+Alt+M)
@@ -232,6 +241,7 @@ function AppContent() {
   return (
     <TooltipProvider>
       <Toaster />
+      <OfflineIndicator />
       
       {/* Testing Mode Indicator - Hidden button */}
       {testingMode && (

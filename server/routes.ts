@@ -206,6 +206,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stock Taking System Integration
   const { registerStockTakingRoutes } = await import('./routes/stock-taking-routes');
   registerStockTakingRoutes(app);
+
+  // Web Push Notifications
+  const { registerPushRoutes } = await import('./routes/push-routes');
+  registerPushRoutes(app);
   app.get("/api/supplier-order-integration", async (req, res) => {
     try {
       const integrations = await storage.getSupplierOrderIntegrations();
@@ -772,6 +776,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(201).json({ transaction: newTransaction, items: transactionItems });
+
+      // Fire-and-forget: notify on low stock and high-value transactions
+      try {
+        const { sendPushToAll } = await import('./routes/push-routes');
+        const totalNum = parseFloat(String(newTransaction.total));
+        if (totalNum >= 100) {
+          sendPushToAll({
+            title: 'Large transaction',
+            body: `€${totalNum.toFixed(2)} sale just processed on ${newTransaction.tillId}.`,
+            tag: 'large-sale',
+            url: '/',
+          }).catch(() => {});
+        }
+        // Re-check stock for sold items
+        for (const item of items) {
+          const p = await storage.getProduct(item.productId);
+          if (p && typeof p.stock === 'number' && typeof (p as any).minStock === 'number') {
+            const minStock = (p as any).minStock || 0;
+            if (p.stock <= minStock) {
+              sendPushToAll({
+                title: 'Stock running low',
+                body: `${p.name}: ${p.stock} left (min ${minStock}). Time to reorder.`,
+                tag: `low-stock-${p.id}`,
+                url: '/',
+              }).catch(() => {});
+            }
+          }
+        }
+      } catch (pushErr) {
+        // Never let push errors affect the transaction response
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid transaction data", errors: error.errors });

@@ -327,25 +327,38 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
         total: item.subtotal.toFixed(2)
       }));
 
-      const response = await apiRequest('POST', '/api/transactions', {
-        transaction: transactionData,
-        items: items
-      });
+      const payload = { transaction: transactionData, items: items };
 
-      if (!response.ok) {
-        throw new Error('Failed to create transaction');
+      try {
+        const response = await apiRequest('POST', '/api/transactions', payload);
+        if (!response.ok) throw new Error('Failed to create transaction');
+        const result = await response.json();
+        return {
+          transactionId: result.transaction.id,
+          total: total.toFixed(2),
+          paymentMethod,
+          amountGiven,
+          change,
+          items: cart,
+          offline: false as const,
+        };
+      } catch (err: any) {
+        // If we lost the network, queue the sale locally so the till keeps trading.
+        const { enqueueSale, isLikelyOffline } = await import('@/lib/offline-queue');
+        if (isLikelyOffline(err)) {
+          const queued = await enqueueSale('/api/transactions', 'POST', payload);
+          return {
+            transactionId: `OFFLINE-${queued.id.slice(-6).toUpperCase()}`,
+            total: total.toFixed(2),
+            paymentMethod,
+            amountGiven,
+            change,
+            items: cart,
+            offline: true as const,
+          };
+        }
+        throw err;
       }
-
-      const result = await response.json();
-
-      return {
-        transactionId: result.transaction.id,
-        total: total.toFixed(2),
-        paymentMethod,
-        amountGiven,
-        change,
-        items: cart
-      };
     },
     onSuccess: async (result) => {
       // Print receipt automatically
@@ -367,7 +380,13 @@ export function ModernPOSInterface({ tillId, onBackToMenu, onGoInactive, current
       queryClient.invalidateQueries({ queryKey: ['/api/transactions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       
-      if (result.paymentMethod === 'cash' && result.change && result.change > 0) {
+      if ((result as any).offline) {
+        toast({
+          title: "Sale saved offline",
+          description: `${result.transactionId} • €${result.total}. Will sync to head office when the internet is back.`,
+          duration: 7000,
+        });
+      } else if (result.paymentMethod === 'cash' && result.change && result.change > 0) {
         toast({
           title: "Payment Successful",
           description: `Transaction #${result.transactionId} completed. Change due: €${result.change.toFixed(2)}`,

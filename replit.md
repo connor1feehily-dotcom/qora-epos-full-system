@@ -18,6 +18,15 @@ A comprehensive retail EPOS system with full demo mode, featuring advanced retai
 
 ## Recent Changes
 
+**May 2, 2026 — Real offline queue + real Web Push notifications:**
+- ✅ **Offline sales queue** — when the till loses internet, sales are saved to the device (IndexedDB via `idb-keyval`) and auto-synced when the connection returns. Visible amber banner shows offline status; blue banner shows pending sync count. POS receipt-id becomes `OFFLINE-XXXXXX` while offline; toast says "Sale saved offline". Auto-flush runs on `online` event and every 30s. 4xx replay errors are dropped (won't retry forever); 5xx/network errors keep retrying.
+  - New: `client/src/lib/offline-queue.ts`, `client/src/components/offline-indicator.tsx`
+  - Modified: `client/src/components/modern-pos-interface.tsx` (sale mutation), `client/src/App.tsx` (mounts banner, starts auto-flush)
+- ✅ **Web Push notifications (real, not stubbed)** — server uses `web-push` + auto-generated VAPID keys (stored as `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` env vars). Browser subscribes via service worker; subscriptions persisted to `.data/push-subscriptions.json` so they survive restarts. Triggers: any €100+ transaction → "Large transaction" alert; any product hitting/below `minStock` → "Stock running low" alert. Test button in back office.
+  - New: `client/public/sw.js` (push handler + network-first cache), `client/src/lib/push-client.ts`, `client/src/components/push-notification-setup.tsx`, `server/routes/push-routes.ts`
+  - Modified: `server/routes.ts` (registers push routes; transaction handler fires push), `client/src/components/back-office-dashboard.tsx` (System → "Phone Alerts" sub-tab)
+- ✅ Removed legacy `client/src/sw.js` (was being served as HTML by Vite, causing earlier registration failures). SW now lives at `client/public/sw.js` so Vite serves it from origin root.
+
 **May 2, 2026 — Deployment readiness pass:**
 - ✅ Fixed 8 broken endpoints discovered in full feature audit (root cause: `MemStorage` was missing methods declared on `IStorage`)
 - ✅ Added complete `MemStorage` implementations matching the `shared/schema.ts` contracts:

@@ -59,6 +59,7 @@ import SmartAnalytics from "./smart-analytics";
 import { SupplierOrderIntegration } from "./supplier-order-integration";
 import { SupplierDashboard } from "./supplier-dashboard";
 import { StockTakingSystem } from "./stock-taking-system";
+import { PushNotificationSetup } from "./push-notification-setup";
 
 interface BackOfficeDashboardProps {
   onBackToMenu: () => void;
@@ -961,6 +962,14 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
           Alerts
         </Button>
         <Button 
+          variant={activeSubTab === "phone-alerts" ? "default" : "outline"}
+          onClick={() => setActiveSubTab("phone-alerts")}
+          size="sm"
+        >
+          <Bell className="w-4 h-4 mr-2" />
+          Phone Alerts
+        </Button>
+        <Button 
           variant={activeSubTab === "maintenance" ? "default" : "outline"}
           onClick={() => setActiveSubTab("maintenance")}
           size="sm"
@@ -971,6 +980,7 @@ export function BackOfficeDashboard({ onBackToMenu, currentUser }: BackOfficeDas
       </div>
       
       {(activeSubTab === "" || activeSubTab === "alerts") && <SystemAlerts />}
+      {activeSubTab === "phone-alerts" && <PushNotificationSetup />}
       {activeSubTab === "maintenance" && <SystemMaintenance />}
     </div>
   );

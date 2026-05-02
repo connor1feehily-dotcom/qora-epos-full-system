@@ -36,3 +36,10 @@ args = "npm run dev"
 waitForPort = 5000
 
 [agent]
+
+[userenv]
+
+[userenv.shared]
+VAPID_PUBLIC_KEY = "BBLxJVCvc_-q7PlkiZfw9JZjxLo6Wk5NQQucQmCpXyGFfW-_bqNsTi-bfnBAIhQ6V7zQQZs30XhdP0Y7LGSbmXY"
+VAPID_PRIVATE_KEY = "cwPY6HhNdLVGJ5hqUBXm6nwDFSI0dZNXpdATCSJlLtg"
+VAPID_SUBJECT = "mailto:admin@kerriganxl.ie"
